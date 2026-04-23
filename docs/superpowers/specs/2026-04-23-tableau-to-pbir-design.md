@@ -1,9 +1,9 @@
 # Tableau → Power BI (PBIR) Converter — Design
 
 - **Date:** 2026-04-23
-- **Status:** Approved (post-review patch) for implementation planning
+- **Status:** Approved (post-final_1 review patch) for implementation planning
 - **Working directory:** `C:\Tableau_PBI`
-- **Review:** `C:\Tableau_PBI\review.md` (findings 1–5 + suggestions 1–4, all applied — see Appendix A for change log)
+- **Reviews applied:** `C:\Tableau_PBI\review.md` (5 findings + 4 suggestions), `C:\Tableau_PBI\final.md` (4 findings), `C:\Tableau_PBI\final_1.md` (5 findings) — see Appendix A
 
 ## 1. Scope
 
@@ -320,10 +320,21 @@ Stage 2 classifies each `<datasource>` in the `.twb` into one of four tiers. The
 
 | Tableau source | Strategy |
 |---|---|
-| Cross-database joins | Attempt: flatten into single M query reading both sources. Fallback: emit two M tables + model relationship. |
+| Cross-database joins | Strategy depends on the pair — see sub-matrix below. Never blindly flatten DB↔DB pairs. |
 | Data blends (viz-time joins) | Model as semantic-model relationship when grain matches linking field (one-to-many). Demote to "unsupported viz binding" when grain/cardinality looks risky. |
 | Custom SQL (`<custom-sql>`) | Emit as `Value.NativeQuery` with SQL preserved verbatim; warn that PBI connector SQL dialect may differ. |
 | Initial SQL (pre-query) | Preserved as a `Native` step prefix; warned. |
+
+**Cross-database join sub-matrix** (narrowed per review finding 3 — flatten only for tested, safe pairs):
+
+| Pair | Strategy | Status |
+|---|---|---|
+| File + File (CSV / Excel) | Flatten into single M using `Table.Join` on in-memory sources | `partial` |
+| SQL-backed + File (SQL Server / Postgres / Snowflake / BigQuery / Redshift / MySQL / Oracle / Databricks / Teradata + CSV or Excel) | Flatten into single M: `Value.NativeQuery` (or connector query) on the SQL side + `Csv.Document` / `Excel.Workbook` on the file side, joined in M | `partial` |
+| Any other DB↔DB pair (e.g., Snowflake + Oracle, Postgres + BigQuery) | **Never flatten.** Emit as two separate M tables + model relationship **iff** grain/cardinality of the link field can be inferred from IR (link column is a key or tagged unique). Otherwise drop the join, classify as `unsupported`, log to `unsupported.json`. | `partial` if relationship emitted; forces `failed` trigger path (dropped measures) if grain unprovable for all joins |
+| Any pair where the link field has no clear grain and is not tagged as a key | Drop the join, classify as `unsupported`. | contributes to `>50% measures dropped` check |
+
+Rationale: in-process M flattening only works well when at least one side is local/small (a file) or queryable (SQL pushdown). DB↔DB flattening via `Table.Join` pulls both datasets into the mashup engine and is slow, fragile, and connector-dependent. A provable relationship is honest; a silently-dropped join is not.
 
 **Tier 4 — unsupported** (forces workbook status → `failed` because no working report without data)
 
@@ -379,7 +390,7 @@ Stage 2 classifies each `<datasource>` in the `.twb` into one of four tiers. The
     - `table_calc.frame=window` — DATESINPERIOD or window measure pattern.
     - `table_calc.frame=lookup` — LOOKUPVALUE or offset measure pattern.
   - On rule miss → `LLMClient.translate_calc(calc_subset)` → `{dax_expr, confidence, notes}`. Input bundle includes the enriched IR subset (kind, table_calc/lod_fixed/lod_relative, depends_on signatures).
-  - Validate output by parsing as DAX (sqlglot tsql dialect or msdax-py). Failed validation → drop to `unsupported[]`.
+  - **Syntax gate:** validate output by parsing as DAX (sqlglot tsql dialect or msdax-py). Parse failure → drop to `unsupported[]`. Note: this is syntax only; semantic correctness is verified by §9 layer iv-c on the downstream TMDL.
   - For `lod_include` / `lod_exclude` and anonymous calcs, emit one DAX measure per `(calc, consuming_sheet)` named `<calc_name>__<sheet_safe_name>`.
 - **AI:** structured-output via tool-use; strict output schema `{dax_expr, confidence ∈ {high,medium,low}, notes}`; validator: parses as DAX; per-fixture snapshot; cached by hash.
 - **Summary.md:** count by translation source (rule vs AI); rule hit counts; AI confidence histogram; AI cache hit rate; calcs that failed validation.
@@ -420,22 +431,26 @@ Stage 2 classifies each `<datasource>` in the `.twb` into one of four tiers. The
 
 - **Input:** `05_layout.json` (reads stage 4 + stage 3 transitively via IR).
 - **Output:** `./out/<wb>/Report/definition/` tree of PBIR JSON files + `07_pbir.json` manifest.
-- **Algorithm:** For each Tableau dashboard → one PBIR `page/`. For each leaf with a sheet → a PBIR `visual/` using the `pbir_visual` binding from stage 4 + position from stage 5. Filter cards → slicers. Parameter cards → slicers bound to the §5.7-emitted tables. Actions → PBIR `visualInteractions` + bookmark navigation. Workbook-level filters → page filters (promoted to report filter when the same filter applies to all pages).
-- **Summary.md:** page count; visual count by type; slicers/filters/actions; bookmark count.
+- **Algorithm:** For each Tableau dashboard → one PBIR `page/`. For each leaf with a sheet → a PBIR `visual/` using the `pbir_visual` binding from stage 4 + position from stage 5. Filter cards → slicers. Parameter cards → slicers bound to the §5.7-emitted tables. Actions → PBIR `visualInteractions` + bookmark navigation. Workbook-level filters → page filters (promoted to report filter when the same filter applies to all pages). **Emit `blocked_visuals[]`** in the stage manifest: for every rendered-page visual whose backing field traces to a `deferred_feature_*` or `connector_tier == 4` datasource, record `{page_id, visual_id, blocked_by: [unsupported.id, ...]}`. §8.1 consumes this list.
+- **Summary.md:** page count; visual count by type; slicers/filters/actions; bookmark count; `blocked_visuals` count.
 - **Tests:** unit per emitter; golden on PBIR JSON; validity via `pbi-tools compile`.
 
 ### Stage 8 — package + validate (pure python)
 
 - **Input:** stages 6 + 7 outputs.
-- **Output:** `<wb>.pbip` + `workbook-report.md` + `acceptance.json` (real-workbook subset only, per §15).
+- **Output:** `<wb>.pbip` + `workbook-report.md` + `acceptance.json` (real-workbook subset only, per §15). Step order: package → TMDL validity → PBIR compile → structural checks → Desktop-open gate → rubric evaluation → final status. Rubric is an input to the status rule, not a post-hoc override.
 - **Algorithm:**
   1. Write `.pbip` root file with project pointers; assemble `SemanticModel/` + `Report/` per PBIR project layout.
   2. **TMDL validity:** TabularEditor 2 CLI (`TabularEditor.exe -B /c <path>`) + AnalysisServices .NET load probe.
   3. **PBIR compile validity:** `pbi-tools compile <path>` must succeed.
   4. **Structural checks:** every visual references an existing measure/column; every relationship's tables exist; no orphan slicers; per-sheet LOD measure names resolve.
-  5. **Desktop-open gate (real-workbook subset only):** `tableau2pbir.validate.desktop_open` launches `PBIDesktop.exe /Open <pbip>`, parses `%LOCALAPPDATA%\Microsoft\Power BI Desktop\Traces\` for events; passes iff no ERROR events, no `RepairPrompt` event, both `ReportLoaded` and `ModelLoaded` events present. Timeout: **300s per workbook**. One retry on suspected flake.
-  6. Compute workbook `status` per §8.1.
-  7. Emit `acceptance.json` per §15 rubric for real workbooks.
+  5. **Desktop-open gate (real-workbook subset only):** `tableau2pbir.validate.desktop_open` launches `PBIDesktop.exe /Open <pbip>` and parses `%LOCALAPPDATA%\Microsoft\Power BI Desktop\Traces\` for events. Pass criteria split by datasource tier of the workbook:
+     - **All datasources Tier 1**: require `ReportLoaded` **AND** `ModelLoaded`; no ERROR events; no `RepairPrompt`.
+     - **Any datasource Tier 2**: require `ReportLoaded` only. `AuthenticationNeeded` / `AuthUIDisplayed` events are **expected credential prompts** — recorded separately in the trace summary, do not count as failures. Absence of `ModelLoaded` is acceptable. ERROR events that are not auth-related are still failures.
+     - **Any datasource Tier 4** would have already forced `failed` at §8.1; Tier 3 follows the Tier 1 or Tier 2 rule based on whether the degraded connector prompts for credentials (per §5.8).
+     Timeout: **300s per workbook**. One retry on suspected flake.
+  6. **Rubric evaluation (real-workbook subset only):** load `<wb>.rubric.yaml`; evaluate each `pass_criteria` item; emit `acceptance.json` with `pass|fail` + observed value per item. Any failing `pass_criteria: true` produces an `acceptance_failed` signal that feeds §8.1.
+  7. **Compute final workbook `status` per §8.1** (reads all validation results including `acceptance_failed`).
 - **Summary.md:** validation pass/fail per check; Desktop-open trace event highlights; total artifact size; link to `workbook-report.md`.
 - **Tests:** end-to-end golden (synthetic + 3-5 real workbooks); TMDL validity; PBIR compile validity; Desktop-open gate on real-workbook subset; rubric pass/fail.
 
@@ -448,13 +463,22 @@ class LLMClient:
     def cleanup_name(raw_name, kind) -> CleanupNameResult
 ```
 
+**Prompt layout** — every AI call site has its own folder under `src/tableau2pbir/llm/prompts/<method>/` containing:
+
+- `system.md` — the system prompt text (sent with `cache_control: ephemeral` so prompt caching kicks in).
+- `tool_schema.json` — the Anthropic tool-use input schema, single source of truth. The pydantic output model is derived from this file; the tool passed to `anthropic.messages.create` is derived from this file.
+- `examples/` (optional) — few-shot fixtures concatenated into the system prompt.
+- `VERSION` — semver string. Bumping this version invalidates matching entries in `.tableau2pbir-cache/llm/` and in `tests/llm_snapshots/<method>/`, forcing fresh re-record under review.
+
+At LLMClient init time, each method's folder is loaded once; the hash of `(system.md + tool_schema.json + VERSION + examples/*)` becomes `system_prompt_hash + tool_schema_hash` in the cache key below.
+
 Each method:
 
 1. Build pydantic input bundle from the enriched IR subset (§5.6 / §5.7 data included).
 2. `cache_key = hash(model + system_prompt_hash + tool_schema_hash + input)`.
 3. If cache hit → return cached parsed output (zero tokens).
 4. If `PYTEST_SNAPSHOT=replay` → return from `tests/llm_snapshots/` (zero network).
-5. Else: `anthropic.messages.create(model="claude-sonnet-4-6", temperature=0, system=[{type:"text", text:PROMPT, cache_control:{type:"ephemeral"}}], tools=[OUTPUT_TOOL], tool_choice={type:"tool", name:OUTPUT_TOOL.name})`.
+5. Else: `anthropic.messages.create(model="claude-sonnet-4-6", temperature=0, system=[{type:"text", text: system_md, cache_control:{type:"ephemeral"}}], tools=[OUTPUT_TOOL], tool_choice={type:"tool", name:OUTPUT_TOOL.name})`.
 6. Parse the `tool_use` block strictly into pydantic.
 7. Run domain validator (DAX parses; visual_type ∈ catalog).
 8. Valid → write to cache, return. Invalid → retry once with validator feedback; then drop the record into `unsupported[]`.
@@ -482,6 +506,9 @@ status = 'failed' if ANY of:
   • any dashboard with placeholder-leaf-ratio >= 0.5
   • TMDL validity or PBIR compile fails (stage 8)
   • Desktop-open gate fails (real-workbook subset only)
+  • acceptance_failed: any `pass_criteria: true` item in `<wb>.rubric.yaml` evaluates `fail` (real-workbook subset only)
+  • any deferred datasource (`unsupported.code` starts with `deferred_feature_` AND object_kind == 'datasource') is referenced by any rendered page visual — read from stage 7's `blocked_visuals[]` list
+  • any deferred feature blocks a required rubric item (real-workbook subset; `must_render_visuals` / `must_have_slicers` entry maps to a `deferred_feature_*` item)
 
 elif status = 'partial' if ANY of:
   • any placeholder leaves in any dashboard (placeholder-leaf-ratio > 0)
@@ -490,6 +517,7 @@ elif status = 'partial' if ANY of:
   • any datasource with connector_tier == 3
   • any datasource with user_action_required including driver install (Oracle, Teradata)
   • any parameter with intent == 'unsupported'
+  • any unsupported[] item with `code` starting `deferred_feature_` (deferred behind a v1 feature flag)
 
 else status = 'ok'
 ```
@@ -515,7 +543,7 @@ Runner behavior:
 
 ## 9. Testing strategy
 
-Seven layers (was six; added vii):
+Seven primary layers (validity layer iv has three sub-layers: iv / iv-b / iv-c):
 
 | Layer | Runs on | Lives in |
 |---|---|---|
@@ -524,12 +552,15 @@ Seven layers (was six; added vii):
 | iii — golden-file (.twb→.pbip) | every PR | `tests/golden/{synthetic,real,expected}/` |
 | iv — TMDL validity (TE2 + AS load probe) | every PR | `tests/validity/tmdl/` |
 | iv-b — PBIR compile validity (`pbi-tools compile`) | every PR | `tests/validity/pbir/` |
+| **iv-c — synthetic DAX semantic probes** | every PR | `tests/validity/dax_semantic/` |
 | vi — AI snapshot | PRs touching prompts/schemas + nightly + pre-release | `tests/llm_snapshots/<method>/<fixture>.json` |
 | **vii — Desktop-open gate (real-workbook subset)** | every PR | `tests/desktop_open/` (Windows CI runner only) |
 
 Visual regression (v) deferred — see §11.
 
-**Corpus (layered):**
+**Role of the DAX validator in stage 3.** The `util/dax_parser.py` validator that runs inside stage 3 is a **syntax gate** only — it ensures the string parses as DAX. Passing it does **not** certify semantic correctness. Semantic correctness is verified by testing layer iv-c below.
+
+**Corpus (layered) — full roadmap.** The corpus below is the **full-roadmap target**. The v1 CI run executes the v1-scope subset (see §16 for the fixture count and rule); deferred-feature fixtures live alongside v1 fixtures in the same tree but are tagged with their feature-flag name and skipped by pytest collection unless the matching `--with-*` flag is on in the CI matrix.
 
 - `tests/golden/synthetic/*.twb` — ~50 hand-authored single-feature workbooks (one calc per file, one viz per file, one dashboard layout pattern per file). Includes:
   - One per calc `kind` × `frame` combination (~25 fixtures).
@@ -537,6 +568,24 @@ Visual regression (v) deferred — see §11.
   - One per connector Tier-1 and Tier-2 kind (~12 fixtures).
   - Edge-case fixtures: missing hyper `<connection>` (→ Tier 4), cross-DB join (→ Tier 3), quick table calc.
 - `tests/golden/real/*.twbx` — 3–5 representative production workbooks for end-to-end coverage. Each paired with `tests/golden/real/<wb>.rubric.yaml` (§15).
+
+**DAX semantic probes (layer iv-c) — details:**
+
+- Every synthetic calc fixture in v1 scope (`row`, `aggregate`, `lod_fixed`, `Parameter.intent ∈ {numeric_what_if, categorical_selector, internal_constant}`, filter-sensitive measures) ships with a sibling file `<fixture>.expected_values.yaml`:
+  ```yaml
+  probes:
+    - calc: "Total Sales"
+      filter_context: {}                                   # no filters
+      expected: 1234.56
+      tolerance: 0.0001
+    - calc: "Sales Per Region FIXED"
+      filter_context: { Region: "West", Year: 2024 }
+      expected: 423.10
+      tolerance: 0.0001
+  ```
+- CI loads the generated TMDL via the existing AnalysisServices .NET load probe, runs each `(calc, filter_context)` as a DAX `EVALUATE ROW(...)` query, and compares against `expected` within `tolerance`.
+- Author once per fixture (the fixture author captures expected values from Tableau). Regenerate only when the fixture's Tableau semantics change.
+- v1 calc kinds **require** at least one probe per fixture. Deferred kinds (`table_calc`, `lod_include`, `lod_exclude`) ship probes alongside their fixtures so they are ready when the feature flag flips on.
 
 **AI snapshot details:**
 
@@ -549,7 +598,7 @@ Visual regression (v) deferred — see §11.
 - Windows CI runner with PBI Desktop installed.
 - Timeout: **300s per workbook**. Budget: ~15–25 min added per PR for 3–5 real workbooks.
 - One retry on suspected flake (trace shows no load events within first 60s — assume process hung).
-- Trace event parser is version-tolerant: maps multiple Desktop versions' event names to the canonical set `{ReportLoaded, ModelLoaded, RepairPrompt, ModelError, VisualError}`. Small per-version probe fixtures maintained in `tests/desktop_open/version_probes/`.
+- Trace event parser is version-tolerant: maps multiple Desktop versions' event names to the canonical set `{ReportLoaded, ModelLoaded, RepairPrompt, ModelError, VisualError, AuthenticationNeeded, AuthUIDisplayed}`. Auth events are expected for Tier 2 workbooks and are recorded as "expected credential prompts" separately from failures (see §6 stage 8 step 5). Small per-version probe fixtures maintained in `tests/desktop_open/version_probes/`.
 
 ## 10. Project layout
 
@@ -571,9 +620,23 @@ tableau2pbir/
 │   │   ├── cache.py            # on-disk response cache
 │   │   ├── snapshots.py        # test replay mode
 │   │   └── prompts/
-│   │       ├── translate_calc.md
-│   │       ├── map_visual.md
-│   │       └── cleanup_name.md
+│   │       ├── translate_calc/
+│   │       │   ├── system.md           # the system prompt text (Anthropic prompt-cached)
+│   │       │   ├── tool_schema.json    # output tool-use JSON Schema (single source of truth)
+│   │       │   ├── examples/           # optional few-shot fixtures loaded into system prompt
+│   │       │   │   ├── 001_lod_fixed.json
+│   │       │   │   ├── 002_table_calc_rank.json
+│   │       │   │   └── ...
+│   │       │   └── VERSION             # semver; bump invalidates snapshot cache + AI on-disk cache entries
+│   │       ├── map_visual/
+│   │       │   ├── system.md
+│   │       │   ├── tool_schema.json    # enumerates the PBIR visual catalog; constrains output
+│   │       │   ├── examples/
+│   │       │   └── VERSION
+│   │       └── cleanup_name/
+│   │           ├── system.md
+│   │           ├── tool_schema.json
+│   │           └── VERSION
 │   ├── stages/
 │   │   ├── s01_extract.py
 │   │   ├── s02_canonicalize.py
@@ -611,7 +674,8 @@ tableau2pbir/
 │   │   └── expected/<wb>/
 │   ├── validity/
 │   │   ├── tmdl/
-│   │   └── pbir/
+│   │   ├── pbir/
+│   │   └── dax_semantic/              # §9 layer iv-c — expected_values.yaml + runner
 │   ├── desktop_open/
 │   │   └── version_probes/          # trace-event-name mapping per PBI Desktop version
 │   └── llm_snapshots/
@@ -725,9 +789,10 @@ pass_criteria:
 
 **Stage 8 evaluation:**
 
+- Stage 8 evaluates the rubric **before** computing final status (§6 stage 8 step 6; see also §8.1).
 - For each rubric item, `acceptance.json` records `pass|fail` with the observed value.
 - "measure value tolerance" checks: run a DAX probe query via AS load probe, compare to an expected value the rubric author captured from Tableau.
-- Any `pass_criteria: true` that evaluates `fail` forces the workbook to `failed` even if §8.1 would have classified it `partial` or `ok`. This keeps analytical fidelity as the overriding signal on named-fidelity workbooks.
+- Any failing `pass_criteria: true` contributes `acceptance_failed` to the §8.1 rule, which forces the workbook to `failed`. This keeps analytical fidelity as the overriding signal on named-fidelity workbooks without bypassing the single source-of-truth status rule.
 
 **What the rubric does NOT try to capture:**
 
@@ -735,9 +800,65 @@ pass_criteria:
 - Exact visual type match (PBI visuals are often "close enough"; dropping to strict equality causes false failures).
 - Formatting details (font, color shades, gridline weights) — low information value, high churn.
 
-## Appendix A — Change log from 2026-04-23 v1
+## 16. MVP cut line (addresses final.md finding 4)
 
-Applied in this revision (all from `C:\Tableau_PBI\review.md`):
+v1 is deliberately smaller than the full coverage table so we can ship a usable converter quickly, harden Stage 8 + Desktop-open-gate telemetry on a focused surface, then expand.
+
+**v1 — in scope**
+
+| Area | Included |
+|---|---|
+| Connectors | Tier 1 + Tier 2 (see §5.8) |
+| Marks | bar, line, area, scatter, text-table, pie, filled map |
+| Calculations | `kind ∈ {row, aggregate, lod_fixed}`; full `row` + `aggregate` rule library; FIXED LOD |
+| Parameters | `intent ∈ {numeric_what_if, categorical_selector, internal_constant}` |
+| Dashboards | tiled + floating layout with absolute position resolution (§6 Stage 5 fully) |
+| Filters | categorical, range, top-N, context (with precedence caveat) |
+| Encodings | color, size, label, tooltip (basic), detail, shape, angle |
+| Dual axis | matched-type dual axis |
+| Reference lines | constant, average, median |
+| Actions | filter action, highlight action |
+| Validation | all 7 testing layers, including Desktop-open gate on real-workbook subset |
+
+**v1 — deferred (feature-flagged, post-v1 milestones)**
+
+| Area | Flag / milestone | Reason |
+|---|---|---|
+| `table_calc` (all frames) | `--with-table-calcs` (v1.1) | Highest-complexity translation + AI fallback surface; iterate after v1 telemetry shows which frames matter |
+| `lod_include` / `lod_exclude` | `--with-lod-relative` (v1.1) | Per-sheet measure expansion adds volume; wait for real-workbook distribution |
+| Tier 3 connectors (cross-DB joins, blends, custom SQL, initial SQL) | `--with-tier3` (v1.2) | Each sub-case has narrow tested surface; scale once Tier 1/2 is stable |
+| Mismatched dual-axis marks | `--with-mixed-dual-axis` (v1.1) | AI combo-chart mapping; low-confidence by nature |
+| viz-in-tooltip | `--with-report-page-tooltips` (v1.2) | PBI report-page tooltips have layout constraints; requires care |
+| `formatting_control` parameters | `--with-format-switch` (v1.1) | Depends on `table_calc` rule library for switch patterns |
+| Device Designer mobile layout | `--with-mobile-layout` (v1.2) | Separate reflow pass |
+| URL actions | `--with-url-actions` (v1.1) | Parameter embedding in URLs is best-effort |
+| Symbol map | `--with-symbol-map` (v1.1) | No tested PBIR visual mapping yet — §2 classifies as Partial; defer until a tested mapping ships |
+
+**v1 — unchanged (still unsupported, both v1 and v2)**
+
+Story points, annotations, R/Python visuals, custom shapes, forecast/trend lines, set actions, parameter-change cascades, Tier 4 connectors, Tableau Server / Online datasources. See §2 and §14.
+
+**v1 acceptance scope**
+
+Relationship to §9 corpus: **§9 describes the full-roadmap corpus (~50 synthetic fixtures + 3–5 real workbooks). §16 defines the v1 CI subset (~30 fixtures, strict subset).** One tree, two run modes — selection driven by pytest markers + CI matrix flags, not by separate directories.
+
+- `tests/golden/synthetic/`:
+  - **~30 v1 fixtures** run on every PR: one per v1 calc kind (`row`, `aggregate`, `lod_fixed`), one per v1 `Parameter.intent`, one per Tier-1 and Tier-2 connector kind, v1-scope mark types, dashboard layout patterns.
+  - **~20 deferred fixtures** also present in the tree (authored alongside v1 fixtures for future-proofing). Each is tagged `@pytest.mark.feature_flag("with_table_calcs")` etc. and **skipped by default**. CI matrix adds jobs `v1`, `v1.1-preview`, `v1.2-preview` that toggle the flag sets accordingly.
+- `tests/golden/real/*.twbx`:
+  - Real workbooks are curated for v1 end-to-end coverage. Each `.rubric.yaml` declares the v1 features it exercises.
+  - Workbooks that require a deferred feature are authored once and tagged — skipped in v1 CI, run in the matching preview matrix job.
+- **`workbook-report.md` for a v1 conversion** lists any v1-deferred feature encountered as `deferred-feature-detected: <feature> requires flag <name> (v1.x)` — distinct from `unsupported[]`, though the object also lives in `unsupported[]` with a `deferred_feature_*` code so §8.1 triggers fire per finding-3 rules.
+
+**Status rule behavior in v1:** flags gate *execution*, not detection. Stage 2 still classifies every object per §5.6 / §5.7 / §5.8 regardless of flag state. When a required flag is off and a deferred feature is encountered, stage 2 routes the affected object to `unsupported[]` with a stable code `deferred_feature_<name>`. §8.1 now handles these directly (see that section for the full rule):
+- **`partial`** on encountering *any* `deferred_feature_*` item — surfaces the degradation even when the volume thresholds are not crossed.
+- **`failed`** when a deferred datasource is referenced by a rendered page visual (stage 7 emits `blocked_visuals[]` for this), or when a deferred feature blocks a rubric item marked `must_*` (real-workbook subset).
+
+This gives direct, deterministic status feedback for v1-deferred objects rather than relying on indirect volume thresholds.
+
+## Appendix A — Change log
+
+### A.1 From 2026-04-23 v1 — applied from `C:\Tableau_PBI\review.md`
 
 1. **Finding 1 (IR calc semantics, HIGH)** — §5.6 added. `Calculation` gains `kind`, `phase`, `table_calc`, `lod_fixed`, `lod_relative`, `owner_sheet_id`. Quick table calcs modeled as anonymous calcs. LOD INCLUDE/EXCLUDE handled via per-sheet measure expansion. Topo-sort gets a (calc × sheet) lane.
 2. **Finding 2 (Desktop validation, HIGH)** — §9 adds layer vii (Desktop-open gate on real-workbook subset). §6 stage 8 adds TE2 + pbi-tools + Desktop-open. Timeout 300s. §15 golden acceptance rubric ties analytical fidelity to workbook status.
@@ -749,4 +870,26 @@ Applied in this revision (all from `C:\Tableau_PBI\review.md`):
 8. **Suggestion 3 (compatibility ledger)** — §14 added.
 9. **Suggestion 4 (acceptance rubric)** — §15 added; `<wb>.rubric.yaml` schema defined.
 
-Also fixed in this revision: §1 and §9 `§10 → §11` stale references (carried over from v1 self-review); §9 `(5b = layered)` Q-number footprint removed.
+Also fixed in that revision: §1 and §9 `§10 → §11` stale references; §9 `(5b = layered)` Q-number footprint removed.
+
+### A.2 From final review — applied from `C:\Tableau_PBI\final.md`
+
+1. **Finding 1 (Stage 8 validation order)** — §6 stage 8 algorithm reordered so rubric evaluation (step 6) precedes final-status computation (step 7). §8.1 gains `acceptance_failed` as an explicit `failed` trigger (real-workbook subset). §15 reframed: rubric contributes a signal to §8.1 rather than overriding it post-hoc. Output-description line in §6 stage 8 now states the step order explicitly.
+2. **Finding 2 (Tier 2 credential behavior)** — §6 stage 8 step 5 split into per-tier pass criteria: Tier 1 workbooks require `ReportLoaded` + `ModelLoaded`; Tier 2 workbooks require `ReportLoaded` only and treat `AuthenticationNeeded` / `AuthUIDisplayed` as expected (recorded separately, not failures); Tier 3 defers to Tier 1 or Tier 2 rule based on the connector's credential behavior. §9 layer vii canonical event set extended with `AuthenticationNeeded` and `AuthUIDisplayed`.
+3. **Finding 3 (Tier 3 cross-DB join narrowing)** — §5.8 Tier 3 cross-database-join strategy replaced with a tested-pair sub-matrix. File+File and SQL+File pairs flatten; DB↔DB pairs never flatten — they emit as two tables + relationship if grain/cardinality is provable, otherwise drop the join to `unsupported[]`. Unprovable grain still routes through §8.1's `>50% measures dropped` path.
+4. **Finding 4 (MVP cut line)** — §16 added. v1 is Tier 1+2 connectors, basic marks, `row` / `aggregate` / `lod_fixed` calcs, 3 parameter intents, full tiled+floating layout, all 7 test layers. Deferred behind flags/milestones: table_calcs, LOD INCLUDE/EXCLUDE, Tier 3, mismatched dual-axis, viz-in-tooltip, formatting_control parameters, Device Designer mobile, URL actions. §10 project layout unchanged (v1-deferred code paths still exist; the flags gate their execution, not their presence in the tree).
+
+### A.3 Prompt organization
+
+Per-prompt folder structure introduced in §7 and §10: each LLM call site (`translate_calc`, `map_visual`, `cleanup_name`) has its own folder under `src/tableau2pbir/llm/prompts/<method>/` containing `system.md`, `tool_schema.json`, optional `examples/`, and a `VERSION` file that invalidates on-disk cache and snapshot entries when bumped.
+
+### A.4 From MVP review — applied from `C:\Tableau_PBI\final_1.md`
+
+1. **Finding 1 (symbol map scope)** — removed `symbol map` from §16 v1 marks list (§2 classifies it as Partial, and no tested PBIR visual mapping exists). Added row in the v1-deferred table behind `--with-symbol-map` flag.
+2. **Finding 2 (synthetic DAX semantic probes)** — added testing layer **iv-c** in §9 (`tests/validity/dax_semantic/`). Each v1 synthetic calc fixture ships with a sibling `<fixture>.expected_values.yaml` consumed by an AS load-probe runner. Stage 3's existing DAX-parse validator is explicitly renamed to "syntax gate" in both §6 stage 3 and §9. Added `src/tableau2pbir/validate/` path alignment in §10.
+3. **Finding 3 (deferred-feature status triggers)** — §8.1 gains direct triggers:
+   - `failed` when a deferred datasource is referenced by any rendered-page visual (stage 7 now emits `blocked_visuals[]`), or when a deferred feature blocks a `must_*` rubric item.
+   - `partial` on any `unsupported[]` item with `code` starting `deferred_feature_`.
+   §16's "status rule behavior" section rewritten to point at the new direct triggers rather than the indirect volume-threshold path. Stage 7 output contract updated.
+4. **Finding 4 (corpus split clarification)** — §9 header clarifies it describes the full-roadmap corpus; §16 states the v1 CI subset (~30 of ~50 fixtures) runs on every PR, deferred fixtures live in the same tree, tagged with their flag, and are skipped by default pytest collection. CI matrix jobs (`v1`, `v1.1-preview`, `v1.2-preview`) toggle flag sets.
+5. **Finding 5 (§Stage 5 typo)** — fixed: now `§6 Stage 5`.
