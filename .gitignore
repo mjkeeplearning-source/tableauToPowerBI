@@ -1,0 +1,48 @@
+# Brainstorm artifacts (visual-companion scratch space)
+.superpowers/
+
+# LLM response cache (regenerable; reruns spend zero tokens after first run)
+.tableau2pbir-cache/
+
+# Conversion output
+/out/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Credentials / secrets (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Intermediate PBIR build artifacts
+*.pbix
+
+# Claude Code local overrides (keep plugin enablement in .claude/settings.json, ignore personal overrides)
+.claude/settings.local.json
