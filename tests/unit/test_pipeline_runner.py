@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
 from tableau2pbir.pipeline import (
-    STAGE_SEQUENCE, PipelineResult, StageContext, run_pipeline,
+    STAGE_SEQUENCE, PipelineResult, run_pipeline,
 )
 
 

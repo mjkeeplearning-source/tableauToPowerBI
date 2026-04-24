@@ -12,7 +12,7 @@ from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 def test_committed_schema_matches_generated(repo_root: Path):
     artifact_path = repo_root / "schemas" / f"ir-v{IR_SCHEMA_VERSION}.schema.json"
     assert artifact_path.exists(), \
-        f"committed schema missing; run `make schema` to regenerate."
+        "committed schema missing; run `make schema` to regenerate."
 
     committed = json.loads(artifact_path.read_text(encoding="utf-8"))
     generated = generate_ir_schema()
