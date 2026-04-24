@@ -116,7 +116,7 @@ Expected: `Python 3.11.x` or newer. If not, install 3.11+ before starting. On Wi
 - Create: `.python-version`
 - Create: `Makefile`
 
-- [ ] **Step 1.1: Write `pyproject.toml`**
+- [x] **Step 1.1: Write `pyproject.toml`**
 
 ```toml
 [build-system]
@@ -162,7 +162,7 @@ python_version = "3.11"
 strict = true
 ```
 
-- [ ] **Step 1.2: Write `README.md`**
+- [x] **Step 1.2: Write `README.md`**
 
 ```markdown
 # tableau2pbir
@@ -193,7 +193,7 @@ make test-v1.1     # v1 + v1.1-preview features
 ```
 ```
 
-- [ ] **Step 1.3: Write `config.yaml.example`**
+- [x] **Step 1.3: Write `config.yaml.example`**
 
 ```yaml
 # Copy to config.yaml and edit. Values shown are defaults.
@@ -215,13 +215,13 @@ canvas:
 feature_flags: []   # e.g. ["with_table_calcs", "with_tier3"]
 ```
 
-- [ ] **Step 1.4: Write `.python-version`**
+- [x] **Step 1.4: Write `.python-version`**
 
 ```
 3.11
 ```
 
-- [ ] **Step 1.5: Write `Makefile`**
+- [x] **Step 1.5: Write `Makefile`**
 
 ```makefile
 .PHONY: install test test-v1.1 test-v1.2 lint typecheck schema clean
@@ -251,7 +251,7 @@ clean:
 	rm -rf .tableau2pbir-cache .pytest_cache .mypy_cache .ruff_cache dist build
 ```
 
-- [ ] **Step 1.6: Create virtual environment and install**
+- [x] **Step 1.6: Create virtual environment and install**
 
 ```bash
 python -m venv .venv
@@ -261,7 +261,7 @@ pip install -e ".[dev]"
 
 Expected: `Successfully installed tableau2pbir-0.1.0 ...` plus dev deps.
 
-- [ ] **Step 1.7: Commit**
+- [x] **Step 1.7: Commit**
 
 ```bash
 git add pyproject.toml README.md config.yaml.example .python-version Makefile
@@ -277,7 +277,7 @@ git commit -m "chore: initialize python project with pyproject and dev deps"
 - Create: `tests/__init__.py` (empty)
 - Create: `tests/conftest.py`
 
-- [ ] **Step 2.1: Write `pytest.ini`**
+- [x] **Step 2.1: Write `pytest.ini`**
 
 ```ini
 [pytest]
@@ -298,9 +298,9 @@ markers =
     desktop_open: requires PBI Desktop install and Windows CI runner
 ```
 
-- [ ] **Step 2.2: Write `tests/__init__.py`** — empty file.
+- [x] **Step 2.2: Write `tests/__init__.py`** — empty file.
 
-- [ ] **Step 2.3: Write `tests/conftest.py`**
+- [x] **Step 2.3: Write `tests/conftest.py`**
 
 ```python
 """Shared pytest fixtures for the tableau2pbir test suite."""
@@ -330,7 +330,7 @@ def snapshot_replay_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PYTEST_SNAPSHOT", "replay")
 ```
 
-- [ ] **Step 2.4: Write a trivial meta-test to verify markers load**
+- [x] **Step 2.4: Write a trivial meta-test to verify markers load**
 
 Create `tests/unit/test_pytest_config.py`:
 
@@ -360,7 +360,7 @@ def test_feature_flag_markers_registered():
 
 Also create `tests/unit/__init__.py` (empty).
 
-- [ ] **Step 2.5: Run test — verify pass**
+- [x] **Step 2.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/test_pytest_config.py -v
