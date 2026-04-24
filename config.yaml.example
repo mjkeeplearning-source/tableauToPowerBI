@@ -1,0 +1,17 @@
+# Copy to config.yaml and edit. Values shown are defaults.
+
+llm:
+  translate_calc:
+    model: claude-sonnet-4-6
+  map_visual:
+    model: claude-sonnet-4-6
+  cleanup_name:
+    model: claude-sonnet-4-6
+
+cache:
+  dir: .tableau2pbir-cache/llm
+
+canvas:
+  default_size: [1366, 768]
+
+feature_flags: []   # e.g. ["with_table_calcs", "with_tier3"]
