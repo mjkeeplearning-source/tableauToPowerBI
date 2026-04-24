@@ -368,7 +368,7 @@ pytest tests/unit/test_pytest_config.py -v
 
 Expected: `1 passed`.
 
-- [ ] **Step 2.6: Commit**
+- [x] **Step 2.6: Commit**
 
 ```bash
 git add pytest.ini tests/__init__.py tests/conftest.py tests/unit/__init__.py tests/unit/test_pytest_config.py
@@ -387,7 +387,7 @@ git commit -m "test: configure pytest with feature-flag markers per spec §16"
 - Create: `tests/unit/ir/__init__.py`
 - Create: `tests/unit/ir/test_common.py`
 
-- [ ] **Step 3.1: Write failing test**
+- [x] **Step 3.1: Write failing test**
 
 `tests/unit/ir/test_common.py`:
 
@@ -428,21 +428,21 @@ def test_unsupported_item_rejects_missing_fields():
         UnsupportedItem()  # type: ignore[call-arg]
 ```
 
-- [ ] **Step 3.2: Run test to verify failure**
+- [x] **Step 3.2: Run test to verify failure**
 
 ```bash
 pytest tests/unit/ir/test_common.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir'` (or similar import error).
 
-- [ ] **Step 3.3: Write `src/tableau2pbir/__init__.py`**
+- [x] **Step 3.3: Write `src/tableau2pbir/__init__.py`**
 
 ```python
 """tableau2pbir — Tableau to Power BI (PBIR) converter."""
 __version__ = "0.1.0"
 ```
 
-- [ ] **Step 3.4: Write `src/tableau2pbir/ir/__init__.py`**
+- [x] **Step 3.4: Write `src/tableau2pbir/ir/__init__.py`**
 
 ```python
 """Intermediate Representation (IR) for the conversion pipeline. See spec §5."""
@@ -451,14 +451,14 @@ from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 __all__ = ["IR_SCHEMA_VERSION"]
 ```
 
-- [ ] **Step 3.5: Write `src/tableau2pbir/ir/version.py`**
+- [x] **Step 3.5: Write `src/tableau2pbir/ir/version.py`**
 
 ```python
 """IR schema version (semver). Bump per §5.4."""
 IR_SCHEMA_VERSION = "1.0.0"
 ```
 
-- [ ] **Step 3.6: Write `src/tableau2pbir/ir/common.py`**
+- [x] **Step 3.6: Write `src/tableau2pbir/ir/common.py`**
 
 ```python
 """Common IR types shared across IR modules. See spec §5."""
@@ -495,14 +495,14 @@ class UnsupportedItem(IRBase):
     )
 ```
 
-- [ ] **Step 3.7: Run test — verify pass**
+- [x] **Step 3.7: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_common.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 3.8: Commit**
+- [x] **Step 3.8: Commit**
 
 ```bash
 git add src/tableau2pbir/__init__.py src/tableau2pbir/ir/__init__.py \
@@ -519,7 +519,7 @@ git commit -m "feat(ir): add common types (IRBase, FieldRef, UnsupportedItem) pe
 - Create: `src/tableau2pbir/ir/datasource.py`
 - Create: `tests/unit/ir/test_datasource.py`
 
-- [ ] **Step 4.1: Write failing test**
+- [x] **Step 4.1: Write failing test**
 
 `tests/unit/ir/test_datasource.py`:
 
@@ -577,14 +577,14 @@ def test_datasource_rejects_extra_fields():
         )
 ```
 
-- [ ] **Step 4.2: Run test to verify failure**
+- [x] **Step 4.2: Run test to verify failure**
 
 ```bash
 pytest tests/unit/ir/test_datasource.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.ir.datasource'`.
 
-- [ ] **Step 4.3: Write `src/tableau2pbir/ir/datasource.py`**
+- [x] **Step 4.3: Write `src/tableau2pbir/ir/datasource.py`**
 
 ```python
 """Datasource IR — §5.1 and §5.8 connector matrix."""
@@ -624,14 +624,14 @@ class Datasource(IRBase):
     extract_ignored: bool                   # True when .hyper skipped in favor of <connection>
 ```
 
-- [ ] **Step 4.4: Run test — verify pass**
+- [x] **Step 4.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_datasource.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/datasource.py tests/unit/ir/test_datasource.py
@@ -646,7 +646,7 @@ git commit -m "feat(ir): add Datasource + ConnectorTier per §5.8 connector matr
 - Create: `src/tableau2pbir/ir/model.py`
 - Create: `tests/unit/ir/test_model.py`
 
-- [ ] **Step 5.1: Write failing test**
+- [x] **Step 5.1: Write failing test**
 
 `tests/unit/ir/test_model.py`:
 
@@ -699,14 +699,14 @@ def test_column_rejects_invalid_role():
                kind=ColumnKind.RAW)
 ```
 
-- [ ] **Step 5.2: Run test — verify failure**
+- [x] **Step 5.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_model.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.ir.model'`.
 
-- [ ] **Step 5.3: Write `src/tableau2pbir/ir/model.py`**
+- [x] **Step 5.3: Write `src/tableau2pbir/ir/model.py`**
 
 ```python
 """Table / Column / Relationship IR — §5.1."""
@@ -760,14 +760,14 @@ class Relationship(IRBase):
     source: RelationshipSource
 ```
 
-- [ ] **Step 5.4: Run test — verify pass**
+- [x] **Step 5.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_model.py -v
 ```
 Expected: `5 passed`.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/model.py tests/unit/ir/test_model.py
@@ -782,7 +782,7 @@ git commit -m "feat(ir): add Table, Column, Relationship per §5.1"
 - Create: `src/tableau2pbir/ir/calculation.py`
 - Create: `tests/unit/ir/test_calculation.py`
 
-- [ ] **Step 6.1: Write failing test**
+- [x] **Step 6.1: Write failing test**
 
 `tests/unit/ir/test_calculation.py`:
 
@@ -891,14 +891,14 @@ def test_calculation_rejects_unknown_kind():
         )
 ```
 
-- [ ] **Step 6.2: Run test — verify failure**
+- [x] **Step 6.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_calculation.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.ir.calculation'`.
 
-- [ ] **Step 6.3: Write `src/tableau2pbir/ir/calculation.py`**
+- [x] **Step 6.3: Write `src/tableau2pbir/ir/calculation.py`**
 
 ```python
 """Calculation IR — enriched per §5.6. Kind + phase + optional
@@ -992,14 +992,14 @@ class Calculation(IRBase):
     owner_sheet_id: str | None = None
 ```
 
-- [ ] **Step 6.4: Run test — verify pass**
+- [x] **Step 6.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_calculation.py -v
 ```
 Expected: `6 passed`.
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/calculation.py tests/unit/ir/test_calculation.py
@@ -1014,7 +1014,7 @@ git commit -m "feat(ir): add Calculation with enriched semantics per §5.6"
 - Create: `src/tableau2pbir/ir/parameter.py`
 - Create: `tests/unit/ir/test_parameter.py`
 
-- [ ] **Step 7.1: Write failing test**
+- [x] **Step 7.1: Write failing test**
 
 `tests/unit/ir/test_parameter.py`:
 
@@ -1061,14 +1061,14 @@ def test_internal_constant_calc_only():
     assert p.exposure == ParameterExposure.CALC_ONLY
 ```
 
-- [ ] **Step 7.2: Run test — verify failure**
+- [x] **Step 7.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_parameter.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 7.3: Write `src/tableau2pbir/ir/parameter.py`**
+- [x] **Step 7.3: Write `src/tableau2pbir/ir/parameter.py`**
 
 ```python
 """Parameter IR — enriched per §5.7 with intent classification."""
@@ -1110,14 +1110,14 @@ class Parameter(IRBase):
     binding_target: ParameterBindingTarget | None = None
 ```
 
-- [ ] **Step 7.4: Run test — verify pass**
+- [x] **Step 7.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_parameter.py -v
 ```
 Expected: `3 passed`.
 
-- [ ] **Step 7.5: Commit**
+- [x] **Step 7.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/parameter.py tests/unit/ir/test_parameter.py
@@ -1132,7 +1132,7 @@ git commit -m "feat(ir): add Parameter with intent per §5.7"
 - Create: `src/tableau2pbir/ir/sheet.py`
 - Create: `tests/unit/ir/test_sheet.py`
 
-- [ ] **Step 8.1: Write failing test**
+- [x] **Step 8.1: Write failing test**
 
 `tests/unit/ir/test_sheet.py`:
 
@@ -1181,14 +1181,14 @@ def test_sheet_with_categorical_filter():
     assert s.uses_calculations == ("calc1",)
 ```
 
-- [ ] **Step 8.2: Run test — verify failure**
+- [x] **Step 8.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_sheet.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 8.3: Write `src/tableau2pbir/ir/sheet.py`**
+- [x] **Step 8.3: Write `src/tableau2pbir/ir/sheet.py`**
 
 ```python
 """Sheet IR — §5.1."""
@@ -1246,14 +1246,14 @@ class Sheet(IRBase):
     uses_calculations: tuple[str, ...]      # Calculation ids — back-ref for topo-sort
 ```
 
-- [ ] **Step 8.4: Run test — verify pass**
+- [x] **Step 8.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_sheet.py -v
 ```
 Expected: `2 passed`.
 
-- [ ] **Step 8.5: Commit**
+- [x] **Step 8.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/sheet.py tests/unit/ir/test_sheet.py
@@ -1268,7 +1268,7 @@ git commit -m "feat(ir): add Sheet with encoding, filters, back-refs per §5.1"
 - Create: `src/tableau2pbir/ir/dashboard.py`
 - Create: `tests/unit/ir/test_dashboard.py`
 
-- [ ] **Step 9.1: Write failing test**
+- [x] **Step 9.1: Write failing test**
 
 `tests/unit/ir/test_dashboard.py`:
 
@@ -1319,14 +1319,14 @@ def test_position_fields():
     assert p.w == 300
 ```
 
-- [ ] **Step 9.2: Run test — verify failure**
+- [x] **Step 9.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_dashboard.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 9.3: Write `src/tableau2pbir/ir/dashboard.py`**
+- [x] **Step 9.3: Write `src/tableau2pbir/ir/dashboard.py`**
 
 ```python
 """Dashboard IR, layout tree, and Action — §5.1, §5.2, §5.3."""
@@ -1421,14 +1421,14 @@ class Dashboard(IRBase):
     actions: tuple[Action, ...] = ()
 ```
 
-- [ ] **Step 9.4: Run test — verify pass**
+- [x] **Step 9.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_dashboard.py -v
 ```
 Expected: `5 passed`.
 
-- [ ] **Step 9.5: Commit**
+- [x] **Step 9.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/dashboard.py tests/unit/ir/test_dashboard.py
@@ -1443,7 +1443,7 @@ git commit -m "feat(ir): add Dashboard with layout tree and Action per §5.1-§5
 - Create: `src/tableau2pbir/ir/workbook.py`
 - Create: `tests/unit/ir/test_workbook.py`
 
-- [ ] **Step 10.1: Write failing test**
+- [x] **Step 10.1: Write failing test**
 
 `tests/unit/ir/test_workbook.py`:
 
@@ -1483,14 +1483,14 @@ def test_workbook_round_trip_json():
     assert wb2 == wb
 ```
 
-- [ ] **Step 10.2: Run test — verify failure**
+- [x] **Step 10.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/ir/test_workbook.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 10.3: Write `src/tableau2pbir/ir/workbook.py`**
+- [x] **Step 10.3: Write `src/tableau2pbir/ir/workbook.py`**
 
 ```python
 """Top-level Workbook IR + DataModel aggregate — §5.1."""
@@ -1541,14 +1541,14 @@ class Workbook(IRBase):
     unsupported: tuple[UnsupportedItem, ...]
 ```
 
-- [ ] **Step 10.4: Run test — verify pass**
+- [x] **Step 10.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/ir/test_workbook.py -v
 ```
 Expected: `2 passed`.
 
-- [ ] **Step 10.5: Commit**
+- [x] **Step 10.5: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/workbook.py tests/unit/ir/test_workbook.py
@@ -1565,7 +1565,7 @@ git commit -m "feat(ir): add Workbook and DataModel aggregates per §5.1"
 - Create: `tests/contract/__init__.py`
 - Create: `tests/contract/test_ir_schema.py`
 
-- [ ] **Step 11.1: Write failing test**
+- [x] **Step 11.1: Write failing test**
 
 `tests/contract/test_ir_schema.py`:
 
@@ -1600,14 +1600,14 @@ def test_generated_schema_has_expected_top_level_keys():
     assert "ir_schema_version" in schema["properties"]
 ```
 
-- [ ] **Step 11.2: Run test — verify failure**
+- [x] **Step 11.2: Run test — verify failure**
 
 ```bash
 pytest tests/contract/test_ir_schema.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.ir.schema'`.
 
-- [ ] **Step 11.3: Write `src/tableau2pbir/ir/schema.py`**
+- [x] **Step 11.3: Write `src/tableau2pbir/ir/schema.py`**
 
 ```python
 """JSON Schema autogeneration from IR pydantic models.
@@ -1637,7 +1637,7 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 11.4: Generate the committed artifact**
+- [x] **Step 11.4: Generate the committed artifact**
 
 ```bash
 mkdir -p schemas
@@ -1646,16 +1646,16 @@ python -m tableau2pbir.ir.schema > schemas/ir-v1.0.0.schema.json
 
 Expected: `schemas/ir-v1.0.0.schema.json` is created with pydantic-generated JSON Schema.
 
-- [ ] **Step 11.5: Create `tests/contract/__init__.py`** — empty file.
+- [x] **Step 11.5: Create `tests/contract/__init__.py`** — empty file.
 
-- [ ] **Step 11.6: Run test — verify pass**
+- [x] **Step 11.6: Run test — verify pass**
 
 ```bash
 pytest tests/contract/test_ir_schema.py -v
 ```
 Expected: `2 passed`.
 
-- [ ] **Step 11.7: Commit**
+- [x] **Step 11.7: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/schema.py schemas/ir-v1.0.0.schema.json \
