@@ -1671,7 +1671,7 @@ git commit -m "feat(ir): autogen JSON Schema + commit v1.0.0 artifact per §5.4"
 - Create: `src/tableau2pbir/pipeline.py`
 - Create: `tests/unit/test_pipeline_contract.py`
 
-- [ ] **Step 12.1: Write failing test**
+- [x] **Step 12.1: Write failing test**
 
 `tests/unit/test_pipeline_contract.py`:
 
@@ -1715,14 +1715,14 @@ def test_stage_context_fields(tmp_path: Path):
     assert ctx.stage_number == 1
 ```
 
-- [ ] **Step 12.2: Run test — verify failure**
+- [x] **Step 12.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/test_pipeline_contract.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.pipeline'`.
 
-- [ ] **Step 12.3: Write minimal `src/tableau2pbir/pipeline.py`**
+- [x] **Step 12.3: Write minimal `src/tableau2pbir/pipeline.py`**
 
 ```python
 """Pipeline runner and stage contract — §4.3 + §8.2.
@@ -1767,14 +1767,14 @@ class StageContext(_ContractBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True, extra="forbid")
 ```
 
-- [ ] **Step 12.4: Run test — verify pass**
+- [x] **Step 12.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/test_pipeline_contract.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 12.5: Commit**
+- [x] **Step 12.5: Commit**
 
 ```bash
 git add src/tableau2pbir/pipeline.py tests/unit/test_pipeline_contract.py
