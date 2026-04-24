@@ -3081,7 +3081,7 @@ git commit -m "feat(cli): add argparse CLI with convert and resume subcommands (
 - Create: `tests/integration/__init__.py`
 - Create: `tests/integration/test_empty_pipeline_end_to_end.py`
 
-- [ ] **Step 21.1: Write failing test**
+- [x] **Step 21.1: Write failing test**
 
 `tests/integration/test_empty_pipeline_end_to_end.py`:
 
@@ -3125,16 +3125,16 @@ def test_end_to_end_empty_pipeline(tmp_path: Path, synthetic_fixtures_dir: Path)
     assert (wb_dir / "unsupported.json").exists()
 ```
 
-- [ ] **Step 21.2: Create `tests/integration/__init__.py`** — empty file.
+- [x] **Step 21.2: Create `tests/integration/__init__.py`** — empty file.
 
-- [ ] **Step 21.3: Run test — verify pass**
+- [x] **Step 21.3: Run test — verify pass**
 
 ```bash
 pytest tests/integration/test_empty_pipeline_end_to_end.py -v
 ```
 Expected: `1 passed` (the stubs + runner + CLI from prior tasks make this work already).
 
-- [ ] **Step 21.4: Commit**
+- [x] **Step 21.4: Commit**
 
 ```bash
 git add tests/integration/__init__.py tests/integration/test_empty_pipeline_end_to_end.py
