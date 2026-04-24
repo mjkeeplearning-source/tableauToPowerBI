@@ -3161,7 +3161,7 @@ git commit -m "test(integration): smoke test for empty pipeline end-to-end (laye
 - Create: `tests/golden/real/README.md`
 - Create: `tests/golden/expected/.gitkeep`
 
-- [ ] **Step 22.1: Create validity layer directories with README stubs**
+- [x] **Step 22.1: Create validity layer directories with README stubs**
 
 `tests/validity/__init__.py` — empty.
 `tests/validity/tmdl/__init__.py` — empty.
@@ -3206,7 +3206,7 @@ AuthUIDisplayed. Pass criteria split by datasource tier. See spec §9
 layer vii + §6 Stage 8 step 5. Populated in Plan 5.
 ```
 
-- [ ] **Step 22.2: Create llm_snapshots placeholders**
+- [x] **Step 22.2: Create llm_snapshots placeholders**
 
 Create empty directories by committing `.gitkeep` files:
 
@@ -3216,7 +3216,7 @@ tests/llm_snapshots/map_visual/.gitkeep
 tests/llm_snapshots/cleanup_name/.gitkeep
 ```
 
-- [ ] **Step 22.3: Create tests/golden placeholders**
+- [x] **Step 22.3: Create tests/golden placeholders**
 
 `tests/golden/real/README.md`:
 ```markdown
@@ -3228,14 +3228,14 @@ tests/llm_snapshots/cleanup_name/.gitkeep
 
 `tests/golden/expected/.gitkeep` — empty.
 
-- [ ] **Step 22.4: Sanity: whole test suite still green**
+- [x] **Step 22.4: Sanity: whole test suite still green**
 
 ```bash
 pytest -q
 ```
 Expected: all tests pass.
 
-- [ ] **Step 22.5: Commit**
+- [x] **Step 22.5: Commit**
 
 ```bash
 git add tests/validity tests/desktop_open tests/llm_snapshots tests/golden/real tests/golden/expected
@@ -3249,7 +3249,7 @@ git commit -m "test: stub directories + README for layers iv, iv-b, iv-c, vi, vi
 **Files:**
 - Create: `docs/architecture.md`
 
-- [ ] **Step 23.1: Write `docs/architecture.md`**
+- [x] **Step 23.1: Write `docs/architecture.md`**
 
 ```markdown
 # tableau2pbir — Architecture
@@ -3285,14 +3285,14 @@ tableau2pbir resume ./out/<workbook>/ --from translate_calcs
 ```
 ```
 
-- [ ] **Step 23.2: Run the whole suite**
+- [x] **Step 23.2: Run the whole suite**
 
 ```bash
 pytest -q
 ```
 Expected: all tests pass. (Count should be ~40+ across unit + contract + integration.)
 
-- [ ] **Step 23.3: Run make targets as acceptance check**
+- [x] **Step 23.3: Run make targets as acceptance check**
 
 ```bash
 make lint
@@ -3301,7 +3301,7 @@ make schema
 ```
 Expected: `make lint` clean, `make typecheck` clean on `src/`, `make schema` rewrites `schemas/ir-v1.0.0.schema.json` identically (diff empty).
 
-- [ ] **Step 23.4: Commit**
+- [x] **Step 23.4: Commit**
 
 ```bash
 git add docs/architecture.md
