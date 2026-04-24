@@ -2888,7 +2888,7 @@ git commit -m "test(golden): add trivial single-sheet .twb fixture"
 - Create: `src/tableau2pbir/cli.py`
 - Create: `tests/unit/test_cli.py`
 
-- [ ] **Step 20.1: Write failing test**
+- [x] **Step 20.1: Write failing test**
 
 `tests/unit/test_cli.py`:
 
@@ -2955,14 +2955,14 @@ def test_cli_help_lists_subcommands():
     assert "resume" in result.stdout
 ```
 
-- [ ] **Step 20.2: Run test — verify failure**
+- [x] **Step 20.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/test_cli.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.cli'`.
 
-- [ ] **Step 20.3: Write `src/tableau2pbir/cli.py`**
+- [x] **Step 20.3: Write `src/tableau2pbir/cli.py`**
 
 ```python
 """CLI — `tableau2pbir` with `convert` and `resume` subcommands. See spec §4.1.
@@ -3059,14 +3059,14 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 20.4: Run test — verify pass**
+- [x] **Step 20.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/test_cli.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 20.5: Commit**
+- [x] **Step 20.5: Commit**
 
 ```bash
 git add src/tableau2pbir/cli.py tests/unit/test_cli.py
