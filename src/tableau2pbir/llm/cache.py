@@ -4,10 +4,10 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
-def make_cache_key(*, model: str, prompt_hash: str, schema_hash: str, payload: dict) -> str:
+def make_cache_key(*, model: str, prompt_hash: str, schema_hash: str, payload: dict[str, Any]) -> str:
     """Return a stable 64-char sha256 hex over (model, prompt, schema, payload)."""
     h = hashlib.sha256()
     h.update(model.encode("utf-8"))
@@ -30,13 +30,13 @@ class OnDiskCache:
     def _path(self, key: str) -> Path:
         return self.root / f"{key}.json"
 
-    def get(self, key: str) -> dict | None:
+    def get(self, key: str) -> dict[str, Any] | None:
         p = self._path(key)
         if not p.exists():
             return None
-        return json.loads(p.read_text(encoding="utf-8"))
+        return cast(dict[str, Any], json.loads(p.read_text(encoding="utf-8")))
 
-    def put(self, key: str, value: dict) -> None:
+    def put(self, key: str, value: dict[str, Any]) -> None:
         self._path(key).write_text(
             json.dumps(value, indent=2, sort_keys=True), encoding="utf-8",
         )

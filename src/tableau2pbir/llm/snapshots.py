@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any, cast
 
 
 def is_replay_mode() -> bool:
@@ -17,8 +18,8 @@ class SnapshotStore:
     def __init__(self, root: Path) -> None:
         self.root = root
 
-    def load(self, method: str, fixture: str) -> dict:
+    def load(self, method: str, fixture: str) -> dict[str, Any]:
         path = self.root / method / f"{fixture}.json"
         if not path.exists():
             raise FileNotFoundError(f"no snapshot: {path}")
-        return json.loads(path.read_text(encoding="utf-8"))
+        return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))

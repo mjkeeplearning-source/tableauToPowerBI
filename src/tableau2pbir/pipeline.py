@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import importlib
 import json as _json
+import types
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -25,7 +26,7 @@ class StageError(_ContractBase):
 
 
 class StageResult(_ContractBase):
-    output: dict = {}
+    output: dict[str, Any] = {}
     summary_md: str = ""
     errors: tuple[StageError, ...] = ()
 
@@ -33,7 +34,7 @@ class StageResult(_ContractBase):
 class StageContext(_ContractBase):
     workbook_id: str
     output_dir: Path
-    config: dict
+    config: dict[str, Any]
     stage_number: int
 
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True, extra="forbid")
@@ -71,7 +72,7 @@ class PipelineResult(BaseModel):
     stopped_at_gate: str | None = None
 
 
-def _load_stage(name: str):
+def _load_stage(name: str) -> types.ModuleType:
     if name not in _MODULE_SUFFIX:
         raise ValueError(f"unknown stage: {name!r}")
     return importlib.import_module(f"tableau2pbir.stages.{_MODULE_SUFFIX[name]}")
@@ -82,7 +83,7 @@ def run_pipeline(
     workbook_id: str,
     source_path: Path,
     output_dir: Path,
-    config: dict,
+    config: dict[str, Any],
     gate: str | None,
     resume_from: str | None,
 ) -> PipelineResult:
@@ -101,7 +102,7 @@ def run_pipeline(
         resume_idx = next(i for i, (name, _) in enumerate(STAGE_SEQUENCE) if name == resume_from)
 
     if resume_idx == 0:
-        current_input: dict = {"source_path": str(source_path)}
+        current_input: dict[str, Any] = {"source_path": str(source_path)}
     else:
         prior_name = STAGE_SEQUENCE[resume_idx - 1][0]
         prior_path = stages_dir / f"{resume_idx:02d}_{prior_name}.json"

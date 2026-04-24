@@ -7,7 +7,7 @@ from __future__ import annotations
 from tableau2pbir.pipeline import StageContext, StageResult
 
 
-def run(input_json: dict, ctx: StageContext) -> StageResult:
+def run(input_json: dict[str, object], ctx: StageContext) -> StageResult:
     pbip_path = ctx.output_dir / f"{ctx.workbook_id}.pbip"
     pbip_path.write_text("", encoding="utf-8")       # 0-byte placeholder for now
     return StageResult(

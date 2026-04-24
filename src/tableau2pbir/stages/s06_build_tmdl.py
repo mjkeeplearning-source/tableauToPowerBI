@@ -4,7 +4,7 @@ from __future__ import annotations
 from tableau2pbir.pipeline import StageContext, StageResult
 
 
-def run(input_json: dict, ctx: StageContext) -> StageResult:
+def run(input_json: dict[str, object], ctx: StageContext) -> StageResult:
     return StageResult(
         output={"stub_stage": "build_tmdl", "input_keys": list(input_json.keys())},
         summary_md="# Stage 6 — build TMDL (stub)\n\nNo-op in Plan 1.\n",
