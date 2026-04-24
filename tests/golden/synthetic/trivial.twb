@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook xmlns:user='http://www.tableausoftware.com/xml/user' source-build='2024.1' source-platform='win' version='18.1'>
+  <datasources>
+    <datasource caption='Sample' name='sample.csv' hasconnection='true'>
+      <connection class='textscan' directory='.' filename='sample.csv' server='' />
+      <column datatype='integer' name='[id]' role='dimension' type='ordinal'/>
+      <column datatype='integer' name='[amount]' role='measure' type='quantitative'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Revenue'>
+      <view>
+        <datasources>
+          <datasource name='sample.csv'/>
+        </datasources>
+        <rows>[amount]</rows>
+        <columns>[id]</columns>
+      </view>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name='Main'>
+      <size maxheight='800' maxwidth='1200' minheight='800' minwidth='1200'/>
+      <zones>
+        <zone name='Revenue' type='worksheet' id='1' h='800' w='1200' x='0' y='0'/>
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>
