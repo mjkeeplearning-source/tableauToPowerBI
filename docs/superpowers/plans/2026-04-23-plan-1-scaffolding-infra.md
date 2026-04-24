@@ -2823,7 +2823,7 @@ git commit -m "feat(llm): add LLMClient skeleton with cache + prompt-pack wiring
 - Create: `tests/golden/synthetic/trivial.twb`
 - Create: `tests/golden/README.md`
 
-- [ ] **Step 19.1: Write the minimal valid `.twb` XML**
+- [x] **Step 19.1: Write the minimal valid `.twb` XML**
 
 `tests/golden/synthetic/trivial.twb`:
 
@@ -2859,7 +2859,7 @@ git commit -m "feat(llm): add LLMClient skeleton with cache + prompt-pack wiring
 </workbook>
 ```
 
-- [ ] **Step 19.2: Write `tests/golden/README.md`**
+- [x] **Step 19.2: Write `tests/golden/README.md`**
 
 ```markdown
 # Golden fixtures
@@ -2873,7 +2873,7 @@ subsequent plans add fixtures per §9's tables (~25 calc kind×frame,
 - `expected/` — expected `.pbip` trees for the diff-based layer iii tests.
 ```
 
-- [ ] **Step 19.3: Commit**
+- [x] **Step 19.3: Commit**
 
 ```bash
 git add tests/golden/synthetic/trivial.twb tests/golden/README.md
