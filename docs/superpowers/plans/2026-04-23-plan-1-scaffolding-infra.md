@@ -3312,17 +3312,17 @@ git commit -m "docs: add architecture.md entry point for new contributors"
 
 ## Plan 1 acceptance — done when all true
 
-- [ ] `pip install -e ".[dev]"` completes cleanly.
-- [ ] `pytest -q` is green.
-- [ ] `make lint` clean.
-- [ ] `make typecheck` clean on `src/`.
-- [ ] `make schema` produces a byte-identical `schemas/ir-v1.0.0.schema.json` (no diff).
-- [ ] `tableau2pbir convert tests/golden/synthetic/trivial.twb --out ./out/` returns exit 0 and produces the full `./out/trivial/stages/*.json` artifact tree plus `trivial.pbip` and `unsupported.json`.
-- [ ] `tableau2pbir convert ... --gate canonicalize` stops after stage 2.
-- [ ] `tableau2pbir resume ./out/trivial --from translate_calcs` completes stages 3–8.
-- [ ] All three prompt folders have `system.md`, `tool_schema.json`, `VERSION`, `examples/.gitkeep`.
-- [ ] `tests/validity/{tmdl,pbir,dax_semantic}/README.md` and `tests/desktop_open/README.md` all committed with their Plan ownership noted.
-- [ ] `git log --oneline` shows roughly one commit per task (no squashed "wip" commits).
+- [x] `pip install -e ".[dev]"` completes cleanly.
+- [x] `pytest -q` is green.
+- [x] `make lint` clean.
+- [x] `make typecheck` clean on `src/`.
+- [x] `make schema` produces a byte-identical `schemas/ir-v1.0.0.schema.json` (no diff).
+- [x] `tableau2pbir convert tests/golden/synthetic/trivial.twb --out ./out/` returns exit 0 and produces the full `./out/trivial/stages/*.json` artifact tree plus `trivial.pbip` and `unsupported.json`.
+- [x] `tableau2pbir convert ... --gate canonicalize` stops after stage 2.
+- [x] `tableau2pbir resume ./out/trivial --from translate_calcs` completes stages 3–8.
+- [x] All three prompt folders have `system.md`, `tool_schema.json`, `VERSION`, `examples/.gitkeep`.
+- [x] `tests/validity/{tmdl,pbir,dax_semantic}/README.md` and `tests/desktop_open/README.md` all committed with their Plan ownership noted.
+- [x] `git log --oneline` shows roughly one commit per task (no squashed "wip" commits).
 
 ## Next plan
 
