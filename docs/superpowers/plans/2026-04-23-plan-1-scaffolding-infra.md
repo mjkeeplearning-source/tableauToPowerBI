@@ -2012,7 +2012,7 @@ git commit -m "feat(stages): add 8 no-op stage stubs returning StageResult"
 - Modify: `src/tableau2pbir/pipeline.py`
 - Create: `tests/unit/test_pipeline_runner.py`
 
-- [ ] **Step 14.1: Write failing test**
+- [x] **Step 14.1: Write failing test**
 
 `tests/unit/test_pipeline_runner.py`:
 
@@ -2089,14 +2089,14 @@ def test_run_pipeline_resume_from_unknown_stage_errors(tmp_path: Path):
                      output_dir=tmp_path, config={}, gate=None, resume_from="nonsense")
 ```
 
-- [ ] **Step 14.2: Run test — verify failure**
+- [x] **Step 14.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/test_pipeline_runner.py -v
 ```
 Expected: `ImportError: cannot import name 'STAGE_SEQUENCE' ...`.
 
-- [ ] **Step 14.3: Extend `src/tableau2pbir/pipeline.py`**
+- [x] **Step 14.3: Extend `src/tableau2pbir/pipeline.py`**
 
 Append below the contract types defined in Task 12:
 
@@ -2219,14 +2219,14 @@ def run_pipeline(
     )
 ```
 
-- [ ] **Step 14.4: Run test — verify pass**
+- [x] **Step 14.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/test_pipeline_runner.py -v
 ```
 Expected: `5 passed`.
 
-- [ ] **Step 14.5: Commit**
+- [x] **Step 14.5: Commit**
 
 ```bash
 git add src/tableau2pbir/pipeline.py tests/unit/test_pipeline_runner.py
@@ -2243,7 +2243,7 @@ git commit -m "feat(pipeline): add 8-stage runner with --gate and --from support
 - Create: `tests/unit/llm/__init__.py`
 - Create: `tests/unit/llm/test_cache.py`
 
-- [ ] **Step 15.1: Write failing test**
+- [x] **Step 15.1: Write failing test**
 
 `tests/unit/llm/test_cache.py`:
 
@@ -2275,16 +2275,16 @@ def test_cache_key_changes_on_payload_change():
     assert k1 != k2
 ```
 
-- [ ] **Step 15.2: Run test — verify failure**
+- [x] **Step 15.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/llm/test_cache.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 15.3: Write `src/tableau2pbir/llm/__init__.py`** — empty.
+- [x] **Step 15.3: Write `src/tableau2pbir/llm/__init__.py`** — empty.
 
-- [ ] **Step 15.4: Write `src/tableau2pbir/llm/cache.py`**
+- [x] **Step 15.4: Write `src/tableau2pbir/llm/cache.py`**
 
 ```python
 """On-disk LLM response cache — §7. Content-hash keyed; JSON-on-disk."""
@@ -2331,16 +2331,16 @@ class OnDiskCache:
         )
 ```
 
-- [ ] **Step 15.5: Create `tests/unit/llm/__init__.py`** — empty.
+- [x] **Step 15.5: Create `tests/unit/llm/__init__.py`** — empty.
 
-- [ ] **Step 15.6: Run test — verify pass**
+- [x] **Step 15.6: Run test — verify pass**
 
 ```bash
 pytest tests/unit/llm/test_cache.py -v
 ```
 Expected: `3 passed`.
 
-- [ ] **Step 15.7: Commit**
+- [x] **Step 15.7: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/__init__.py src/tableau2pbir/llm/cache.py \
@@ -2356,7 +2356,7 @@ git commit -m "feat(llm): add content-hash on-disk cache per §7"
 - Create: `src/tableau2pbir/llm/snapshots.py`
 - Create: `tests/unit/llm/test_snapshots.py`
 
-- [ ] **Step 16.1: Write failing test**
+- [x] **Step 16.1: Write failing test**
 
 `tests/unit/llm/test_snapshots.py`:
 
@@ -2397,14 +2397,14 @@ def test_snapshot_store_missing_raises(tmp_path: Path):
         store.load("translate_calc", "missing")
 ```
 
-- [ ] **Step 16.2: Run test — verify failure**
+- [x] **Step 16.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/llm/test_snapshots.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 16.3: Write `src/tableau2pbir/llm/snapshots.py`**
+- [x] **Step 16.3: Write `src/tableau2pbir/llm/snapshots.py`**
 
 ```python
 """LLM snapshot replay — §9 layer vi + §7 step 4."""
@@ -2433,14 +2433,14 @@ class SnapshotStore:
         return json.loads(path.read_text(encoding="utf-8"))
 ```
 
-- [ ] **Step 16.4: Run test — verify pass**
+- [x] **Step 16.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/llm/test_snapshots.py -v
 ```
 Expected: `3 passed`.
 
-- [ ] **Step 16.5: Commit**
+- [x] **Step 16.5: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/snapshots.py tests/unit/llm/test_snapshots.py
@@ -2467,7 +2467,7 @@ git commit -m "feat(llm): add snapshot replay store per §9 layer vi"
 - Create: `src/tableau2pbir/llm/prompts/cleanup_name/examples/.gitkeep`
 - Create: `tests/unit/llm/test_prompt_loader.py`
 
-- [ ] **Step 17.1: Write failing test**
+- [x] **Step 17.1: Write failing test**
 
 `tests/unit/llm/test_prompt_loader.py`:
 
@@ -2504,14 +2504,14 @@ def test_version_change_changes_hash():
     assert pack.version in pack.system_prompt_hash                 # version folded into hash
 ```
 
-- [ ] **Step 17.2: Run test — verify failure**
+- [x] **Step 17.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/llm/test_prompt_loader.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 17.3: Create prompt folder content**
+- [x] **Step 17.3: Create prompt folder content**
 
 For each of the three methods (`translate_calc`, `map_visual`, `cleanup_name`), create:
 
@@ -2626,7 +2626,7 @@ You MUST emit via the `cleanup_name_output` tool.
 
 `src/tableau2pbir/llm/prompts/cleanup_name/examples/.gitkeep` — empty.
 
-- [ ] **Step 17.4: Write `src/tableau2pbir/llm/prompt_loader.py`**
+- [x] **Step 17.4: Write `src/tableau2pbir/llm/prompt_loader.py`**
 
 ```python
 """Loads a per-prompt folder (§7) and computes its content hashes.
@@ -2688,14 +2688,14 @@ def load_prompt_pack(method: str, root: Path | None = None) -> PromptPack:
     )
 ```
 
-- [ ] **Step 17.5: Run test — verify pass**
+- [x] **Step 17.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/llm/test_prompt_loader.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 17.6: Commit**
+- [x] **Step 17.6: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/prompt_loader.py src/tableau2pbir/llm/prompts/ tests/unit/llm/test_prompt_loader.py
@@ -2710,7 +2710,7 @@ git commit -m "feat(llm): per-prompt folder layout + loader with VERSION-hash in
 - Create: `src/tableau2pbir/llm/client.py`
 - Create: `tests/unit/llm/test_client.py`
 
-- [ ] **Step 18.1: Write failing test**
+- [x] **Step 18.1: Write failing test**
 
 `tests/unit/llm/test_client.py`:
 
@@ -2747,14 +2747,14 @@ def test_cleanup_name_raises_not_implemented(tmp_path: Path):
         client.cleanup_name(raw_name="SUM(Sales)", kind="measure")
 ```
 
-- [ ] **Step 18.2: Run test — verify failure**
+- [x] **Step 18.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/llm/test_client.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 18.3: Write `src/tableau2pbir/llm/client.py`**
+- [x] **Step 18.3: Write `src/tableau2pbir/llm/client.py`**
 
 ```python
 """LLMClient — single AI entry point per spec §7.
@@ -2801,14 +2801,14 @@ class LLMClient:
         raise NotImplementedError("LLMClient.cleanup_name is filled in in Plan 3")
 ```
 
-- [ ] **Step 18.4: Run test — verify pass**
+- [x] **Step 18.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/llm/test_client.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 18.5: Commit**
+- [x] **Step 18.5: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/client.py tests/unit/llm/test_client.py
