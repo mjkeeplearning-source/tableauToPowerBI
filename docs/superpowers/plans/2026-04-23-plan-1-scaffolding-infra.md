@@ -1798,7 +1798,7 @@ git commit -m "feat(pipeline): add stage contract (StageResult, StageError, Stag
 - Create: `tests/unit/stages/__init__.py`
 - Create: `tests/unit/stages/test_all_stages_stub.py`
 
-- [ ] **Step 13.1: Write failing test**
+- [x] **Step 13.1: Write failing test**
 
 `tests/unit/stages/test_all_stages_stub.py`:
 
@@ -1835,16 +1835,16 @@ def test_each_stage_has_run_returning_stage_result(module_path: str, tmp_path: P
     assert isinstance(result, StageResult)
 ```
 
-- [ ] **Step 13.2: Run test — verify failure**
+- [x] **Step 13.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_all_stages_stub.py -v
 ```
 Expected: all 8 parametrized cases fail with `ModuleNotFoundError`.
 
-- [ ] **Step 13.3: Write `src/tableau2pbir/stages/__init__.py`** — empty file.
+- [x] **Step 13.3: Write `src/tableau2pbir/stages/__init__.py`** — empty file.
 
-- [ ] **Step 13.4: Write all 8 stage stubs**
+- [x] **Step 13.4: Write all 8 stage stubs**
 
 Each file has the same template below. Replace `<NAME>` with the module name portion (e.g., `extract`, `canonicalize`):
 
@@ -1988,16 +1988,16 @@ def run(input_json: dict, ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 13.5: Create `tests/unit/stages/__init__.py`** — empty.
+- [x] **Step 13.5: Create `tests/unit/stages/__init__.py`** — empty.
 
-- [ ] **Step 13.6: Run test — verify pass**
+- [x] **Step 13.6: Run test — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_all_stages_stub.py -v
 ```
 Expected: `8 passed`.
 
-- [ ] **Step 13.7: Commit**
+- [x] **Step 13.7: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/ tests/unit/stages/__init__.py tests/unit/stages/test_all_stages_stub.py
