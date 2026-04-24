@@ -1,0 +1,26 @@
+{
+  "name": "map_visual_output",
+  "description": "Return the PBIR visual type and encoding bindings for a Tableau sheet.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "visual_type": {"type": "string"},
+      "encoding_bindings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "channel": {"type": "string"},
+            "field_ref": {"type": "string"}
+          },
+          "required": ["channel", "field_ref"],
+          "additionalProperties": false
+        }
+      },
+      "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+      "notes": {"type": "string"}
+    },
+    "required": ["visual_type", "encoding_bindings", "confidence", "notes"],
+    "additionalProperties": false
+  }
+}

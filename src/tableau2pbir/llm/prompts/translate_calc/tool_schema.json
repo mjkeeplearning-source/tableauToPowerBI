@@ -1,0 +1,14 @@
+{
+  "name": "translate_calc_output",
+  "description": "Return the DAX translation of a Tableau calculation with confidence.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "dax_expr": {"type": "string"},
+      "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+      "notes": {"type": "string"}
+    },
+    "required": ["dax_expr", "confidence", "notes"],
+    "additionalProperties": false
+  }
+}

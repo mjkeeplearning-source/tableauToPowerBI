@@ -1,0 +1,13 @@
+{
+  "name": "cleanup_name_output",
+  "description": "Return a cleaned human-readable name.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "cleaned_name": {"type": "string"},
+      "notes": {"type": "string"}
+    },
+    "required": ["cleaned_name", "notes"],
+    "additionalProperties": false
+  }
+}
