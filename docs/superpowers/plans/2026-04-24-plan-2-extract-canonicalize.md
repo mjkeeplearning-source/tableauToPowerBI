@@ -133,7 +133,7 @@ Expected: pytest green, lint clean, typecheck clean on `src/`, `schemas/` diff e
 - Create: `tests/unit/util/__init__.py` (empty)
 - Create: `tests/unit/util/test_zip.py`
 
-- [ ] **Step 1.1: Write failing test**
+- [x] **Step 1.1: Write failing test**
 
 `tests/unit/util/test_zip.py`:
 
@@ -209,16 +209,16 @@ def test_read_workbook_unknown_extension(tmp_path: Path):
         read_workbook(src)
 ```
 
-- [ ] **Step 1.2: Run test — verify failure**
+- [x] **Step 1.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/util/test_zip.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.util.zip'` (or `no attribute 'read_workbook'` if the package already exists from Plan 1).
 
-- [ ] **Step 1.3: Write `src/tableau2pbir/util/__init__.py`** (if it doesn't already exist from Plan 1, make it empty; otherwise leave it alone).
+- [x] **Step 1.3: Write `src/tableau2pbir/util/__init__.py`** (if it doesn't already exist from Plan 1, make it empty; otherwise leave it alone).
 
-- [ ] **Step 1.4: Write `src/tableau2pbir/util/zip.py`**
+- [x] **Step 1.4: Write `src/tableau2pbir/util/zip.py`**
 
 ```python
 """Workbook reader — loads XML bytes from .twb or .twbx, computes sha256
@@ -274,14 +274,14 @@ def read_workbook(path: Path) -> WorkbookBytes:
     )
 ```
 
-- [ ] **Step 1.5: Run test — verify pass**
+- [x] **Step 1.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/util/test_zip.py -v
 ```
 Expected: `6 passed`.
 
-- [ ] **Step 1.6: Commit**
+- [x] **Step 1.6: Commit**
 
 ```bash
 git add src/tableau2pbir/util/__init__.py src/tableau2pbir/util/zip.py \
@@ -297,7 +297,7 @@ git commit -m "feat(util): add workbook reader (.twb/.twbx) with source sha256"
 - Create: `src/tableau2pbir/util/xml.py`
 - Create: `tests/unit/util/test_xml.py`
 
-- [ ] **Step 2.1: Write failing test**
+- [x] **Step 2.1: Write failing test**
 
 `tests/unit/util/test_xml.py`:
 
@@ -365,14 +365,14 @@ def test_iter_children_by_tag():
     assert [c.tag for c in iter_children(root, "a")] == ["a", "a"]
 ```
 
-- [ ] **Step 2.2: Run test — verify failure**
+- [x] **Step 2.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/util/test_xml.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 2.3: Write `src/tableau2pbir/util/xml.py`**
+- [x] **Step 2.3: Write `src/tableau2pbir/util/xml.py`**
 
 ```python
 """lxml helpers. All extract modules funnel through these so attribute-missing
@@ -415,14 +415,14 @@ def iter_children(elem: etree._Element, tag: str) -> Iterator[etree._Element]:
     return iter(elem.findall(tag))
 ```
 
-- [ ] **Step 2.4: Run test — verify pass**
+- [x] **Step 2.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/util/test_xml.py -v
 ```
 Expected: `6 passed`.
 
-- [ ] **Step 2.5: Commit**
+- [x] **Step 2.5: Commit**
 
 ```bash
 git add src/tableau2pbir/util/xml.py tests/unit/util/test_xml.py
@@ -437,7 +437,7 @@ git commit -m "feat(util): add lxml attr/text helpers used by all extract module
 - Create: `src/tableau2pbir/util/ids.py`
 - Create: `tests/unit/util/test_ids.py`
 
-- [ ] **Step 3.1: Write failing test**
+- [x] **Step 3.1: Write failing test**
 
 `tests/unit/util/test_ids.py`:
 
@@ -477,14 +477,14 @@ def test_stable_id_prefixes_with_kind():
     assert result.startswith("sheet__")
 ```
 
-- [ ] **Step 3.2: Run test — verify failure**
+- [x] **Step 3.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/util/test_ids.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 3.3: Write `src/tableau2pbir/util/ids.py`**
+- [x] **Step 3.3: Write `src/tableau2pbir/util/ids.py`**
 
 ```python
 """Deterministic id generation. Stage 1 uses Tableau internal names where
@@ -517,14 +517,14 @@ def stable_id(kind: str, name: str) -> str:
     return f"{kind}__{slug_id(name)}"
 ```
 
-- [ ] **Step 3.4: Run test — verify pass**
+- [x] **Step 3.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/util/test_ids.py -v
 ```
 Expected: `6 passed`.
 
-- [ ] **Step 3.5: Commit**
+- [x] **Step 3.5: Commit**
 
 ```bash
 git add src/tableau2pbir/util/ids.py tests/unit/util/test_ids.py
@@ -541,7 +541,7 @@ git commit -m "feat(util): add deterministic id generation (slug_id, stable_id)"
 - Create: `tests/unit/extract/__init__.py` (empty)
 - Create: `tests/unit/extract/test_datasources.py`
 
-- [ ] **Step 4.1: Write failing test**
+- [x] **Step 4.1: Write failing test**
 
 `tests/unit/extract/test_datasources.py`:
 
@@ -655,16 +655,16 @@ def test_parameters_datasource_skipped_here():
     assert [d["name"] for d in dss] == ["real_ds"]
 ```
 
-- [ ] **Step 4.2: Run test — verify failure**
+- [x] **Step 4.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_datasources.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.extract.datasources'`.
 
-- [ ] **Step 4.3: Write `src/tableau2pbir/extract/__init__.py`** — empty file.
+- [x] **Step 4.3: Write `src/tableau2pbir/extract/__init__.py`** — empty file.
 
-- [ ] **Step 4.4: Write `src/tableau2pbir/extract/datasources.py`**
+- [x] **Step 4.4: Write `src/tableau2pbir/extract/datasources.py`**
 
 ```python
 """Raw datasource extraction. Output is a list of JSON-serializable dicts
@@ -787,14 +787,14 @@ def extract_datasources(root: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 4.5: Run test — verify pass**
+- [x] **Step 4.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_datasources.py -v
 ```
 Expected: `5 passed`.
 
-- [ ] **Step 4.6: Commit**
+- [x] **Step 4.6: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/__init__.py src/tableau2pbir/extract/datasources.py \
@@ -818,7 +818,7 @@ Tableau parameters live in a single `<datasource name='Parameters'>` with one `<
 
 Parameter "exposure" (card vs shelf vs calc-only) is NOT determined here — that requires cross-referencing worksheets + dashboards. Stage 2 fills `exposure` after sheets + dashboards are extracted.
 
-- [ ] **Step 5.1: Write failing test**
+- [x] **Step 5.1: Write failing test**
 
 `tests/unit/extract/test_parameters.py`:
 
@@ -903,14 +903,14 @@ def test_no_parameters_datasource_returns_empty():
     assert extract_parameters(root) == []
 ```
 
-- [ ] **Step 5.2: Run test — verify failure**
+- [x] **Step 5.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_parameters.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 5.3: Write `src/tableau2pbir/extract/parameters.py`**
+- [x] **Step 5.3: Write `src/tableau2pbir/extract/parameters.py`**
 
 ```python
 """Extract the special `<datasource name='Parameters'>` into raw dicts.
@@ -980,14 +980,14 @@ def extract_parameters(root: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 5.4: Run test — verify pass**
+- [x] **Step 5.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_parameters.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/parameters.py tests/unit/extract/test_parameters.py
@@ -1004,7 +1004,7 @@ git commit -m "feat(extract): raw parameter extraction from Parameters datasourc
 
 Spec §6 Stage 1 requires: mark type, encodings (rows/columns/color/size/label/detail/shape/tooltip/angle), filters, sort, dual-axis, reference lines, and **lift worksheet-level table-calc metadata** + **detect quick-table-calc pill modifiers**. For v1, quick-table-calc and table-calc metadata are recorded but downstream stage 2 will route them to `unsupported[]`.
 
-- [ ] **Step 6.1: Write failing test**
+- [x] **Step 6.1: Write failing test**
 
 `tests/unit/extract/test_worksheets.py`:
 
@@ -1115,14 +1115,14 @@ def test_no_worksheets_returns_empty():
     assert extract_worksheets(root) == []
 ```
 
-- [ ] **Step 6.2: Run test — verify failure**
+- [x] **Step 6.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_worksheets.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 6.3: Write `src/tableau2pbir/extract/worksheets.py`**
+- [x] **Step 6.3: Write `src/tableau2pbir/extract/worksheets.py`**
 
 ```python
 """Raw worksheet extraction — mark type, encodings, filters, sort,
@@ -1320,14 +1320,14 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 6.4: Run test — verify pass**
+- [x] **Step 6.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_worksheets.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/worksheets.py tests/unit/extract/test_worksheets.py
@@ -1344,7 +1344,7 @@ git commit -m "feat(extract): raw worksheet extraction (encodings, filters, quic
 
 Tableau `<dashboard>` contains a `<size>` element and a `<zones>` element with one `<zone>` per leaf (tiled) OR nested zones (containers). `type='worksheet'` | `'text'` | `'image'` | `'filter'` | `'parameter'` | `'legend'` | `'navigation'` | `'bitmap'` | `'webpage'` | `'blank'`. Floating zones have `floating='true'` and explicit `x/y/w/h`.
 
-- [ ] **Step 7.1: Write failing test**
+- [x] **Step 7.1: Write failing test**
 
 `tests/unit/extract/test_dashboards.py`:
 
@@ -1433,14 +1433,14 @@ def test_no_dashboards_returns_empty():
     assert extract_dashboards(root) == []
 ```
 
-- [ ] **Step 7.2: Run test — verify failure**
+- [x] **Step 7.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_dashboards.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 7.3: Write `src/tableau2pbir/extract/dashboards.py`**
+- [x] **Step 7.3: Write `src/tableau2pbir/extract/dashboards.py`**
 
 ```python
 """Raw dashboard extraction. Emits a flat list of leaves with position
@@ -1562,14 +1562,14 @@ def extract_dashboards(root: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 7.4: Run test — verify pass**
+- [x] **Step 7.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_dashboards.py -v
 ```
 Expected: `4 passed`.
 
-- [ ] **Step 7.5: Commit**
+- [x] **Step 7.5: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/dashboards.py tests/unit/extract/test_dashboards.py
@@ -1586,7 +1586,7 @@ git commit -m "feat(extract): raw dashboard zone extraction (tiled + floating)"
 
 Tableau actions sit at workbook level inside `<actions>` or under a dashboard's `<actions>` element. Action elements look like `<filter-action>`, `<highlight-action>`, `<url-action>`, `<parameter-action>`. Each has `source` and `target` children with `<datasource>` or `<worksheet>` / `<dashboard>` references.
 
-- [ ] **Step 8.1: Write failing test**
+- [x] **Step 8.1: Write failing test**
 
 `tests/unit/extract/test_actions.py`:
 
@@ -1643,14 +1643,14 @@ def test_no_actions_returns_empty():
     assert extract_actions(root) == []
 ```
 
-- [ ] **Step 8.2: Run test — verify failure**
+- [x] **Step 8.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_actions.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 8.3: Write `src/tableau2pbir/extract/actions.py`**
+- [x] **Step 8.3: Write `src/tableau2pbir/extract/actions.py`**
 
 ```python
 """Raw actions extraction — workbook-level and dashboard-level.
@@ -1721,14 +1721,14 @@ def extract_actions(root: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 8.4: Run test — verify pass**
+- [x] **Step 8.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_actions.py -v
 ```
 Expected: `2 passed`.
 
-- [ ] **Step 8.5: Commit**
+- [x] **Step 8.5: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/actions.py tests/unit/extract/test_actions.py
@@ -1745,7 +1745,7 @@ git commit -m "feat(extract): raw action extraction (filter/highlight/url/parame
 
 Tier-C objects per spec §2 + §14: story points, R / Python script calcs, custom shapes, forecast / trend lines, annotations, web-page objects, polygon marks, density marks, Gantt. Detection produces raw dicts that stage 2 maps to `UnsupportedItem` with code `unsupported_<subcategory>`.
 
-- [ ] **Step 9.1: Write failing test**
+- [x] **Step 9.1: Write failing test**
 
 `tests/unit/extract/test_tier_c_detect.py`:
 
@@ -1797,14 +1797,14 @@ def test_empty_workbook_produces_no_items():
     assert items == []
 ```
 
-- [ ] **Step 9.2: Run test — verify failure**
+- [x] **Step 9.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/extract/test_tier_c_detect.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 9.3: Write `src/tableau2pbir/extract/tier_c_detect.py`**
+- [x] **Step 9.3: Write `src/tableau2pbir/extract/tier_c_detect.py`**
 
 ```python
 """Detect tier-C (hard-unsupported) objects during stage 1. Stage 2
@@ -1926,14 +1926,14 @@ def detect_tier_c(root: etree._Element) -> list[dict[str, Any]]:
     )
 ```
 
-- [ ] **Step 9.4: Run test — verify pass**
+- [x] **Step 9.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/extract/test_tier_c_detect.py -v
 ```
 Expected: `5 passed`.
 
-- [ ] **Step 9.5: Commit**
+- [x] **Step 9.5: Commit**
 
 ```bash
 git add src/tableau2pbir/extract/tier_c_detect.py tests/unit/extract/test_tier_c_detect.py
