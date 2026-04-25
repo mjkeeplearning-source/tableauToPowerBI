@@ -2,10 +2,16 @@
 pure: no I/O, no module-level state, fully unit-testable."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
+from tableau2pbir.classify.calc_kind import classify_calc_kind
 from tableau2pbir.classify.connector_tier import classify_connector
-from tableau2pbir.ir.common import UnsupportedItem
+from tableau2pbir.ir.calculation import (
+    Calculation, CalculationKind, CalculationPhase, CalculationScope,
+    LodFixed, LodRelative,
+)
+from tableau2pbir.ir.common import FieldRef, UnsupportedItem
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
 from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Table
 from tableau2pbir.util.ids import stable_id
@@ -124,3 +130,87 @@ def build_tables(
         ))
 
     return tuple(tables), tuple(columns)
+
+
+_LOD_HEADER = re.compile(
+    r"^\s*\{\s*(FIXED|INCLUDE|EXCLUDE)\s*(?P<dims>.*?)\s*:\s*.*\}\s*$",
+    re.IGNORECASE | re.DOTALL,
+)
+_BRACKETED = re.compile(r"\[([^\[\]]+)\]")
+
+
+def _parse_lod_dimensions(tableau_expr: str, table_id: str) -> tuple[FieldRef, ...]:
+    m = _LOD_HEADER.match(tableau_expr)
+    if not m:
+        return ()
+    dims_text = m.group("dims").strip()
+    if not dims_text:
+        return ()
+    refs: list[FieldRef] = []
+    for name in _BRACKETED.findall(dims_text):
+        refs.append(FieldRef(table_id=table_id, column_id=stable_id("", name).lstrip("_")))
+    return tuple(refs)
+
+
+def _scope(raw_role: str) -> CalculationScope:
+    return CalculationScope.MEASURE if raw_role == "measure" else CalculationScope.COLUMN
+
+
+def _dependency_ids(expr: str, calc_name_to_id: dict[str, str]) -> tuple[str, ...]:
+    deps: list[str] = []
+    for name in _BRACKETED.findall(expr):
+        if name in calc_name_to_id and calc_name_to_id[name] not in deps:
+            deps.append(calc_name_to_id[name])
+    return tuple(deps)
+
+
+def build_calculations(
+    raw_datasources: list[dict[str, Any]],
+) -> tuple[Calculation, ...]:
+    """Map raw calculations (from extract) to IR Calculations with
+    classified kind/phase. Kind-specific payloads (lod_fixed, lod_relative)
+    are filled in here; table_calc specifics and anonymous quick-table-calc
+    records are handled in task 22 (deferred-feature routing) for v1."""
+    # First pass — build name → id map for dependency resolution.
+    name_to_id: dict[str, str] = {}
+    per_calc: list[tuple[dict[str, Any], str, str]] = []   # (raw_calc, calc_id, table_id)
+    for raw_ds in raw_datasources:
+        table_id = stable_id("tbl", raw_ds["name"])
+        for calc in raw_ds.get("calculations", []):
+            calc_id = stable_id("calc", calc["host_column_name"])
+            name_to_id[calc["host_column_name"]] = calc_id
+            per_calc.append((calc, calc_id, table_id))
+
+    out: list[Calculation] = []
+    for raw_calc, calc_id, table_id in per_calc:
+        expr = raw_calc["tableau_expr"]
+        classification = classify_calc_kind(expr)
+        kind = CalculationKind(classification.kind)
+        phase = CalculationPhase(classification.phase)
+
+        lod_fixed = None
+        lod_relative = None
+        if kind == CalculationKind.LOD_FIXED:
+            lod_fixed = LodFixed(dimensions=_parse_lod_dimensions(expr, table_id))
+        elif kind == CalculationKind.LOD_INCLUDE:
+            dims = _parse_lod_dimensions(expr, table_id)
+            lod_relative = LodRelative(extra_dims=dims if dims else None)
+        elif kind == CalculationKind.LOD_EXCLUDE:
+            dims = _parse_lod_dimensions(expr, table_id)
+            lod_relative = LodRelative(excluded_dims=dims if dims else None)
+
+        out.append(Calculation(
+            id=calc_id,
+            name=raw_calc["host_column_name"],
+            scope=_scope(raw_calc["role"]),
+            tableau_expr=expr,
+            dax_expr=None,
+            depends_on=_dependency_ids(expr, name_to_id),
+            kind=kind,
+            phase=phase,
+            lod_fixed=lod_fixed,
+            lod_relative=lod_relative,
+            table_calc=None,                # Plan 3 populates table_calc details.
+            owner_sheet_id=None,
+        ))
+    return tuple(out)

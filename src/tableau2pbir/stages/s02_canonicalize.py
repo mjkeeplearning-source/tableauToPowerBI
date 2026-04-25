@@ -10,16 +10,18 @@ from typing import Any
 from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 from tableau2pbir.ir.workbook import DataModel, Workbook
 from tableau2pbir.pipeline import StageContext, StageResult
-from tableau2pbir.stages._build_data_model import build_datasources, build_tables
+from tableau2pbir.stages._build_data_model import (
+    build_calculations, build_datasources, build_tables,
+)
 
 
 def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     """Orchestrator. Each sub-builder is pure and side-effect-free."""
     datasources, ds_unsupported = build_datasources(input_json.get("datasources", []))
     tables, _columns = build_tables(input_json.get("datasources", []))
+    calculations = build_calculations(input_json.get("datasources", []))
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
-    # Keep the columns list locally for cross-lookups in later tasks (calcs).
-    data_model = DataModel(datasources=datasources, tables=tables)
+    data_model = DataModel(datasources=datasources, tables=tables, calculations=calculations)
 
     wb = Workbook(
         ir_schema_version=IR_SCHEMA_VERSION,
