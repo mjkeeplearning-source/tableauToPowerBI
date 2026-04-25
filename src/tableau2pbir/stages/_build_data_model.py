@@ -7,11 +7,13 @@ from typing import Any
 
 from tableau2pbir.classify.calc_kind import classify_calc_kind
 from tableau2pbir.classify.connector_tier import classify_connector
+from tableau2pbir.classify.parameter_intent import classify_parameter_intent
 from tableau2pbir.ir.calculation import (
     Calculation, CalculationKind, CalculationPhase, CalculationScope,
     LodFixed, LodRelative,
 )
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
+from tableau2pbir.ir.parameter import Parameter, ParameterExposure, ParameterIntent
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
 from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Table
 from tableau2pbir.util.ids import stable_id
@@ -212,5 +214,47 @@ def build_calculations(
             lod_relative=lod_relative,
             table_calc=None,                # Plan 3 populates table_calc details.
             owner_sheet_id=None,
+        ))
+    return tuple(out)
+
+
+def _synthesize_range_values(range_dict: dict[str, str]) -> tuple[str, ...]:
+    return (range_dict["min"], range_dict["max"], range_dict["granularity"])
+
+
+def _exposure(raw_usage: str | None) -> ParameterExposure:
+    if raw_usage == "card":
+        return ParameterExposure.CARD
+    if raw_usage == "shelf":
+        return ParameterExposure.SHELF
+    return ParameterExposure.CALC_ONLY
+
+
+def build_parameters(
+    raw_parameters: list[dict[str, Any]],
+    usage: dict[str, str],
+) -> tuple[Parameter, ...]:
+    """`usage[param_name]` ∈ {'card','shelf','calc_only'} derived by the
+    orchestrator from dashboards + worksheets. Defaults to 'calc_only'."""
+    out: list[Parameter] = []
+    for raw in raw_parameters:
+        exposure_raw = usage.get(raw["name"], "calc_only")
+        intent_str = classify_parameter_intent(
+            domain_type=raw["domain_type"],
+            exposure=exposure_raw,
+        )
+        exposure = _exposure(exposure_raw)
+        allowed = raw["allowed_values"]
+        if not allowed and raw["domain_type"] == "range" and raw["range"]:
+            allowed = _synthesize_range_values(raw["range"])
+        out.append(Parameter(
+            id=stable_id("param", raw["name"]),
+            name=raw["name"],
+            datatype=raw["datatype"],
+            default=raw["default"],
+            allowed_values=tuple(allowed),
+            intent=ParameterIntent(intent_str),
+            exposure=exposure,
+            binding_target=None,
         ))
     return tuple(out)

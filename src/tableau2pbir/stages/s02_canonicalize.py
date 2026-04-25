@@ -11,8 +11,24 @@ from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 from tableau2pbir.ir.workbook import DataModel, Workbook
 from tableau2pbir.pipeline import StageContext, StageResult
 from tableau2pbir.stages._build_data_model import (
-    build_calculations, build_datasources, build_tables,
+    build_calculations, build_datasources, build_parameters, build_tables,
 )
+
+
+def _parameter_usage(input_json: dict[str, Any]) -> dict[str, str]:
+    """Derive card vs shelf vs calc_only exposure for each parameter."""
+    usage: dict[str, str] = {}
+    for db in input_json.get("dashboards", []):
+        for leaf in db.get("leaves", []):
+            if leaf["leaf_kind"] == "parameter_card":
+                name = leaf["payload"].get("parameter_name")
+                if name:
+                    usage[name] = "card"
+    for ws in input_json.get("worksheets", []):
+        for channel in ("rows", "columns"):
+            for ref in ws["encodings"].get(channel, ()):
+                usage.setdefault(ref, "shelf")
+    return usage
 
 
 def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
@@ -20,8 +36,13 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     datasources, ds_unsupported = build_datasources(input_json.get("datasources", []))
     tables, _columns = build_tables(input_json.get("datasources", []))
     calculations = build_calculations(input_json.get("datasources", []))
+    usage = _parameter_usage(input_json)
+    parameters = build_parameters(input_json.get("parameters", []), usage)
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
-    data_model = DataModel(datasources=datasources, tables=tables, calculations=calculations)
+    data_model = DataModel(
+        datasources=datasources, tables=tables,
+        calculations=calculations, parameters=parameters,
+    )
 
     wb = Workbook(
         ir_schema_version=IR_SCHEMA_VERSION,
