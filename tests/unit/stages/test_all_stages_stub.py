@@ -9,7 +9,7 @@ import pytest
 from tableau2pbir.pipeline import StageContext, StageResult
 
 STAGE_MODULES = [
-    "tableau2pbir.stages.s02_canonicalize",
+    # s01_extract and s02_canonicalize require real input keys; tested separately
     "tableau2pbir.stages.s03_translate_calcs",
     "tableau2pbir.stages.s04_map_visuals",
     "tableau2pbir.stages.s05_compute_layout",
