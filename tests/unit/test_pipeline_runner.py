@@ -8,6 +8,8 @@ from tableau2pbir.pipeline import (
     STAGE_SEQUENCE, PipelineResult, run_pipeline,
 )
 
+_SIMPLE_JOIN = Path(__file__).resolve().parents[2] / "tests" / "golden" / "real" / "simple_join.twb"
+
 
 def test_stage_sequence_has_8_stages():
     assert len(STAGE_SEQUENCE) == 8
@@ -20,7 +22,7 @@ def test_run_pipeline_full_run(tmp_path: Path):
     out = tmp_path / "wb"
     result = run_pipeline(
         workbook_id="wb",
-        source_path=Path("dummy.twb"),
+        source_path=_SIMPLE_JOIN,
         output_dir=out,
         config={},
         gate=None,
@@ -41,7 +43,7 @@ def test_run_pipeline_full_run(tmp_path: Path):
 def test_run_pipeline_gate_stops_after_named_stage(tmp_path: Path):
     out = tmp_path / "wb"
     result = run_pipeline(
-        workbook_id="wb", source_path=Path("d.twb"), output_dir=out,
+        workbook_id="wb", source_path=_SIMPLE_JOIN, output_dir=out,
         config={}, gate="canonicalize", resume_from=None,
     )
     assert result.stages_run == 2                          # extract + canonicalize
@@ -52,12 +54,12 @@ def test_run_pipeline_gate_stops_after_named_stage(tmp_path: Path):
 def test_run_pipeline_resume_from_reads_prior_output(tmp_path: Path):
     out = tmp_path / "wb"
     # First: gated run stops after stage 2
-    run_pipeline(workbook_id="wb", source_path=Path("d.twb"), output_dir=out,
+    run_pipeline(workbook_id="wb", source_path=_SIMPLE_JOIN, output_dir=out,
                  config={}, gate="canonicalize", resume_from=None)
     assert (out / "stages" / "02_canonicalize.json").exists()
     assert not (out / "stages" / "08_package_validate.json").exists()
     # Resume: picks up from stage 3
-    result = run_pipeline(workbook_id="wb", source_path=Path("d.twb"), output_dir=out,
+    result = run_pipeline(workbook_id="wb", source_path=_SIMPLE_JOIN, output_dir=out,
                           config={}, gate=None, resume_from="translate_calcs")
     assert result.stages_run == 6                          # stages 3..8
     assert (out / "stages" / "08_package_validate.json").exists()
@@ -65,5 +67,5 @@ def test_run_pipeline_resume_from_reads_prior_output(tmp_path: Path):
 
 def test_run_pipeline_resume_from_unknown_stage_errors(tmp_path: Path):
     with pytest.raises(ValueError, match="unknown stage"):
-        run_pipeline(workbook_id="wb", source_path=Path("d.twb"),
+        run_pipeline(workbook_id="wb", source_path=_SIMPLE_JOIN,
                      output_dir=tmp_path, config={}, gate=None, resume_from="nonsense")
