@@ -9,7 +9,6 @@ import pytest
 from tableau2pbir.pipeline import StageContext, StageResult
 
 STAGE_MODULES = [
-    "tableau2pbir.stages.s01_extract",
     "tableau2pbir.stages.s02_canonicalize",
     "tableau2pbir.stages.s03_translate_calcs",
     "tableau2pbir.stages.s04_map_visuals",
