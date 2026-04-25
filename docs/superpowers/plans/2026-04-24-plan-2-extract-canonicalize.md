@@ -1948,7 +1948,7 @@ git commit -m "feat(extract): tier-C object detection (story/R-Python/polygon/an
 - Modify: `src/tableau2pbir/stages/s01_extract.py`
 - Create: `tests/unit/stages/test_s01_extract.py`
 
-- [ ] **Step 10.1: Write failing test**
+- [x] **Step 10.1: Write failing test**
 
 `tests/unit/stages/test_s01_extract.py`:
 
@@ -2001,14 +2001,14 @@ def test_stage1_missing_source_path_raises(tmp_path: Path):
         s01_extract.run({}, _ctx(tmp_path))
 ```
 
-- [ ] **Step 10.2: Run test — verify failure**
+- [x] **Step 10.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s01_extract.py -v
 ```
 Expected: first test fails — the stub output has key `stub_stage` not `source_path`. Second fails on summary content. Third passes only accidentally.
 
-- [ ] **Step 10.3: Replace `src/tableau2pbir/stages/s01_extract.py`**
+- [x] **Step 10.3: Replace `src/tableau2pbir/stages/s01_extract.py`**
 
 ```python
 """Stage 1 — extract (pure python). See spec §6 Stage 1.
@@ -2083,28 +2083,28 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     return StageResult(output=output, summary_md=_summary(counts), errors=())
 ```
 
-- [ ] **Step 10.4: Run test — verify pass**
+- [x] **Step 10.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s01_extract.py -v
 ```
 Expected: `3 passed`.
 
-- [ ] **Step 10.5: Verify existing stubs contract still satisfied**
+- [x] **Step 10.5: Verify existing stubs contract still satisfied**
 
 ```bash
 pytest tests/unit/stages/test_all_stages_stub.py -v
 ```
 Expected: `8 passed` — stage 1 still returns a `StageResult`; the parametrized test doesn't care about shape.
 
-- [ ] **Step 10.6: Run the Plan-1 end-to-end integration**
+- [x] **Step 10.6: Run the Plan-1 end-to-end integration**
 
 ```bash
 pytest tests/integration/test_empty_pipeline_end_to_end.py -v
 ```
 Expected: `1 passed` — stage 1 output is richer now, but stages 2–8 still run as stubs and the artifact files exist.
 
-- [ ] **Step 10.7: Commit**
+- [x] **Step 10.7: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s01_extract.py tests/unit/stages/test_s01_extract.py
@@ -2123,7 +2123,7 @@ git commit -m "feat(stage1): wire real extract pipeline — replaces Plan-1 stub
 
 Classifies a raw datasource dict (from `extract_datasources`) into one of the four tiers in §5.8. For `hyper` extracts, walks into `named_connections[0].connection` when the outer class is `federated` or `hyper` → picks upstream Tier-1/2 class. If no upstream → Tier 4.
 
-- [ ] **Step 11.1: Write failing test**
+- [x] **Step 11.1: Write failing test**
 
 `tests/unit/classify/test_connector_tier.py`:
 
@@ -2229,14 +2229,14 @@ def test_unknown_class_falls_to_tier_4():
     assert r.tier == 4
 ```
 
-- [ ] **Step 11.2: Run test — verify failure**
+- [x] **Step 11.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/classify/test_connector_tier.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 11.3: Write `src/tableau2pbir/classify/connector_tier.py`**
+- [x] **Step 11.3: Write `src/tableau2pbir/classify/connector_tier.py`**
 
 ```python
 """§5.8 connector matrix classifier.
@@ -2346,14 +2346,14 @@ def classify_connector(raw_ds: dict[str, Any]) -> ConnectorClassification:
     )
 ```
 
-- [ ] **Step 11.4: Run test — verify pass**
+- [x] **Step 11.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/classify/test_connector_tier.py -v
 ```
 Expected: `9 passed`.
 
-- [ ] **Step 11.5: Commit**
+- [x] **Step 11.5: Commit**
 
 ```bash
 git add src/tableau2pbir/classify/__init__.py src/tableau2pbir/classify/connector_tier.py \
@@ -2377,7 +2377,7 @@ Spec §5.6 kinds: `row | aggregate | table_calc | lod_fixed | lod_include | lod_
 
 "Top-level" means outside any string literal. The check uses token scanning with quote awareness.
 
-- [ ] **Step 12.1: Write failing test**
+- [x] **Step 12.1: Write failing test**
 
 `tests/unit/classify/test_calc_kind.py`:
 
@@ -2447,14 +2447,14 @@ def test_whitespace_insensitive_lod_prefix():
     assert r.kind == "lod_fixed"
 ```
 
-- [ ] **Step 12.2: Run test — verify failure**
+- [x] **Step 12.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/classify/test_calc_kind.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 12.3: Write `src/tableau2pbir/classify/calc_kind.py`**
+- [x] **Step 12.3: Write `src/tableau2pbir/classify/calc_kind.py`**
 
 ```python
 """§5.6 calc-kind/phase discrimination. Pure-Python token scan over the
@@ -2553,14 +2553,14 @@ def classify_calc_kind(tableau_expr: str) -> CalcClassification:
     return CalcClassification(kind="row", phase="row")
 ```
 
-- [ ] **Step 12.4: Run test — verify pass**
+- [x] **Step 12.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/classify/test_calc_kind.py -v
 ```
 Expected: `11 passed`.
 
-- [ ] **Step 12.5: Commit**
+- [x] **Step 12.5: Commit**
 
 ```bash
 git add src/tableau2pbir/classify/calc_kind.py tests/unit/classify/test_calc_kind.py
@@ -2587,7 +2587,7 @@ git commit -m "feat(classify): §5.6 calc-kind/phase discrimination (row/agg/tc/
 
 Formatting-control detection (switch pattern: parameter drives a `CASE` whose branches differ only in format string) is complex enough that Plan 2 defers it behind a simple signature check: when the caller passes `drives_format_switch=True`, return `formatting_control`.
 
-- [ ] **Step 13.1: Write failing test**
+- [x] **Step 13.1: Write failing test**
 
 `tests/unit/classify/test_parameter_intent.py`:
 
@@ -2632,14 +2632,14 @@ def test_any_with_card_is_unsupported():
         == "unsupported"
 ```
 
-- [ ] **Step 13.2: Run test — verify failure**
+- [x] **Step 13.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/classify/test_parameter_intent.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 13.3: Write `src/tableau2pbir/classify/parameter_intent.py`**
+- [x] **Step 13.3: Write `src/tableau2pbir/classify/parameter_intent.py`**
 
 ```python
 """§5.7 parameter-intent classification."""
@@ -2674,14 +2674,14 @@ def classify_parameter_intent(
     return "unsupported"
 ```
 
-- [ ] **Step 13.4: Run test — verify pass**
+- [x] **Step 13.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/classify/test_parameter_intent.py -v
 ```
 Expected: `6 passed`.
 
-- [ ] **Step 13.5: Commit**
+- [x] **Step 13.5: Commit**
 
 ```bash
 git add src/tableau2pbir/classify/parameter_intent.py \
@@ -2700,7 +2700,7 @@ git commit -m "feat(classify): §5.7 parameter-intent (numeric/categorical/const
 
 Stage 2 will be built in layers: skeleton + schema contract now; data_model piece by piece in tasks 15–21; cross-cutting routing in 22; summary in 23. This task wires the skeleton that assembles a minimal empty `Workbook` and proves the output validates against `schemas/ir-v1.0.0.schema.json`.
 
-- [ ] **Step 14.1: Write failing test for stage 2 skeleton**
+- [x] **Step 14.1: Write failing test for stage 2 skeleton**
 
 `tests/unit/stages/test_s02_canonicalize.py`:
 
@@ -2758,7 +2758,7 @@ def test_stage2_empty_workbook_has_empty_data_model(tmp_path: Path):
     assert result.output["unsupported"] == []
 ```
 
-- [ ] **Step 14.2: Write failing contract test**
+- [x] **Step 14.2: Write failing contract test**
 
 `tests/contract/test_stage2_ir_contract.py`:
 
@@ -2798,14 +2798,14 @@ def test_stage2_empty_output_validates_against_ir_schema(tmp_path: Path, repo_ro
     Workbook.model_validate(result.output)
 ```
 
-- [ ] **Step 14.3: Run both tests — verify failure**
+- [x] **Step 14.3: Run both tests — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_canonicalize.py tests/contract/test_stage2_ir_contract.py -v
 ```
 Expected: stub returns `stub_stage` key, not `ir_schema_version` — multiple failures.
 
-- [ ] **Step 14.4: Replace `src/tableau2pbir/stages/s02_canonicalize.py`** (skeleton only; tasks 15–23 will flesh out sub-functions)
+- [x] **Step 14.4: Replace `src/tableau2pbir/stages/s02_canonicalize.py`** (skeleton only; tasks 15–23 will flesh out sub-functions)
 
 ```python
 """Stage 2 — canonicalize → IR (pure python). See spec §6 Stage 2.
@@ -2844,14 +2844,14 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 14.5: Run tests — verify pass**
+- [x] **Step 14.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_canonicalize.py tests/contract/test_stage2_ir_contract.py -v
 ```
 Expected: `4 passed` (3 in unit + 1 in contract).
 
-- [ ] **Step 14.6: Commit**
+- [x] **Step 14.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s02_canonicalize.py \
@@ -2871,7 +2871,7 @@ git commit -m "feat(stage2): wire skeleton with schema-version stamp + IR contra
 
 Builder function takes `raw_datasources: list[dict]` and returns `(tuple[Datasource, ...], tuple[UnsupportedItem, ...])`. Tier 3 / Tier 4 datasources get both an IR `Datasource` record AND an `UnsupportedItem` appended (tier 4 `unsupported_datasource_tier_4`; tier 3 `deferred_feature_tier3`).
 
-- [ ] **Step 15.1: Write failing test**
+- [x] **Step 15.1: Write failing test**
 
 `tests/unit/stages/test_s02_datasources.py`:
 
@@ -2958,14 +2958,14 @@ def test_extract_ignored_flag_when_hyper_with_upstream():
     assert datasources[0].extract_ignored is True
 ```
 
-- [ ] **Step 15.2: Run test — verify failure**
+- [x] **Step 15.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_datasources.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 15.3: Write `src/tableau2pbir/stages/_build_data_model.py` with `build_datasources`**
+- [x] **Step 15.3: Write `src/tableau2pbir/stages/_build_data_model.py` with `build_datasources`**
 
 ```python
 """Private builders for Stage 2. One function per IR sub-tree. These are
@@ -3043,7 +3043,7 @@ def build_datasources(
     return tuple(datasources), tuple(unsupported)
 ```
 
-- [ ] **Step 15.4: Wire `build_datasources` into `s02_canonicalize.py`**
+- [x] **Step 15.4: Wire `build_datasources` into `s02_canonicalize.py`**
 
 Replace the `run` function body so it calls `build_datasources`:
 
@@ -3072,7 +3072,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 15.5: Run test — verify pass**
+- [x] **Step 15.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_datasources.py \
@@ -3081,7 +3081,7 @@ pytest tests/unit/stages/test_s02_datasources.py \
 ```
 Expected: all pass (skeleton tests + new datasource tests + schema contract).
 
-- [ ] **Step 15.6: Commit**
+- [x] **Step 15.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_data_model.py \
@@ -3100,7 +3100,7 @@ git commit -m "feat(stage2): canonicalize datasources with §5.8 tier classifica
 
 Tableau has no explicit `<table>` element in a CSV/single-connection datasource — it implicitly has one "table" per datasource. For our IR we emit one `Table` per datasource whose `column_ids` are all `Column` ids from that datasource. Relationships are out of scope for Plan 2 (only show up with multi-table federated/joined datasources; those go through Plan 3+ / Plan 4).
 
-- [ ] **Step 16.1: Write failing test**
+- [x] **Step 16.1: Write failing test**
 
 `tests/unit/stages/test_s02_tables.py`:
 
@@ -3173,14 +3173,14 @@ def test_empty_datasources_returns_empty():
     assert columns == ()
 ```
 
-- [ ] **Step 16.2: Run test — verify failure**
+- [x] **Step 16.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_tables.py -v
 ```
 Expected: `ImportError: cannot import name 'build_tables'`.
 
-- [ ] **Step 16.3: Add `build_tables` to `_build_data_model.py`**
+- [x] **Step 16.3: Add `build_tables` to `_build_data_model.py`**
 
 Append to `src/tableau2pbir/stages/_build_data_model.py`:
 
@@ -3240,7 +3240,7 @@ def build_tables(
     return tuple(tables), tuple(columns)
 ```
 
-- [ ] **Step 16.4: Wire `build_tables` into `s02_canonicalize.run`**
+- [x] **Step 16.4: Wire `build_tables` into `s02_canonicalize.run`**
 
 Replace `data_model=DataModel(datasources=datasources)` with:
 
@@ -3257,7 +3257,7 @@ and update the `from tableau2pbir.stages._build_data_model` import line:
 from tableau2pbir.stages._build_data_model import build_datasources, build_tables
 ```
 
-- [ ] **Step 16.5: Run test — verify pass**
+- [x] **Step 16.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_tables.py \
@@ -3266,7 +3266,7 @@ pytest tests/unit/stages/test_s02_tables.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 16.6: Commit**
+- [x] **Step 16.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_data_model.py \
@@ -3289,7 +3289,7 @@ Each raw calculation becomes an IR `Calculation`. Kind and phase come from `clas
 
 **`depends_on` at this stage** is populated by finding bracketed identifiers in the expression that match another calc's name. Computed in `build_calculations` after all calcs are collected.
 
-- [ ] **Step 17.1: Write failing test**
+- [x] **Step 17.1: Write failing test**
 
 `tests/unit/stages/test_s02_calculations.py`:
 
@@ -3386,14 +3386,14 @@ def test_depends_on_detects_sibling_calcs():
     assert revenue.id in margin.depends_on
 ```
 
-- [ ] **Step 17.2: Run test — verify failure**
+- [x] **Step 17.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_calculations.py -v
 ```
 Expected: `ImportError: cannot import name 'build_calculations'`.
 
-- [ ] **Step 17.3: Add `build_calculations` to `_build_data_model.py`**
+- [x] **Step 17.3: Add `build_calculations` to `_build_data_model.py`**
 
 Append:
 
@@ -3492,7 +3492,7 @@ def build_calculations(
     return tuple(out)
 ```
 
-- [ ] **Step 17.4: Wire `build_calculations` into `s02_canonicalize.run`**
+- [x] **Step 17.4: Wire `build_calculations` into `s02_canonicalize.run`**
 
 Update imports:
 
@@ -3513,7 +3513,7 @@ data_model = DataModel(
 )
 ```
 
-- [ ] **Step 17.5: Run test — verify pass**
+- [x] **Step 17.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_calculations.py \
@@ -3522,7 +3522,7 @@ pytest tests/unit/stages/test_s02_calculations.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 17.6: Commit**
+- [x] **Step 17.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_data_model.py \
@@ -3541,7 +3541,7 @@ git commit -m "feat(stage2): canonicalize calculations with kind/phase + LOD dim
 
 `build_parameters` takes `raw_params: list[dict]` and `usage: dict[str, str]` where `usage[param_name] ∈ {"card", "shelf", "calc_only"}`. Usage is derived by the orchestrator from the dashboard's `parameter_card` leaves (card) and sheet encodings (shelf). For Plan 2, parameters used in neither get `calc_only`.
 
-- [ ] **Step 18.1: Write failing test**
+- [x] **Step 18.1: Write failing test**
 
 `tests/unit/stages/test_s02_parameters.py`:
 
@@ -3615,14 +3615,14 @@ def test_parameter_id_is_stable():
     assert first.startswith("param__")
 ```
 
-- [ ] **Step 18.2: Run test — verify failure**
+- [x] **Step 18.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_parameters.py -v
 ```
 Expected: `ImportError: cannot import name 'build_parameters'`.
 
-- [ ] **Step 18.3: Add `build_parameters` to `_build_data_model.py`**
+- [x] **Step 18.3: Add `build_parameters` to `_build_data_model.py`**
 
 Append:
 
@@ -3676,7 +3676,7 @@ def build_parameters(
     return tuple(out)
 ```
 
-- [ ] **Step 18.4: Compute `usage` in `s02_canonicalize.run` and wire parameters**
+- [x] **Step 18.4: Compute `usage` in `s02_canonicalize.run` and wire parameters**
 
 Add a helper to `s02_canonicalize.py`:
 
@@ -3722,7 +3722,7 @@ from tableau2pbir.stages._build_data_model import (
 )
 ```
 
-- [ ] **Step 18.5: Run tests — verify pass**
+- [x] **Step 18.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_parameters.py \
@@ -3731,7 +3731,7 @@ pytest tests/unit/stages/test_s02_parameters.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 18.6: Commit**
+- [x] **Step 18.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_data_model.py \
@@ -3751,7 +3751,7 @@ git commit -m "feat(stage2): canonicalize parameters with §5.7 intent classific
 
 Each raw worksheet becomes a `Sheet`. `uses_calculations` is populated by scanning the sheet's encoded column names against the set of calculation names.
 
-- [ ] **Step 19.1: Write failing test**
+- [x] **Step 19.1: Write failing test**
 
 `tests/unit/stages/test_s02_sheets.py`:
 
@@ -3830,14 +3830,14 @@ def test_quick_table_calc_surfaces_deferred_item():
     assert "running_sum" in qtc_items[0].source_excerpt
 ```
 
-- [ ] **Step 19.2: Run test — verify failure**
+- [x] **Step 19.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_sheets.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 19.3: Write `src/tableau2pbir/stages/_build_sheets.py`**
+- [x] **Step 19.3: Write `src/tableau2pbir/stages/_build_sheets.py`**
 
 ```python
 """Stage 2 sheet builder. Produces IR Sheets from raw extract worksheets
@@ -3971,7 +3971,7 @@ def build_sheets(
     return tuple(sheets), tuple(qtc_unsupported)
 ```
 
-- [ ] **Step 19.4: Wire `build_sheets` into `s02_canonicalize.run`**
+- [x] **Step 19.4: Wire `build_sheets` into `s02_canonicalize.run`**
 
 Add imports:
 
@@ -3997,7 +3997,7 @@ And use `sheets=sheets` in the `Workbook(...)` call; append `qtc_unsupported` to
 unsupported = ds_unsupported + qtc_unsupported
 ```
 
-- [ ] **Step 19.5: Run tests — verify pass**
+- [x] **Step 19.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_sheets.py \
@@ -4006,7 +4006,7 @@ pytest tests/unit/stages/test_s02_sheets.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 19.6: Commit**
+- [x] **Step 19.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_sheets.py \
