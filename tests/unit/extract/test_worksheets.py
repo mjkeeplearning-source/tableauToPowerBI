@@ -4,22 +4,29 @@ from tableau2pbir.extract.worksheets import extract_worksheets
 from tableau2pbir.util.xml import parse_workbook_xml
 
 
+# Synthetic fixtures mirror real Tableau structure:
+# <worksheet>/<table>/<view> with <rows>/<cols>/<panes> as siblings of <view>.
+
 _XML_BASIC = b"""<?xml version='1.0'?>
 <workbook><worksheets>
   <worksheet name='Revenue'>
-    <view>
-      <datasources>
-        <datasource name='sample.csv'/>
-      </datasources>
+    <table>
+      <view>
+        <datasources>
+          <datasource name='sample.csv'/>
+        </datasources>
+      </view>
+      <panes>
+        <pane>
+          <mark class='Bar'/>
+          <encodings>
+            <color column='[region]'/>
+          </encodings>
+        </pane>
+      </panes>
       <rows>[amount]</rows>
-      <columns>[month]</columns>
-      <pane>
-        <mark class='Bar'/>
-        <encodings>
-          <color column='[region]'/>
-        </encodings>
-      </pane>
-    </view>
+      <cols>[month]</cols>
+    </table>
   </worksheet>
 </worksheets></workbook>
 """
@@ -27,16 +34,20 @@ _XML_BASIC = b"""<?xml version='1.0'?>
 _XML_WITH_FILTER = b"""<?xml version='1.0'?>
 <workbook><worksheets>
   <worksheet name='Filtered'>
-    <view>
-      <datasources><datasource name='ds1'/></datasources>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+        <filter class='categorical' column='[region]'>
+          <groupfilter function='member' level='[region]' member='&quot;West&quot;'/>
+          <groupfilter function='member' level='[region]' member='&quot;East&quot;'/>
+        </filter>
+      </view>
+      <panes>
+        <pane><mark class='Bar'/></pane>
+      </panes>
       <rows>[amount]</rows>
-      <columns>[region]</columns>
-      <filter class='categorical' column='[region]'>
-        <groupfilter function='member' level='[region]' member='&quot;West&quot;'/>
-        <groupfilter function='member' level='[region]' member='&quot;East&quot;'/>
-      </filter>
-      <pane><mark class='Bar'/></pane>
-    </view>
+      <cols>[region]</cols>
+    </table>
   </worksheet>
 </worksheets></workbook>
 """
@@ -44,22 +55,19 @@ _XML_WITH_FILTER = b"""<?xml version='1.0'?>
 _XML_QUICK_TABLE_CALC = b"""<?xml version='1.0'?>
 <workbook><worksheets>
   <worksheet name='Running Sum'>
-    <view>
-      <datasources><datasource name='ds1'/></datasources>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+        <table-calculations>
+          <table-calculation column='[amount]' type='running_sum'/>
+        </table-calculations>
+      </view>
+      <panes>
+        <pane><mark class='Line'/></pane>
+      </panes>
       <rows>[amount]</rows>
-      <columns>[month]</columns>
-      <table>
-        <rows>
-          <datasource-dependencies datasource='ds1'>
-            <column datatype='integer' name='[amount]' role='measure' type='quantitative'/>
-          </datasource-dependencies>
-        </rows>
-      </table>
-      <pane><mark class='Line'/></pane>
-      <table-calculations>
-        <table-calculation column='[amount]' type='running_sum'/>
-      </table-calculations>
-    </view>
+      <cols>[month]</cols>
+    </table>
   </worksheet>
 </worksheets></workbook>
 """
