@@ -50,3 +50,68 @@ def test_stage2_smoke(name):
     assert len(out["source_hash"]) == 64
     # Must validate against the IR schema (pydantic is source of truth per §5.4).
     Workbook.model_validate(out)
+
+
+# ── data_model count regression — locks in datasource/table/calc counts ───────
+
+def test_daatabricks_counts():
+    dm = _run_pipeline("daatabricks.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 0
+
+
+def test_join_custom_rds_counts():
+    dm = _run_pipeline("join_custom_rds.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 1
+
+
+def test_rds_complex_cal_counts():
+    dm = _run_pipeline("rds_compllex_cal.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 3
+
+
+def test_snowflake_counts():
+    dm = _run_pipeline("snowflkake.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 0
+
+
+def test_sql_custom_rds_counts():
+    dm = _run_pipeline("sql_custom_rds.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 0
+
+
+def test_simple_join_counts():
+    dm = _run_pipeline("simple_join.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 2
+
+
+def test_simple_join_calculated_line_counts():
+    dm = _run_pipeline("simple_join_calculated_line.twb")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 0
+
+
+def test_sales_insights_counts():
+    dm = _run_pipeline("Sales Insights - Data Analysis Project using Tableau.twbx")["data_model"]
+    assert len(dm["datasources"]) == 1
+    assert len(dm["tables"]) == 1
+    assert len(dm["calculations"]) == 3
+
+
+def test_superstore_counts():
+    dm = _run_pipeline("Superstore.twbx")["data_model"]
+    assert len(dm["datasources"]) == 3
+    assert len(dm["tables"]) == 3
+    assert len(dm["calculations"]) == 21
