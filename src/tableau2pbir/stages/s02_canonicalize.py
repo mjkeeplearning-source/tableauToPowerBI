@@ -13,6 +13,7 @@ from tableau2pbir.pipeline import StageContext, StageResult
 from tableau2pbir.stages._build_data_model import (
     build_calculations, build_datasources, build_parameters, build_tables,
 )
+from tableau2pbir.stages._build_sheets import build_sheets
 
 
 def _parameter_usage(input_json: dict[str, Any]) -> dict[str, str]:
@@ -38,6 +39,14 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     calculations = build_calculations(input_json.get("datasources", []))
     usage = _parameter_usage(input_json)
     parameters = build_parameters(input_json.get("parameters", []), usage)
+    calc_names = {c.name for c in calculations}
+    table_id_for_ref = {ds.name: tbl.id for ds, tbl in zip(datasources, tables, strict=False)}
+    sheets, qtc_unsupported = build_sheets(
+        input_json.get("worksheets", []),
+        calc_names=calc_names,
+        table_id_for_ref=table_id_for_ref,
+    )
+    unsupported = ds_unsupported + qtc_unsupported
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
     data_model = DataModel(
         datasources=datasources, tables=tables,
@@ -51,9 +60,9 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         tableau_version=input_json["tableau_version"],
         config={},
         data_model=data_model,
-        sheets=(),
+        sheets=sheets,
         dashboards=(),
-        unsupported=ds_unsupported,
+        unsupported=unsupported,
     )
     return StageResult(
         output=wb.model_dump(mode="json"),
