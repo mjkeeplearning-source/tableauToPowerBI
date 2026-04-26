@@ -9,7 +9,7 @@ from tableau2pbir.ir.datasource import Datasource
 from tableau2pbir.ir.parameter import Parameter
 
 
-def _histogram(lines: list[str], title: str, counter: Counter) -> None:
+def _histogram(lines: list[str], title: str, counter: Counter[str]) -> None:
     lines.append(f"## {title}")
     lines.append("")
     if not counter:
@@ -41,16 +41,16 @@ def render_stage2_summary(
     lines.append(f"- unsupported entries: {len(unsupported)}")
     lines.append("")
 
-    tier_counter: Counter = Counter(f"Tier {ds.connector_tier.value}" for ds in datasources)
+    tier_counter: Counter[str] = Counter(f"Tier {ds.connector_tier.value}" for ds in datasources)
     _histogram(lines, "Datasource tier histogram", tier_counter)
 
-    kind_counter: Counter = Counter(c.kind.value for c in calculations)
+    kind_counter: Counter[str] = Counter(c.kind.value for c in calculations)
     _histogram(lines, "Calc kind histogram", kind_counter)
 
-    intent_counter: Counter = Counter(p.intent.value for p in parameters)
+    intent_counter: Counter[str] = Counter(p.intent.value for p in parameters)
     _histogram(lines, "Parameter intent histogram", intent_counter)
 
-    code_counter: Counter = Counter(item.code for item in unsupported)
+    code_counter: Counter[str] = Counter(item.code for item in unsupported)
     _histogram(lines, "Unsupported breakdown (by code)", code_counter)
 
     return "\n".join(lines) + "\n"

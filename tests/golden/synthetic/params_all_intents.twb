@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='Parameters' hasconnection='false'>
+      <column caption='Discount' datatype='real' name='[Parameter 1]'
+              param-domain-type='range' role='measure' value='0.1'>
+        <calculation class='tableau' formula='0.1'/>
+        <range granularity='0.05' max='0.5' min='0.0'/>
+      </column>
+      <column caption='Region' datatype='string' name='[Parameter 2]'
+              param-domain-type='list' role='dimension' value='&quot;West&quot;'>
+        <calculation class='tableau' formula='&quot;West&quot;'/>
+        <members>
+          <member value='&quot;West&quot;'/>
+          <member value='&quot;East&quot;'/>
+        </members>
+      </column>
+      <column caption='AxisMax' datatype='integer' name='[Parameter 3]'
+              param-domain-type='any' role='measure' value='100'>
+        <calculation class='tableau' formula='100'/>
+      </column>
+    </datasource>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='real' name='[Sales]' role='measure'/>
+    </datasource>
+  </datasources>
+  <worksheets/>
+  <dashboards>
+    <dashboard name='Main'>
+      <size maxheight='800' maxwidth='1200' minheight='800' minwidth='1200'/>
+      <zones>
+        <zone type='parameter' id='1' h='50' w='300' x='0' y='0' param='[Parameter 1]'/>
+        <zone type='parameter' id='2' h='50' w='300' x='300' y='0' param='[Parameter 2]'/>
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>

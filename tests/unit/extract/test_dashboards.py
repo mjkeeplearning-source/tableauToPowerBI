@@ -64,7 +64,7 @@ def test_floating_zones_flagged():
     root = parse_workbook_xml(_XML_FLOATING)
     d = extract_dashboards(root)[0]
     assert len(d["leaves"]) == 2
-    floating = [l for l in d["leaves"] if l["floating"]]
+    floating = [lf for lf in d["leaves"] if lf["floating"]]
     assert len(floating) == 1
     assert floating[0]["payload"]["sheet_name"] == "Overlay"
 
@@ -72,7 +72,7 @@ def test_floating_zones_flagged():
 def test_leaf_kind_mapping():
     root = parse_workbook_xml(_XML_LEAF_TYPES)
     d = extract_dashboards(root)[0]
-    kinds = [l["leaf_kind"] for l in d["leaves"]]
+    kinds = [lf["leaf_kind"] for lf in d["leaves"]]
     assert kinds == ["text", "filter_card", "parameter_card", "legend",
                      "image", "blank", "web_page"]
 

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='integer' name='[id]' role='dimension'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Revenue'>
+      <view><datasources><datasource name='ds'/></datasources>
+        <pane><mark class='Bar'/></pane></view>
+    </worksheet>
+    <worksheet name='Detail'>
+      <view><datasources><datasource name='ds'/></datasources>
+        <pane><mark class='Bar'/></pane></view>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name='Mixed'>
+      <size maxheight='768' maxwidth='1366' minheight='768' minwidth='1366'/>
+      <zones>
+        <zone name='Revenue' type='worksheet' id='1' h='500' w='1366' x='0' y='0'/>
+        <zone name='Detail' type='worksheet' id='2' h='200' w='500' x='100' y='200' floating='true'/>
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>

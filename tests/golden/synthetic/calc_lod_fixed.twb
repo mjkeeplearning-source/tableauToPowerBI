@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='string' name='[Region]' role='dimension'/>
+      <column datatype='real' name='[Sales]' role='measure'/>
+      <column datatype='real' name='[Sales By Region]' role='measure'>
+        <calculation class='tableau' formula='{FIXED [Region]: SUM([Sales])}'/>
+      </column>
+    </datasource>
+  </datasources>
+  <worksheets/><dashboards/>
+</workbook>

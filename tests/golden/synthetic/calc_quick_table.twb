@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='integer' name='[month]' role='dimension' type='ordinal'/>
+      <column datatype='real' name='[amount]' role='measure' type='quantitative'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Running'>
+      <view>
+        <datasources><datasource name='ds'/></datasources>
+        <rows>[amount]</rows>
+        <columns>[month]</columns>
+        <pane><mark class='Line'/></pane>
+        <table-calculations>
+          <table-calculation column='[amount]' type='running_sum'/>
+        </table-calculations>
+      </view>
+    </worksheet>
+  </worksheets>
+  <dashboards/>
+</workbook>

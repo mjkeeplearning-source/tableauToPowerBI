@@ -1,7 +1,6 @@
 """Stage 2 output must validate against the committed IR JSON Schema."""
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from tableau2pbir.ir.version import IR_SCHEMA_VERSION

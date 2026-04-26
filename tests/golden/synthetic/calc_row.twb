@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='real' name='[Revenue]' role='measure'/>
+      <column datatype='real' name='[Cost]' role='measure'/>
+      <column datatype='real' name='[Profit]' role='measure'>
+        <calculation class='tableau' formula='[Revenue] - [Cost]'/>
+      </column>
+    </datasource>
+  </datasources>
+  <worksheets/><dashboards/>
+</workbook>

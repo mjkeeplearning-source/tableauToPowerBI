@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from tableau2pbir.classify.connector_tier import (
     ConnectorClassification,
     classify_connector,

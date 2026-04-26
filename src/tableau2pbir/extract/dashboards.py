@@ -75,7 +75,7 @@ def _size(dashboard: etree._Element) -> dict[str, Any]:
     maxw = optional_attr(size, "maxwidth")
     minh = optional_attr(size, "minheight")
     maxh = optional_attr(size, "maxheight")
-    if minw == maxw and minh == maxh and minw is not None:
+    if minw == maxw and minh == maxh and minw is not None and minh is not None:
         return {"w": int(minw), "h": int(minh), "kind": "exact"}
     if minw is not None and maxw is not None and minw != maxw:
         return {"w": int(maxw), "h": int(maxh or 768), "kind": "range"}

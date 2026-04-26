@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='ds'>
+      <connection class='textscan' filename='x.csv'/>
+      <column datatype='real' name='[Sales]' role='measure'/>
+      <column datatype='real' name='[Total Sales]' role='measure'>
+        <calculation class='tableau' formula='SUM([Sales])'/>
+      </column>
+    </datasource>
+  </datasources>
+  <worksheets/><dashboards/>
+</workbook>

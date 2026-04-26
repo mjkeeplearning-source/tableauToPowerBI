@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook xmlns:user='http://www.tableausoftware.com/xml/user' source-build='2024.1' source-platform='win' version='18.1'>
+  <datasources>
+    <datasource caption='CSV' name='sample.csv'>
+      <connection class='textscan' directory='.' filename='sample.csv' server=''/>
+      <column datatype='integer' name='[id]' role='dimension' type='ordinal'/>
+    </datasource>
+    <datasource caption='SQL' name='orders'>
+      <connection class='sqlserver' server='sql1' dbname='Sales'/>
+      <column datatype='real' name='[revenue]' role='measure' type='quantitative'/>
+    </datasource>
+    <datasource caption='Snowflake' name='sf'>
+      <connection class='snowflake' server='acct.snowflakecomputing.com' warehouse='WH1'/>
+      <column datatype='real' name='[amount]' role='measure' type='quantitative'/>
+    </datasource>
+  </datasources>
+  <worksheets/><dashboards/>
+</workbook>

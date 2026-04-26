@@ -6,8 +6,8 @@ user actions. Stage 2 converts this into `Datasource.connector_tier` and
 `Datasource.pbi_m_connector`."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, cast
 
 
 _TIER_1 = {
@@ -54,9 +54,9 @@ def _classify_class(cls: str) -> ConnectorClassification | None:
         return ConnectorClassification(tier=1, pbi_m_connector=connector,
                                        user_action_required=actions)
     if cls in _TIER_2:
-        connector, actions = _TIER_2[cls]
-        return ConnectorClassification(tier=2, pbi_m_connector=connector,
-                                       user_action_required=actions)
+        connector2, actions2 = _TIER_2[cls]
+        return ConnectorClassification(tier=2, pbi_m_connector=connector2,
+                                       user_action_required=actions2)
     if cls in _TIER_4_EXPLICIT:
         return ConnectorClassification(tier=4, pbi_m_connector=None,
                                        reason=f"connector class {cls!r} not in PBI matrix")
@@ -83,7 +83,7 @@ def classify_connector(raw_ds: dict[str, Any]) -> ConnectorClassification:
 
     # Hyper with upstream — use the single upstream class.
     if outer_class in {"federated", "hyper"} and len(upstream_classes) == 1:
-        upstream = next(iter(upstream_classes))
+        upstream = cast(str, next(iter(upstream_classes)))
         result = _classify_class(upstream)
         if result is not None:
             return result

@@ -39,7 +39,7 @@ def _connection_to_dict(conn: etree._Element) -> dict[str, Any]:
     out: dict[str, Any] = {"class": attr(conn, "class", default="unknown")}
     for k, v in conn.attrib.items():
         if k != "class":
-            out[k] = v
+            out[str(k)] = v
     return out
 
 

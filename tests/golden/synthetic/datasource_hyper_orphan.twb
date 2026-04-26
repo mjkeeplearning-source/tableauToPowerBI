@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook source-build='2024.1' version='18.1'>
+  <datasources>
+    <datasource name='orphan_extract'>
+      <connection class='hyper' dbname='Extract/orphan.hyper'/>
+      <column datatype='integer' name='[x]' role='dimension'/>
+    </datasource>
+  </datasources>
+  <worksheets/><dashboards/>
+</workbook>

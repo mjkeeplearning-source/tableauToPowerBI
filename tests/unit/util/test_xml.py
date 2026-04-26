@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from lxml import etree
-
 from tableau2pbir.util.xml import (
     attr,
     child_text,

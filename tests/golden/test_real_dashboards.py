@@ -58,7 +58,7 @@ def test_sales_insights_profit_analysis(sales_insights_dbs):
     d = next(d for d in sales_insights_dbs if "Profit" in d["name"])
     assert d["size"] == {"w": 1600, "h": 900, "kind": "exact"}
     assert len(d["leaves"]) == 10
-    sheet_names = {l["payload"]["sheet_name"] for l in d["leaves"] if l["leaf_kind"] == "sheet"}
+    sheet_names = {lf["payload"]["sheet_name"] for lf in d["leaves"] if lf["leaf_kind"] == "sheet"}
     assert "Year" in sheet_names
     assert "Profit" in sheet_names
     assert "Customer Table" in sheet_names
@@ -69,8 +69,8 @@ def test_sales_insights_profit_analysis(sales_insights_dbs):
 def test_sales_insights_revenue_analysis(sales_insights_dbs):
     d = next(d for d in sales_insights_dbs if "Revenue" in d["name"])
     assert len(d["leaves"]) == 9
-    assert all(l["leaf_kind"] == "sheet" for l in d["leaves"])
-    sheet_names = {l["payload"]["sheet_name"] for l in d["leaves"]}
+    assert all(lf["leaf_kind"] == "sheet" for lf in d["leaves"])
+    sheet_names = {lf["payload"]["sheet_name"] for lf in d["leaves"]}
     assert "Top 5 Customers" in sheet_names
     assert "Top 5 Products" in sheet_names
 
@@ -100,7 +100,7 @@ def test_superstore_all_leaves_valid(superstore_dbs):
 def test_superstore_customers_dashboard(superstore_dbs):
     d = next(d for d in superstore_dbs if d["name"] == "Customers")
     assert len(d["leaves"]) == 8
-    sheet_names = {l["payload"]["sheet_name"] for l in d["leaves"] if l["leaf_kind"] == "sheet"}
+    sheet_names = {lf["payload"]["sheet_name"] for lf in d["leaves"] if lf["leaf_kind"] == "sheet"}
     assert "CustomerScatter" in sheet_names
     assert "CustomerRank" in sheet_names
 
