@@ -18,6 +18,7 @@ from tableau2pbir.stages._calc_graph import detect_cycles
 from tableau2pbir.stages._deferred_routing import (
     lift_tier_c_detections, route_deferred_calcs, route_deferred_parameters,
 )
+from tableau2pbir.stages._summary import render_stage2_summary
 from tableau2pbir.stages._build_sheets import build_sheets
 from tableau2pbir.util.ids import stable_id as _sid
 
@@ -106,8 +107,16 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         dashboards=dashboards,
         unsupported=unsupported,
     )
+    summary_md = render_stage2_summary(
+        datasources=datasources,
+        calculations=calculations,
+        parameters=parameters,
+        sheets_count=len(sheets),
+        dashboards_count=len(dashboards),
+        unsupported=unsupported,
+    )
     return StageResult(
         output=wb.model_dump(mode="json"),
-        summary_md="# Stage 2 — canonicalize\n\n(datasources wired)\n",
+        summary_md=summary_md,
         errors=(),
     )
