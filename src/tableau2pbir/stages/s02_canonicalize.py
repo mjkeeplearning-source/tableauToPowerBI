@@ -15,6 +15,9 @@ from tableau2pbir.stages._build_data_model import (
 )
 from tableau2pbir.stages._build_dashboards import build_actions, build_dashboards
 from tableau2pbir.stages._calc_graph import detect_cycles
+from tableau2pbir.stages._deferred_routing import (
+    lift_tier_c_detections, route_deferred_calcs, route_deferred_parameters,
+)
 from tableau2pbir.stages._build_sheets import build_sheets
 from tableau2pbir.util.ids import stable_id as _sid
 
@@ -75,7 +78,17 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         dashboards = (dashboards[0].model_copy(update={"actions": actions}), *dashboards[1:])
 
     cycle_items = detect_cycles(calculations)
-    unsupported = ds_unsupported + qtc_unsupported + cycle_items
+    tier_c_items = lift_tier_c_detections(input_json.get("unsupported", []))
+    deferred_calc_items = route_deferred_calcs(calculations)
+    deferred_param_items = route_deferred_parameters(parameters)
+    unsupported = (
+        ds_unsupported
+        + qtc_unsupported
+        + cycle_items
+        + tier_c_items
+        + deferred_calc_items
+        + deferred_param_items
+    )
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
     data_model = DataModel(
         datasources=datasources, tables=tables,
