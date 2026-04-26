@@ -158,7 +158,7 @@ Also confirm prerequisite IR state: `python -c "from tableau2pbir.ir.version imp
 - Delete: `schemas/ir-v1.0.0.schema.json` (replaced)
 - Modify: `tests/contract/test_ir_schema.py`
 
-- [ ] **Step 1.1: Write the failing test**
+- [x] **Step 1.1: Write the failing test**
 
 Append to `tests/contract/test_ir_schema.py` (or replace its single existing test, depending on Plan-1 contents — `cat tests/contract/test_ir_schema.py` first to see):
 
@@ -194,14 +194,14 @@ def test_pbir_visual_round_trip():
     assert pv.format["title"] == "Sales"
 ```
 
-- [ ] **Step 1.2: Run test — verify failure**
+- [x] **Step 1.2: Run test — verify failure**
 
 ```bash
 pytest tests/contract/test_ir_schema.py -v
 ```
 Expected: FAIL — `cannot import name 'EncodingBinding'` and the version assertion fails (still `1.0.0`).
 
-- [ ] **Step 1.3: Edit `src/tableau2pbir/ir/sheet.py` — add the new types**
+- [x] **Step 1.3: Edit `src/tableau2pbir/ir/sheet.py` — add the new types**
 
 Append to the bottom of `sheet.py`:
 
@@ -237,14 +237,14 @@ class Sheet(IRBase):
     pbir_visual: PbirVisual | None = None    # populated by stage 4
 ```
 
-- [ ] **Step 1.4: Edit `src/tableau2pbir/ir/version.py`**
+- [x] **Step 1.4: Edit `src/tableau2pbir/ir/version.py`**
 
 ```python
 """IR schema version (semver). Bump per §5.4."""
 IR_SCHEMA_VERSION = "1.1.0"
 ```
 
-- [ ] **Step 1.5: Edit `Makefile` schema target**
+- [x] **Step 1.5: Edit `Makefile` schema target**
 
 Replace the `schema:` block:
 
@@ -253,7 +253,7 @@ schema:
 	python -m tableau2pbir.ir.schema > schemas/ir-v1.1.0.schema.json
 ```
 
-- [ ] **Step 1.6: Regenerate schema and remove old artifact**
+- [x] **Step 1.6: Regenerate schema and remove old artifact**
 
 ```bash
 make schema
@@ -262,21 +262,21 @@ git rm schemas/ir-v1.0.0.schema.json
 
 Expected: `schemas/ir-v1.1.0.schema.json` exists; `git status` shows it as a new file plus the deletion of the 1.0.0 file.
 
-- [ ] **Step 1.7: Run test — verify pass**
+- [x] **Step 1.7: Run test — verify pass**
 
 ```bash
 pytest tests/contract/test_ir_schema.py -v
 ```
 Expected: all 3 added tests pass; the rest of the file's existing tests still pass.
 
-- [ ] **Step 1.8: Run the full pytest baseline to catch IR-schema-pinned tests**
+- [x] **Step 1.8: Run the full pytest baseline to catch IR-schema-pinned tests**
 
 ```bash
 pytest -q
 ```
 Expected: any test that hard-pinned to `1.0.0` fails — fix it to `IR_SCHEMA_VERSION` (the constant, not the literal). If a test path-pins `schemas/ir-v1.0.0.schema.json`, retarget to `1.1.0`. Do not commit until pytest is fully green.
 
-- [ ] **Step 1.9: Commit**
+- [x] **Step 1.9: Commit**
 
 ```bash
 git add src/tableau2pbir/ir/sheet.py src/tableau2pbir/ir/version.py \
