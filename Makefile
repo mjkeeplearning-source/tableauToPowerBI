@@ -19,7 +19,7 @@ typecheck:
 	mypy src
 
 schema:
-	python -m tableau2pbir.ir.schema > schemas/ir-v1.0.0.schema.json
+	python -m tableau2pbir.ir.schema > schemas/ir-v1.1.0.schema.json
 
 clean:
 	rm -rf .tableau2pbir-cache .pytest_cache .mypy_cache .ruff_cache dist build

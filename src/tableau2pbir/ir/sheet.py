@@ -51,3 +51,20 @@ class Sheet(IRBase):
     reference_lines: tuple[ReferenceLine, ...]
     format: dict[str, str] | None = None
     uses_calculations: tuple[str, ...]      # Calculation ids — back-ref for topo-sort
+    pbir_visual: PbirVisual | None = None   # populated by stage 4
+
+
+class EncodingBinding(IRBase):
+    """One channel→field binding in a PBIR visual."""
+    channel: str                            # "value" | "category" | "series" | "details" | ...
+    source_field_id: str                    # IR column id OR calculation id
+
+
+class PbirVisual(IRBase):
+    """Stage 4 annotation attached to a Sheet. See spec §6 Stage 4 output."""
+    visual_type: str                        # constrained to visualmap.catalog.VISUAL_TYPES at validate time
+    encoding_bindings: tuple[EncodingBinding, ...]
+    format: dict[str, str] = {}
+
+
+Sheet.model_rebuild()

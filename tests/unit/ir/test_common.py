@@ -7,8 +7,9 @@ from tableau2pbir.ir.common import FieldRef, UnsupportedItem
 from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 
 
-def test_ir_schema_version_is_semver_1_0_0():
-    assert IR_SCHEMA_VERSION == "1.0.0"
+def test_ir_schema_version_is_semver():
+    parts = IR_SCHEMA_VERSION.split(".")
+    assert len(parts) == 3 and all(p.isdigit() for p in parts)
 
 
 def test_field_ref_accepts_table_and_column():

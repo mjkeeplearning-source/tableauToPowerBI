@@ -14,7 +14,7 @@ def test_empty_workbook_stamps_schema_version():
         data_model=DataModel(),
         sheets=(), dashboards=(), unsupported=(),
     )
-    assert wb.ir_schema_version == "1.0.0"
+    assert wb.ir_schema_version == IR_SCHEMA_VERSION
     assert wb.data_model.datasources == ()
 
 

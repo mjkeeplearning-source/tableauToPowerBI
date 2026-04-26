@@ -576,6 +576,26 @@
       "title": "Encoding",
       "type": "object"
     },
+    "EncodingBinding": {
+      "additionalProperties": false,
+      "description": "One channel\u2192field binding in a PBIR visual.",
+      "properties": {
+        "channel": {
+          "title": "Channel",
+          "type": "string"
+        },
+        "source_field_id": {
+          "title": "Source Field Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "channel",
+        "source_field_id"
+      ],
+      "title": "EncodingBinding",
+      "type": "object"
+    },
     "FieldRef": {
       "additionalProperties": false,
       "description": "Reference to a column inside a table. Used by encodings, table_calc\naddressing/partitioning/sort, lod_fixed.dimensions, etc.",
@@ -879,6 +899,37 @@
       "title": "ParameterIntent",
       "type": "string"
     },
+    "PbirVisual": {
+      "additionalProperties": false,
+      "description": "Stage 4 annotation attached to a Sheet. See spec \u00a76 Stage 4 output.",
+      "properties": {
+        "encoding_bindings": {
+          "items": {
+            "$ref": "#/$defs/EncodingBinding"
+          },
+          "title": "Encoding Bindings",
+          "type": "array"
+        },
+        "format": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "title": "Format",
+          "type": "object"
+        },
+        "visual_type": {
+          "title": "Visual Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "visual_type",
+        "encoding_bindings"
+      ],
+      "title": "PbirVisual",
+      "type": "object"
+    },
     "Position": {
       "additionalProperties": false,
       "properties": {
@@ -1079,6 +1130,17 @@
         "name": {
           "title": "Name",
           "type": "string"
+        },
+        "pbir_visual": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PbirVisual"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "reference_lines": {
           "items": {

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from tableau2pbir.ir.schema import generate_ir_schema
+from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual, Sheet
 from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 
 
@@ -26,3 +27,29 @@ def test_generated_schema_has_expected_top_level_keys():
     assert schema.get("title") == "Workbook"
     assert "properties" in schema
     assert "ir_schema_version" in schema["properties"]
+
+
+def test_ir_schema_version_is_1_1_0():
+    assert IR_SCHEMA_VERSION == "1.1.0"
+
+
+def test_sheet_pbir_visual_default_is_none():
+    s = Sheet(
+        id="s1", name="Sales", datasource_refs=("ds1",),
+        mark_type="bar", encoding={"rows": (), "columns": ()},
+        filters=(), sort=(), dual_axis=False,
+        reference_lines=(), uses_calculations=(),
+    )
+    assert s.pbir_visual is None
+
+
+def test_pbir_visual_round_trip():
+    binding = EncodingBinding(channel="value", source_field_id="t1__col__amount")
+    pv = PbirVisual(
+        visual_type="clusteredBarChart",
+        encoding_bindings=(binding,),
+        format={"title": "Sales"},
+    )
+    assert pv.visual_type == "clusteredBarChart"
+    assert pv.encoding_bindings[0].channel == "value"
+    assert pv.format["title"] == "Sales"
