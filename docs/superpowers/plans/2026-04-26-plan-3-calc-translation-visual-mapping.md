@@ -344,7 +344,7 @@ git commit -m "build: add sqlglot runtime dep for stage 3 DAX syntax gate"
 - Create: `tests/unit/translate/__init__.py` (empty)
 - Create: `tests/unit/translate/test_syntax_gate.py`
 
-- [ ] **Step 3.1: Write the failing test**
+- [x] **Step 3.1: Write the failing test**
 
 `tests/unit/translate/test_syntax_gate.py`:
 
@@ -380,16 +380,16 @@ def test_invalid_garbage():
     assert is_valid_dax("@@@##$$$ broken") is False
 ```
 
-- [ ] **Step 3.2: Run test — verify failure**
+- [x] **Step 3.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/test_syntax_gate.py -v
 ```
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.translate'`.
 
-- [ ] **Step 3.3: Write `src/tableau2pbir/translate/__init__.py`** as an empty file.
+- [x] **Step 3.3: Write `src/tableau2pbir/translate/__init__.py`** as an empty file.
 
-- [ ] **Step 3.4: Write `src/tableau2pbir/translate/syntax_gate.py`**
+- [x] **Step 3.4: Write `src/tableau2pbir/translate/syntax_gate.py`** (deviation: added DAX→tsql qualified-ref normalizer because tsql rejects `'Table'[Column]`)
 
 ```python
 """DAX syntax gate — parse-only check using sqlglot's tsql dialect.
@@ -420,14 +420,14 @@ def is_valid_dax(expr: str) -> bool:
     return True
 ```
 
-- [ ] **Step 3.5: Run test — verify pass**
+- [x] **Step 3.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/test_syntax_gate.py -v
 ```
 Expected: 5 passed.
 
-- [ ] **Step 3.6: Commit**
+- [x] **Step 3.6: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/__init__.py \
