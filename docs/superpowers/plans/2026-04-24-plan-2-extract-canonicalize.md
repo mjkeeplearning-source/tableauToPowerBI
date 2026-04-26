@@ -4028,7 +4028,7 @@ For Plan 2 we model every dashboard as a single top-level `Container(kind='float
 
 Actions map to `Action` records, resolving `source_sheets` names to sheet ids.
 
-- [ ] **Step 20.1: Write failing test**
+- [x] **Step 20.1: Write failing test**
 
 `tests/unit/stages/test_s02_dashboards.py`:
 
@@ -4120,14 +4120,14 @@ def test_action_ignores_unknown_sheet_names():
     assert actions[0].target_sheet_ids == ("sheet__detail",)
 ```
 
-- [ ] **Step 20.2: Run test — verify failure**
+- [x] **Step 20.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_dashboards.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 20.3: Write `src/tableau2pbir/stages/_build_dashboards.py`**
+- [x] **Step 20.3: Write `src/tableau2pbir/stages/_build_dashboards.py`**
 
 ```python
 """Stage 2 dashboard + action builders."""
@@ -4255,7 +4255,7 @@ def build_actions(
     return tuple(out)
 ```
 
-- [ ] **Step 20.4: Wire dashboards + actions into `s02_canonicalize.run`**
+- [x] **Step 20.4: Wire dashboards + actions into `s02_canonicalize.run`**
 
 Add imports:
 
@@ -4301,7 +4301,7 @@ def stable_id_sheet(name: str) -> str:
 
 And replace `dashboards=()` → `dashboards=dashboards` in the `Workbook(...)` call.
 
-- [ ] **Step 20.5: Run tests — verify pass**
+- [x] **Step 20.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_dashboards.py \
@@ -4310,7 +4310,7 @@ pytest tests/unit/stages/test_s02_dashboards.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 20.6: Commit**
+- [x] **Step 20.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_build_dashboards.py \
@@ -4330,7 +4330,7 @@ git commit -m "feat(stage2): canonicalize dashboards (floating root) + actions"
 
 Cycle detection uses Kahn's algorithm over the `depends_on` edges from task 17. A cycle doesn't halt stage 2 — it appends an `UnsupportedItem` with code `calc_cycle` for each calc in the cycle, and stage 3 (Plan 3) will refuse to translate cyclic calcs.
 
-- [ ] **Step 21.1: Write failing test**
+- [x] **Step 21.1: Write failing test**
 
 `tests/unit/stages/test_s02_calc_graph.py`:
 
@@ -4388,14 +4388,14 @@ def test_cycle_with_leaves_only_reports_cycle_members():
     assert ids == {"c2", "c3"}
 ```
 
-- [ ] **Step 21.2: Run test — verify failure**
+- [x] **Step 21.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_calc_graph.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 21.3: Write `src/tableau2pbir/stages/_calc_graph.py`**
+- [x] **Step 21.3: Write `src/tableau2pbir/stages/_calc_graph.py`**
 
 ```python
 """Calc dependency graph utilities. Kahn-style topo-walk to isolate cycle
@@ -4446,7 +4446,7 @@ def detect_cycles(calcs: tuple[Calculation, ...]) -> tuple[UnsupportedItem, ...]
     return tuple(out)
 ```
 
-- [ ] **Step 21.4: Wire `detect_cycles` into `s02_canonicalize.run`**
+- [x] **Step 21.4: Wire `detect_cycles` into `s02_canonicalize.run`**
 
 Add import:
 
@@ -4461,7 +4461,7 @@ cycle_items = detect_cycles(calculations)
 unsupported = ds_unsupported + qtc_unsupported + cycle_items
 ```
 
-- [ ] **Step 21.5: Run tests — verify pass**
+- [x] **Step 21.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_calc_graph.py \
@@ -4470,7 +4470,7 @@ pytest tests/unit/stages/test_s02_calc_graph.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 21.6: Commit**
+- [x] **Step 21.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_calc_graph.py \
@@ -4490,7 +4490,7 @@ git commit -m "feat(stage2): detect calc dependency cycles and emit UnsupportedI
 
 Per §16 "flags gate execution, not detection": for every IR calc whose `kind` is v1-deferred (`table_calc`, `lod_include`, `lod_exclude`), append an `UnsupportedItem` with the appropriate `deferred_feature_*` code. Same for every parameter whose `intent == UNSUPPORTED` — classify root cause (`formatting_control` → `deferred_feature_format_switch`; else `deferred_feature_unsupported_parameter`). Tier-3 datasources are already routed in task 15; tier-4 already in task 15. Stage-1 tier-C detections (passed through in `input_json["unsupported"]`) are lifted as-is.
 
-- [ ] **Step 22.1: Write failing test**
+- [x] **Step 22.1: Write failing test**
 
 `tests/unit/stages/test_s02_deferred_routing.py`:
 
@@ -4595,14 +4595,14 @@ def test_lift_tier_c_preserves_stage1_detections():
     assert lifted[0].code == "unsupported_story_points"
 ```
 
-- [ ] **Step 22.2: Run test — verify failure**
+- [x] **Step 22.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_deferred_routing.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 22.3: Write `src/tableau2pbir/stages/_deferred_routing.py`**
+- [x] **Step 22.3: Write `src/tableau2pbir/stages/_deferred_routing.py`**
 
 ```python
 """v1 deferred-feature routing. Stage 2 classifies every object per §5.6 /
@@ -4678,7 +4678,7 @@ def lift_tier_c_detections(
     return tuple(out)
 ```
 
-- [ ] **Step 22.4: Wire deferred routing into `s02_canonicalize.run`**
+- [x] **Step 22.4: Wire deferred routing into `s02_canonicalize.run`**
 
 Add imports:
 
@@ -4705,7 +4705,7 @@ unsupported = (
 )
 ```
 
-- [ ] **Step 22.5: Run tests — verify pass**
+- [x] **Step 22.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_deferred_routing.py \
@@ -4714,7 +4714,7 @@ pytest tests/unit/stages/test_s02_deferred_routing.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 22.6: Commit**
+- [x] **Step 22.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_deferred_routing.py \
@@ -4734,7 +4734,7 @@ git commit -m "feat(stage2): v1 deferred-feature routing to unsupported[] per §
 
 Per spec §6 Stage 2 summary requirements: IR object counts by kind; calc kind histogram (row/aggregate/table_calc/lod_*); parameter intent histogram; datasource tier histogram; dependency graph stats; unsupported breakdown.
 
-- [ ] **Step 23.1: Write failing test**
+- [x] **Step 23.1: Write failing test**
 
 `tests/unit/stages/test_s02_summary.py`:
 
@@ -4821,14 +4821,14 @@ def test_summary_includes_unsupported_breakdown():
     assert "deferred_feature_table_calcs: 1" in md.lower()
 ```
 
-- [ ] **Step 23.2: Run test — verify failure**
+- [x] **Step 23.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s02_summary.py -v
 ```
 Expected: `ModuleNotFoundError`.
 
-- [ ] **Step 23.3: Write `src/tableau2pbir/stages/_summary.py`**
+- [x] **Step 23.3: Write `src/tableau2pbir/stages/_summary.py`**
 
 ```python
 """Stage 2 summary.md renderer. Stable ordering so golden tests don't flap."""
@@ -4889,7 +4889,7 @@ def render_stage2_summary(
     return "\n".join(lines) + "\n"
 ```
 
-- [ ] **Step 23.4: Wire `render_stage2_summary` into `s02_canonicalize.run`**
+- [x] **Step 23.4: Wire `render_stage2_summary` into `s02_canonicalize.run`**
 
 Add import:
 
@@ -4915,7 +4915,7 @@ return StageResult(
 )
 ```
 
-- [ ] **Step 23.5: Run tests — verify pass**
+- [x] **Step 23.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s02_summary.py \
@@ -4924,7 +4924,7 @@ pytest tests/unit/stages/test_s02_summary.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 23.6: Commit**
+- [x] **Step 23.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/_summary.py \
@@ -4943,7 +4943,7 @@ git commit -m "feat(stage2): render summary.md with tier/kind/intent/unsupported
 
 All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises exactly one v1 feature. Downstream plans add the `real/*.twbx` subset.
 
-- [ ] **Step 24.1: Create `tests/golden/synthetic/datasources_mixed.twb`**
+- [x] **Step 24.1: Create `tests/golden/synthetic/datasources_mixed.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -4966,7 +4966,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.2: Create `tests/golden/synthetic/datasource_hyper_orphan.twb`**
+- [x] **Step 24.2: Create `tests/golden/synthetic/datasource_hyper_orphan.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -4981,7 +4981,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.3: Create `tests/golden/synthetic/calc_row.twb`**
+- [x] **Step 24.3: Create `tests/golden/synthetic/calc_row.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5000,7 +5000,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.4: Create `tests/golden/synthetic/calc_aggregate.twb`**
+- [x] **Step 24.4: Create `tests/golden/synthetic/calc_aggregate.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5018,7 +5018,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.5: Create `tests/golden/synthetic/calc_lod_fixed.twb`**
+- [x] **Step 24.5: Create `tests/golden/synthetic/calc_lod_fixed.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5037,7 +5037,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.6: Create `tests/golden/synthetic/calc_lod_include.twb`**
+- [x] **Step 24.6: Create `tests/golden/synthetic/calc_lod_include.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5056,7 +5056,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.7: Create `tests/golden/synthetic/calc_quick_table.twb`**
+- [x] **Step 24.7: Create `tests/golden/synthetic/calc_quick_table.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5085,7 +5085,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 </workbook>
 ```
 
-- [ ] **Step 24.8: Create `tests/golden/synthetic/params_all_intents.twb`**
+- [x] **Step 24.8: Create `tests/golden/synthetic/params_all_intents.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5130,7 +5130,7 @@ All fixtures are hand-authored, minimal-XML Tableau workbooks. Each exercises ex
 
 Note: `Parameter 3` has no parameter-card zone → Stage 2 classifies it as `internal_constant`.
 
-- [ ] **Step 24.9: Create `tests/golden/synthetic/dashboard_tiled_floating.twb`**
+- [x] **Step 24.9: Create `tests/golden/synthetic/dashboard_tiled_floating.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5163,7 +5163,7 @@ Note: `Parameter 3` has no parameter-card zone → Stage 2 classifies it as `int
 </workbook>
 ```
 
-- [ ] **Step 24.10: Create `tests/golden/synthetic/action_filter.twb`**
+- [x] **Step 24.10: Create `tests/golden/synthetic/action_filter.twb`**
 
 ```xml
 <?xml version='1.0' encoding='utf-8' ?>
@@ -5200,7 +5200,7 @@ Note: `Parameter 3` has no parameter-card zone → Stage 2 classifies it as `int
 </workbook>
 ```
 
-- [ ] **Step 24.11: Write the end-to-end integration test**
+- [x] **Step 24.11: Write the end-to-end integration test**
 
 `tests/integration/test_stage1_stage2_integration.py`:
 
@@ -5347,21 +5347,21 @@ def test_actions_resolved_to_sheet_ids(tmp_path: Path, synthetic_fixtures_dir: P
     assert filter_action["target_sheet_ids"] == ["sheet__detail"]
 ```
 
-- [ ] **Step 24.12: Run the integration test**
+- [x] **Step 24.12: Run the integration test**
 
 ```bash
 pytest tests/integration/test_stage1_stage2_integration.py -v
 ```
 Expected: all parametrized + individual cases pass (roughly 13 integration tests).
 
-- [ ] **Step 24.13: Run the full suite**
+- [x] **Step 24.13: Run the full suite**
 
 ```bash
 pytest -q
 ```
 Expected: the full suite is green — Plan-1 tests + Plan-2 unit + contract + integration.
 
-- [ ] **Step 24.14: Verify make targets**
+- [x] **Step 24.14: Verify make targets**
 
 ```bash
 make lint
@@ -5371,7 +5371,7 @@ git diff --stat schemas/
 ```
 Expected: lint clean, typecheck clean on `src/`, `schemas/ir-v1.0.0.schema.json` diff empty (IR types unchanged).
 
-- [ ] **Step 24.15: Commit fixtures + integration tests**
+- [x] **Step 24.15: Commit fixtures + integration tests**
 
 ```bash
 git add tests/golden/synthetic/datasources_mixed.twb \
@@ -5392,19 +5392,19 @@ git commit -m "test(golden): v1-scope synthetic fixtures + stage1+2 integration 
 
 ## Plan 2 acceptance — done when all true
 
-- [ ] `pytest -q` green across Plan-1 and Plan-2 tests.
-- [ ] `make lint` clean.
-- [ ] `make typecheck` clean on `src/`.
-- [ ] `make schema` yields an unchanged `schemas/ir-v1.0.0.schema.json` (no IR field changes in Plan 2).
-- [ ] `tableau2pbir convert tests/golden/synthetic/trivial.twb --out ./out/` exits 0; `out/trivial/stages/01_extract.json` and `02_canonicalize.json` are populated (not the Plan-1 stub shape).
-- [ ] `02_canonicalize.json` validates against `schemas/ir-v1.0.0.schema.json` for every Plan-2 synthetic fixture.
-- [ ] Every Plan-2 synthetic fixture converts end-to-end without crashing; stages 3–8 remain no-op stubs; the pipeline still writes all 8 stage JSONs plus the placeholder `.pbip` and `unsupported.json`.
-- [ ] Connector tier classification correct for CSV (Tier 1), SQL Server (Tier 1), Snowflake (Tier 2), orphan hyper (Tier 4).
-- [ ] Calc kind classification correct for row / aggregate / lod_fixed / lod_include.
-- [ ] Parameter intent classification correct for numeric_what_if / categorical_selector / internal_constant.
-- [ ] Deferred features (LOD INCLUDE/EXCLUDE, table calcs, Tier 3 connectors, formatting_control parameters) populate `Workbook.unsupported[]` with stable `deferred_feature_*` codes — detection ships, execution defers.
-- [ ] `git log --oneline` shows roughly one commit per task, no batched commits.
-- [ ] Plan table in `CLAUDE.md` updated: Plan 2 → ✅ DONE, Plan 3 → 🔲 NEXT.
+- [x] `pytest -q` green across Plan-1 and Plan-2 tests.
+- [x] `make lint` clean.
+- [x] `make typecheck` clean on `src/`.
+- [x] `make schema` yields an unchanged `schemas/ir-v1.0.0.schema.json` (no IR field changes in Plan 2).
+- [x] `tableau2pbir convert tests/golden/synthetic/trivial.twb --out ./out/` exits 0; `out/trivial/stages/01_extract.json` and `02_canonicalize.json` are populated (not the Plan-1 stub shape).
+- [x] `02_canonicalize.json` validates against `schemas/ir-v1.0.0.schema.json` for every Plan-2 synthetic fixture.
+- [x] Every Plan-2 synthetic fixture converts end-to-end without crashing; stages 3–8 remain no-op stubs; the pipeline still writes all 8 stage JSONs plus the placeholder `.pbip` and `unsupported.json`.
+- [x] Connector tier classification correct for CSV (Tier 1), SQL Server (Tier 1), Snowflake (Tier 2), orphan hyper (Tier 4).
+- [x] Calc kind classification correct for row / aggregate / lod_fixed / lod_include.
+- [x] Parameter intent classification correct for numeric_what_if / categorical_selector / internal_constant.
+- [x] Deferred features (LOD INCLUDE/EXCLUDE, table calcs, Tier 3 connectors, formatting_control parameters) populate `Workbook.unsupported[]` with stable `deferred_feature_*` codes — detection ships, execution defers.
+- [x] `git log --oneline` shows roughly one commit per task, no batched commits.
+- [x] Plan table in `CLAUDE.md` updated: Plan 2 → ✅ DONE, Plan 3 → 🔲 NEXT.
 
 ## Next plan
 

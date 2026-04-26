@@ -9,8 +9,8 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | Plan | Title | Status | File |
 |------|-------|--------|------|
 | 1 | Scaffolding & Infrastructure | ✅ DONE | `docs/superpowers/plans/2026-04-23-plan-1-scaffolding-infra.md` |
-| 2 | Stage 1 & 2 — Extract + Canonicalize → IR | 🔲 NEXT | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
-| 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | 🔲 TODO | TBD |
+| 2 | Stage 1 & 2 — Extract + Canonicalize → IR | ✅ DONE | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
+| 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | 🔲 NEXT | TBD |
 | 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | 🔲 TODO | TBD |
 | 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔲 TODO | TBD |
 
