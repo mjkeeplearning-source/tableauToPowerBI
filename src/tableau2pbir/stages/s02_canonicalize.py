@@ -14,6 +14,7 @@ from tableau2pbir.stages._build_data_model import (
     build_calculations, build_datasources, build_parameters, build_tables,
 )
 from tableau2pbir.stages._build_dashboards import build_actions, build_dashboards
+from tableau2pbir.stages._calc_graph import detect_cycles
 from tableau2pbir.stages._build_sheets import build_sheets
 from tableau2pbir.util.ids import stable_id as _sid
 
@@ -73,7 +74,8 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     if actions and dashboards:
         dashboards = (dashboards[0].model_copy(update={"actions": actions}), *dashboards[1:])
 
-    unsupported = ds_unsupported + qtc_unsupported
+    cycle_items = detect_cycles(calculations)
+    unsupported = ds_unsupported + qtc_unsupported + cycle_items
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
     data_model = DataModel(
         datasources=datasources, tables=tables,
