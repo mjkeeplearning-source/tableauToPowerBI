@@ -292,7 +292,7 @@ git commit -m "feat(ir): bump IR schema to 1.1.0; add Sheet.pbir_visual + Encodi
 **Files:**
 - Modify: `pyproject.toml`
 
-- [ ] **Step 2.1: Edit `pyproject.toml` `dependencies` block**
+- [x] **Step 2.1: Edit `pyproject.toml` `dependencies` block**
 
 Replace:
 
@@ -319,7 +319,7 @@ dependencies = [
 ]
 ```
 
-- [ ] **Step 2.2: Reinstall in editable mode and verify import**
+- [x] **Step 2.2: Reinstall in editable mode and verify import**
 
 ```bash
 pip install -e ".[dev]"
@@ -327,7 +327,7 @@ python -c "import sqlglot; print(sqlglot.__version__)"
 ```
 Expected: prints a 23.x–26.x version. Tableau-DocumentAPI dep stays.
 
-- [ ] **Step 2.3: Commit**
+- [x] **Step 2.3: Commit**
 
 ```bash
 git add pyproject.toml
