@@ -1,0 +1,5 @@
+{
+  "dax_expr": "[Sales] * 1.1",
+  "confidence": "medium",
+  "notes": "Synthetic snapshot — composed from row arithmetic."
+}
