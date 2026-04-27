@@ -445,7 +445,7 @@ git commit -m "feat(translate): add sqlglot-backed DAX syntax gate"
 - Create: `src/tableau2pbir/translate/parameters.py`
 - Create: `tests/unit/translate/test_parameters.py`
 
-- [ ] **Step 4.1: Write the failing test**
+- [x] **Step 4.1: Write the failing test**
 
 ```python
 """[ParamName] rewriter — translates Tableau parameter references inside
@@ -495,14 +495,14 @@ def test_multiple_params_in_one_expr():
     assert out == "[Sales] * 0.07 + [Threshold SelectedValue]"
 ```
 
-- [ ] **Step 4.2: Run test — verify failure**
+- [x] **Step 4.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/test_parameters.py -v
 ```
 Expected: ModuleNotFoundError on `tableau2pbir.translate.parameters`.
 
-- [ ] **Step 4.3: Write `src/tableau2pbir/translate/parameters.py`**
+- [x] **Step 4.3: Write `src/tableau2pbir/translate/parameters.py`**
 
 ```python
 """Parameter reference rewriter — see spec §5.7 'Stage 3 calc translator'.
@@ -547,14 +547,14 @@ def rewrite_parameter_refs(
     return _REF_RE.sub(_sub, tableau_expr)
 ```
 
-- [ ] **Step 4.4: Run test — verify pass**
+- [x] **Step 4.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/test_parameters.py -v
 ```
 Expected: 5 passed.
 
-- [ ] **Step 4.5: Commit**
+- [x] **Step 4.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/parameters.py \
@@ -570,7 +570,7 @@ git commit -m "feat(translate): add intent-aware Tableau [Param] rewriter"
 - Create: `src/tableau2pbir/translate/topo.py`
 - Create: `tests/unit/translate/test_topo.py`
 
-- [ ] **Step 5.1: Write the failing test**
+- [x] **Step 5.1: Write the failing test**
 
 ```python
 """Stage 3 topological order — global lane (row, aggregate, lod_fixed,
@@ -633,14 +633,14 @@ def test_topo_sort_breaks_ties_by_id_for_determinism():
     assert [x.id for x in ordered] == ["a", "b", "c"]
 ```
 
-- [ ] **Step 5.2: Run test — verify failure**
+- [x] **Step 5.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/test_topo.py -v
 ```
 Expected: ModuleNotFoundError on `tableau2pbir.translate.topo`.
 
-- [ ] **Step 5.3: Write `src/tableau2pbir/translate/topo.py`**
+- [x] **Step 5.3: Write `src/tableau2pbir/translate/topo.py`**
 
 ```python
 """Topological ordering for stage-3 calc translation. Two lanes per spec
@@ -717,14 +717,14 @@ def topo_sort(calcs: tuple[Calculation, ...]) -> tuple[Calculation, ...]:
     return tuple(result)
 ```
 
-- [ ] **Step 5.4: Run test — verify pass**
+- [x] **Step 5.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/test_topo.py -v
 ```
 Expected: 4 passed.
 
-- [ ] **Step 5.5: Commit**
+- [x] **Step 5.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/topo.py tests/unit/translate/test_topo.py
@@ -741,7 +741,7 @@ git commit -m "feat(translate): add stage-3 lane partition + topo sort"
 - Create: `tests/unit/translate/rules/__init__.py` (empty)
 - Create: `tests/unit/translate/rules/test_row.py`
 
-- [ ] **Step 6.1: Write the failing test**
+- [x] **Step 6.1: Write the failing test**
 
 ```python
 """Row-calc rule. v1 row library: arithmetic, string concat, IF/CASE,
@@ -786,14 +786,14 @@ def test_unmatched_returns_none():
     assert translate_row("WEIRDFN([x])") is None
 ```
 
-- [ ] **Step 6.2: Run test — verify failure**
+- [x] **Step 6.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/rules/test_row.py -v
 ```
 Expected: ModuleNotFoundError on `tableau2pbir.translate.rules.row`.
 
-- [ ] **Step 6.3: Write `src/tableau2pbir/translate/rules/row.py`**
+- [x] **Step 6.3: Write `src/tableau2pbir/translate/rules/row.py`**
 
 ```python
 """Row-calc translation rules (v1). Each rule is a regex-based or string-
@@ -861,14 +861,14 @@ def translate_row(tableau_expr: str) -> str | None:
     return None
 ```
 
-- [ ] **Step 6.4: Run test — verify pass**
+- [x] **Step 6.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/rules/test_row.py -v
 ```
 Expected: 8 passed.
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/rules/__init__.py \
@@ -886,7 +886,7 @@ git commit -m "feat(translate): row-calc rule library (arith, IIF, ZN, DATEDIFF,
 - Create: `src/tableau2pbir/translate/rules/aggregate.py`
 - Create: `tests/unit/translate/rules/test_aggregate.py`
 
-- [ ] **Step 7.1: Write the failing test**
+- [x] **Step 7.1: Write the failing test**
 
 ```python
 """Aggregate-calc rules: SUM/AVG/COUNT/COUNTD/MIN/MAX + conditional
@@ -924,14 +924,14 @@ def test_unmatched_returns_none():
     assert translate_aggregate("WEIRDFN([x])") is None
 ```
 
-- [ ] **Step 7.2: Run test — verify failure**
+- [x] **Step 7.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/rules/test_aggregate.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 7.3: Write `src/tableau2pbir/translate/rules/aggregate.py`**
+- [x] **Step 7.3: Write `src/tableau2pbir/translate/rules/aggregate.py`**
 
 ```python
 """Aggregate-calc rules. Returns DAX or None on no match."""
@@ -977,14 +977,14 @@ def translate_aggregate(tableau_expr: str) -> str | None:
     return f"{fn}({arg})"
 ```
 
-- [ ] **Step 7.4: Run test — verify pass**
+- [x] **Step 7.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/rules/test_aggregate.py -v
 ```
 Expected: 6 passed.
 
-- [ ] **Step 7.5: Commit**
+- [x] **Step 7.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/rules/aggregate.py \
@@ -1000,7 +1000,7 @@ git commit -m "feat(translate): aggregate-calc rule library"
 - Create: `src/tableau2pbir/translate/rules/lod_fixed.py`
 - Create: `tests/unit/translate/rules/test_lod_fixed.py`
 
-- [ ] **Step 8.1: Write the failing test**
+- [x] **Step 8.1: Write the failing test**
 
 ```python
 """FIXED LOD → CALCULATE(<agg>, REMOVEFILTERS(<other>), KEEPFILTERS(<dims>)).
@@ -1055,14 +1055,14 @@ def test_no_inner_aggregation_returns_none():
     assert translate_lod_fixed(c) is None
 ```
 
-- [ ] **Step 8.2: Run test — verify failure**
+- [x] **Step 8.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/rules/test_lod_fixed.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 8.3: Write `src/tableau2pbir/translate/rules/lod_fixed.py`**
+- [x] **Step 8.3: Write `src/tableau2pbir/translate/rules/lod_fixed.py`**
 
 ```python
 """FIXED LOD rule: extract inner aggregation, build CALCULATE pattern.
@@ -1106,14 +1106,14 @@ def translate_lod_fixed(calc: Calculation) -> str | None:
     return f"CALCULATE({inner}, REMOVEFILTERS({table_id}), {keep_clauses})"
 ```
 
-- [ ] **Step 8.4: Run test — verify pass**
+- [x] **Step 8.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/rules/test_lod_fixed.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 8.5: Commit**
+- [x] **Step 8.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/rules/lod_fixed.py \
@@ -1129,7 +1129,7 @@ git commit -m "feat(translate): FIXED LOD rule (CALCULATE + REMOVEFILTERS + KEEP
 - Create: `src/tableau2pbir/translate/rules/dispatch.py`
 - Create: `tests/unit/translate/rules/test_dispatch.py`
 
-- [ ] **Step 9.1: Write the failing test**
+- [x] **Step 9.1: Write the failing test**
 
 ```python
 """Dispatch picks the right rule by Calculation.kind, returns
@@ -1199,14 +1199,14 @@ def test_no_rule_match_returns_none():
     assert rule == "row"  # row was tried but missed
 ```
 
-- [ ] **Step 9.2: Run test — verify failure**
+- [x] **Step 9.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/rules/test_dispatch.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 9.3: Write `src/tableau2pbir/translate/rules/dispatch.py`**
+- [x] **Step 9.3: Write `src/tableau2pbir/translate/rules/dispatch.py`**
 
 ```python
 """Rule dispatch — pick row/aggregate/lod_fixed by Calculation.kind. v1
@@ -1251,14 +1251,14 @@ def dispatch_rule(
     return None, None
 ```
 
-- [ ] **Step 9.4: Run test — verify pass**
+- [x] **Step 9.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/rules/test_dispatch.py -v
 ```
 Expected: 6 passed.
 
-- [ ] **Step 9.5: Commit**
+- [x] **Step 9.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/rules/dispatch.py \
@@ -1278,7 +1278,7 @@ git commit -m "feat(translate): kind-keyed rule dispatch with parameter rewritin
 - Create: `tests/unit/llm/test_client.py`
 - Create: `tests/llm_snapshots/translate_calc/ai_only_compose.json`
 
-- [ ] **Step 10.1: Write the failing test**
+- [x] **Step 10.1: Write the failing test**
 
 ```python
 """LLMClient.translate_calc — three modes:
@@ -1343,7 +1343,7 @@ def test_live_mode_without_api_key_raises(tmp_path: Path, monkeypatch):
                                "kind": "row", "tableau_expr": "y"})
 ```
 
-- [ ] **Step 10.2: Create the snapshot fixture**
+- [x] **Step 10.2: Create the snapshot fixture**
 
 `tests/llm_snapshots/translate_calc/ai_only_compose.json`:
 
@@ -1355,7 +1355,7 @@ def test_live_mode_without_api_key_raises(tmp_path: Path, monkeypatch):
 }
 ```
 
-- [ ] **Step 10.3: Bump prompt VERSION and rewrite system.md**
+- [x] **Step 10.3: Bump prompt VERSION and rewrite system.md**
 
 `src/tableau2pbir/llm/prompts/translate_calc/VERSION`:
 
@@ -1395,7 +1395,7 @@ Call the `translate_calc_output` tool with:
 - If you cannot produce a valid DAX expression, return `confidence: "low"` with the closest attempt and explain in `notes`.
 ```
 
-- [ ] **Step 10.4: Edit `src/tableau2pbir/llm/client.py`**
+- [x] **Step 10.4: Edit `src/tableau2pbir/llm/client.py`**
 
 Replace the file with:
 
@@ -1523,14 +1523,14 @@ class LLMClient:
             )
 ```
 
-- [ ] **Step 10.5: Run test — verify pass**
+- [x] **Step 10.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/llm/test_client.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 10.6: Commit**
+- [x] **Step 10.6: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/client.py \
@@ -1551,7 +1551,7 @@ git commit -m "feat(llm): implement LLMClient.translate_calc + map_visual w/ cac
 - Create: `tests/unit/translate/test_ai_fallback.py`
 - Create: `tests/llm_snapshots/translate_calc/ai_only_aggregate_conditional.json`
 
-- [ ] **Step 11.1: Write the failing test**
+- [x] **Step 11.1: Write the failing test**
 
 ```python
 """ai_fallback.translate_via_ai — invokes LLMClient and validates the
@@ -1605,7 +1605,7 @@ def test_replay_drops_when_syntax_fails(tmp_path: Path, monkeypatch):
     assert out is None
 ```
 
-- [ ] **Step 11.2: Create snapshot for the conditional aggregate**
+- [x] **Step 11.2: Create snapshot for the conditional aggregate**
 
 `tests/llm_snapshots/translate_calc/ai_only_aggregate_conditional.json`:
 
@@ -1617,7 +1617,7 @@ def test_replay_drops_when_syntax_fails(tmp_path: Path, monkeypatch):
 }
 ```
 
-- [ ] **Step 11.3: Write `src/tableau2pbir/translate/ai_fallback.py`**
+- [x] **Step 11.3: Write `src/tableau2pbir/translate/ai_fallback.py`**
 
 ```python
 """AI fallback for stage 3. Invokes LLMClient.translate_calc, validates
@@ -1664,14 +1664,14 @@ def translate_via_ai(
     return response
 ```
 
-- [ ] **Step 11.4: Run test — verify pass**
+- [x] **Step 11.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/test_ai_fallback.py -v
 ```
 Expected: 2 passed.
 
-- [ ] **Step 11.5: Commit**
+- [x] **Step 11.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/ai_fallback.py \
@@ -1688,7 +1688,7 @@ git commit -m "feat(translate): AI fallback w/ syntax-gate validation"
 - Create: `src/tableau2pbir/translate/summary.py`
 - Append to existing test or create: `tests/unit/translate/test_summary.py`
 
-- [ ] **Step 12.1: Write the failing test**
+- [x] **Step 12.1: Write the failing test**
 
 `tests/unit/translate/test_summary.py`:
 
@@ -1728,14 +1728,14 @@ def test_summary_handles_zero_calcs():
     assert "cache hit rate: n/a" in md
 ```
 
-- [ ] **Step 12.2: Run test — verify failure**
+- [x] **Step 12.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/translate/test_summary.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 12.3: Write `src/tableau2pbir/translate/summary.py`**
+- [x] **Step 12.3: Write `src/tableau2pbir/translate/summary.py`**
 
 ```python
 """Stage 3 summary.md renderer."""
@@ -1791,14 +1791,14 @@ def render_stage3_summary(stats: TranslationStats) -> str:
     return "\n".join(lines) + "\n"
 ```
 
-- [ ] **Step 12.4: Run test — verify pass**
+- [x] **Step 12.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/translate/test_summary.py -v
 ```
 Expected: 2 passed.
 
-- [ ] **Step 12.5: Commit**
+- [x] **Step 12.5: Commit**
 
 ```bash
 git add src/tableau2pbir/translate/summary.py \
@@ -1815,7 +1815,7 @@ git commit -m "feat(translate): stage 3 summary renderer"
 - Create: `tests/unit/stages/test_s03_translate_calcs.py`
 - Create: `tests/contract/test_stage3_calcs_contract.py`
 
-- [ ] **Step 13.1: Write the failing unit test**
+- [x] **Step 13.1: Write the failing unit test**
 
 `tests/unit/stages/test_s03_translate_calcs.py`:
 
@@ -1881,7 +1881,7 @@ def test_stage3_skips_deferred_calcs(tmp_path: Path):
     assert calc["dax_expr"] is None
 ```
 
-- [ ] **Step 13.2: Write the failing contract test**
+- [x] **Step 13.2: Write the failing contract test**
 
 `tests/contract/test_stage3_calcs_contract.py`:
 
@@ -1935,7 +1935,7 @@ def test_every_v1_calc_has_dax_or_is_unsupported(tmp_path: Path):
             f"calc {c['id']} has no dax_expr and is not unsupported"
 ```
 
-- [ ] **Step 13.3: Run tests — verify failure**
+- [x] **Step 13.3: Run tests — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s03_translate_calcs.py \
@@ -1943,7 +1943,7 @@ pytest tests/unit/stages/test_s03_translate_calcs.py \
 ```
 Expected: stage-3 stub returns no `data_model` key, so all assertions fail.
 
-- [ ] **Step 13.4: Replace `src/tableau2pbir/stages/s03_translate_calcs.py`**
+- [x] **Step 13.4: Replace `src/tableau2pbir/stages/s03_translate_calcs.py`**
 
 ```python
 """Stage 3 — translate calcs. See spec §6 Stage 3 + §16 v1 scope.
@@ -2063,7 +2063,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 13.5: Run tests — verify pass**
+- [x] **Step 13.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s03_translate_calcs.py \
@@ -2071,14 +2071,14 @@ pytest tests/unit/stages/test_s03_translate_calcs.py \
 ```
 Expected: all tests pass.
 
-- [ ] **Step 13.6: Run the wider suite to catch regressions**
+- [x] **Step 13.6: Run the wider suite to catch regressions**
 
 ```bash
 pytest -q
 ```
 Expected: green.
 
-- [ ] **Step 13.7: Commit**
+- [x] **Step 13.7: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s03_translate_calcs.py \
@@ -2097,7 +2097,7 @@ git commit -m "feat(stage3): translate calcs (rule + AI fallback + syntax gate)"
 - Create: `tests/unit/visualmap/__init__.py` (empty)
 - Create: `tests/unit/visualmap/test_catalog.py`
 
-- [ ] **Step 14.1: Write the failing test**
+- [x] **Step 14.1: Write the failing test**
 
 ```python
 """PBIR visual catalog. v1 scope: bar (clustered + stacked), line, area,
@@ -2129,14 +2129,14 @@ def test_slots_for_unknown_visual_raises():
         slots_for("doesNotExist")
 ```
 
-- [ ] **Step 14.2: Run test — verify failure**
+- [x] **Step 14.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/visualmap/test_catalog.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 14.3: Write `src/tableau2pbir/visualmap/catalog.py`**
+- [x] **Step 14.3: Write `src/tableau2pbir/visualmap/catalog.py`**
 
 ```python
 """PBIR visual-type catalog (v1). Maps each supported visual_type to its
@@ -2163,14 +2163,14 @@ def slots_for(visual_type: str) -> frozenset[str]:
     return _SLOTS[visual_type]
 ```
 
-- [ ] **Step 14.4: Run test — verify pass**
+- [x] **Step 14.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/visualmap/test_catalog.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 14.5: Commit**
+- [x] **Step 14.5: Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/__init__.py \
@@ -2188,7 +2188,7 @@ git commit -m "feat(visualmap): v1 PBIR visual catalog with channel slots"
 - Create: `src/tableau2pbir/visualmap/dispatch.py`
 - Create: `tests/unit/visualmap/test_dispatch.py`
 
-- [ ] **Step 15.1: Write the failing test**
+- [x] **Step 15.1: Write the failing test**
 
 ```python
 """Dispatch maps Tableau (mark_type, shelf_signature) to PBIR visual_type
@@ -2247,14 +2247,14 @@ def test_unsupported_mark_returns_none():
     assert dispatch_visual(sh) is None
 ```
 
-- [ ] **Step 15.2: Run test — verify failure**
+- [x] **Step 15.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/visualmap/test_dispatch.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 15.3: Write `src/tableau2pbir/visualmap/dispatch.py`**
+- [x] **Step 15.3: Write `src/tableau2pbir/visualmap/dispatch.py`**
 
 ```python
 """Tableau (mark_type, shelf_signature) → PBIR (visual_type, bindings).
@@ -2359,14 +2359,14 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     return None
 ```
 
-- [ ] **Step 15.4: Run test — verify pass**
+- [x] **Step 15.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/visualmap/test_dispatch.py -v
 ```
 Expected: 5 passed.
 
-- [ ] **Step 15.5: Commit**
+- [x] **Step 15.5: Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/dispatch.py \
@@ -2382,7 +2382,7 @@ git commit -m "feat(visualmap): v1 (mark_type, shelf) dispatch table"
 - Create: `src/tableau2pbir/visualmap/validator.py`
 - Create: `tests/unit/visualmap/test_validator.py`
 
-- [ ] **Step 16.1: Write the failing test**
+- [x] **Step 16.1: Write the failing test**
 
 ```python
 """Validator: every binding's source_field_id resolves to an IR column or
@@ -2443,14 +2443,14 @@ def test_unknown_visual_type_reported():
     assert any("madeUp" in e for e in errors)
 ```
 
-- [ ] **Step 16.2: Run test — verify failure**
+- [x] **Step 16.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/visualmap/test_validator.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 16.3: Write `src/tableau2pbir/visualmap/validator.py`**
+- [x] **Step 16.3: Write `src/tableau2pbir/visualmap/validator.py`**
 
 ```python
 """Stage-4 validator: returns a tuple of human-readable error strings.
@@ -2479,14 +2479,14 @@ def validate_visual(
     return tuple(errors)
 ```
 
-- [ ] **Step 16.4: Run test — verify pass**
+- [x] **Step 16.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/visualmap/test_validator.py -v
 ```
 Expected: 4 passed.
 
-- [ ] **Step 16.5: Commit**
+- [x] **Step 16.5: Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/validator.py \
