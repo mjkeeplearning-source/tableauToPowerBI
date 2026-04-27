@@ -32,6 +32,10 @@ def is_valid_dax(expr: str) -> bool:
     malformed expression. We do not interpret the AST — only that one exists."""
     if not expr or not expr.strip():
         return False
+    # @ is T-SQL variable syntax; DAX uses VAR/RETURN — reject it early so
+    # sqlglot's lenient tsql parser doesn't accept T-SQL-only constructs.
+    if "@" in expr:
+        return False
     try:
         sqlglot.parse_one(_normalize_dax_for_tsql(expr), dialect="tsql")
     except ParseError:
