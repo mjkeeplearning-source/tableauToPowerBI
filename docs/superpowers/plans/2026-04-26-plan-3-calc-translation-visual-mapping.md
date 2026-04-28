@@ -2817,7 +2817,7 @@ git commit -m "feat(visualmap): stage 4 summary renderer"
 - Create: `tests/unit/stages/test_s04_map_visuals.py`
 - Create: `tests/contract/test_stage4_visual_contract.py`
 
-- [ ] **Step 19.1: Write the failing unit test**
+- [x] **Step 19.1: Write the failing unit test**
 
 ```python
 """Stage 4 orchestrator. Reads stage-3 IR, attaches PbirVisual to every
@@ -2884,7 +2884,7 @@ def test_stage4_routes_unsupported_mark(tmp_path: Path):
     assert "unsupported_mark_polygon" in codes
 ```
 
-- [ ] **Step 19.2: Write the failing contract test**
+- [x] **Step 19.2: Write the failing contract test**
 
 `tests/contract/test_stage4_visual_contract.py`:
 
@@ -2939,7 +2939,7 @@ def test_every_sheet_has_visual_or_unsupported(tmp_path: Path):
         assert sh["pbir_visual"] is not None or sh["id"] in unsupported_sheet_ids
 ```
 
-- [ ] **Step 19.3: Run tests — verify failure**
+- [x] **Step 19.3: Run tests — verify failure**
 
 ```bash
 pytest tests/unit/stages/test_s04_map_visuals.py \
@@ -2947,7 +2947,7 @@ pytest tests/unit/stages/test_s04_map_visuals.py \
 ```
 Expected: stub stage 4 has no `sheets` key in output → assertions fail.
 
-- [ ] **Step 19.4: Replace `src/tableau2pbir/stages/s04_map_visuals.py`**
+- [x] **Step 19.4: Replace `src/tableau2pbir/stages/s04_map_visuals.py`**
 
 ```python
 """Stage 4 — map visuals. See spec §6 Stage 4 + §16 v1 mark scope."""
@@ -3052,7 +3052,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 19.5: Run tests — verify pass**
+- [x] **Step 19.5: Run tests — verify pass**
 
 ```bash
 pytest tests/unit/stages/test_s04_map_visuals.py \
@@ -3060,7 +3060,7 @@ pytest tests/unit/stages/test_s04_map_visuals.py \
 ```
 Expected: all pass.
 
-- [ ] **Step 19.6: Commit**
+- [x] **Step 19.6: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s04_map_visuals.py \
