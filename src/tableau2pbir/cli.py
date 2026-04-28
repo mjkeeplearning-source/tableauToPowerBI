@@ -8,6 +8,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()  # loads .env from cwd or any parent directory
+
 from tableau2pbir.pipeline import STAGE_SEQUENCE, run_pipeline
 
 

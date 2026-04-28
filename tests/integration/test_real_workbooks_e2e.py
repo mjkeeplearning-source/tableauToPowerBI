@@ -42,9 +42,13 @@ def test_real_workbook_full_pipeline(workbook: Path, tmp_path: Path):
     out = tmp_path / "out"
     result = _convert(workbook, out)
 
-    # Gracefully skip if the only failure is a missing API key (no credentials in CI).
-    if result.returncode != 0 and "ANTHROPIC_API_KEY not set" in result.stderr:
-        pytest.skip(f"{workbook.name}: requires ANTHROPIC_API_KEY for LLM calc translation")
+    # Gracefully skip if the only failure is a missing or invalid API key.
+    if result.returncode != 0 and (
+        "ANTHROPIC_API_KEY not set" in result.stderr
+        or "authentication_error" in result.stderr
+        or "invalid x-api-key" in result.stderr
+    ):
+        pytest.skip(f"{workbook.name}: requires a valid ANTHROPIC_API_KEY for LLM calc translation")
 
     assert result.returncode == 0, (
         f"Pipeline failed for {workbook.name}:\n"

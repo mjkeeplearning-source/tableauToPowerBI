@@ -16,6 +16,7 @@ dependencies = [
   "tableaudocumentapi>=0.11",
   "PyYAML>=6.0",
   "sqlglot>=23,<27",
+  "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]

@@ -4,6 +4,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env so ANTHROPIC_API_KEY is available in tests
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
