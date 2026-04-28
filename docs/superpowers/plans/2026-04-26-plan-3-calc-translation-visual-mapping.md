@@ -2505,7 +2505,7 @@ git commit -m "feat(visualmap): visual binding validator"
 - Create: `tests/unit/visualmap/test_ai_fallback.py`
 - Create: `tests/llm_snapshots/map_visual/ai_only_combo_chart.json`
 
-- [ ] **Step 17.1: Write the failing test**
+- [x] **Step 17.1: Write the failing test**
 
 ```python
 """map_visual AI fallback — snapshot replay returns a PbirVisual; if
@@ -2561,7 +2561,7 @@ def test_replay_drops_unknown_visual_type(tmp_path: Path, monkeypatch):
     assert pv is None
 ```
 
-- [ ] **Step 17.2: Bump map_visual prompt VERSION + system.md**
+- [x] **Step 17.2: Bump map_visual prompt VERSION + system.md**
 
 `src/tableau2pbir/llm/prompts/map_visual/VERSION`:
 
@@ -2600,7 +2600,7 @@ Call the `map_visual_output` tool with:
 - For dual-axis with mismatched mark types, prefer the closest single visual and report `medium` confidence.
 ```
 
-- [ ] **Step 17.3: Create snapshot**
+- [x] **Step 17.3: Create snapshot**
 
 `tests/llm_snapshots/map_visual/ai_only_combo_chart.json`:
 
@@ -2616,7 +2616,7 @@ Call the `map_visual_output` tool with:
 }
 ```
 
-- [ ] **Step 17.4: Write `src/tableau2pbir/visualmap/ai_fallback.py`**
+- [x] **Step 17.4: Write `src/tableau2pbir/visualmap/ai_fallback.py`**
 
 ```python
 """AI fallback for stage 4. Calls LLMClient.map_visual, builds a PbirVisual,
@@ -2679,14 +2679,14 @@ def map_visual_via_ai(
     return pv
 ```
 
-- [ ] **Step 17.5: Run test — verify pass**
+- [x] **Step 17.5: Run test — verify pass**
 
 ```bash
 pytest tests/unit/visualmap/test_ai_fallback.py -v
 ```
 Expected: 2 passed.
 
-- [ ] **Step 17.6: Commit**
+- [x] **Step 17.6: Commit**
 
 ```bash
 git add src/tableau2pbir/llm/prompts/map_visual/VERSION \
