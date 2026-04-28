@@ -9,8 +9,7 @@ import pytest
 from tableau2pbir.pipeline import StageContext, StageResult
 
 STAGE_MODULES = [
-    # s01_extract, s02_canonicalize, s03_translate_calcs require real IR; tested separately
-    "tableau2pbir.stages.s04_map_visuals",
+    # s01–s04 require real IR; tested separately
     "tableau2pbir.stages.s05_compute_layout",
     "tableau2pbir.stages.s06_build_tmdl",
     "tableau2pbir.stages.s07_build_pbir",
