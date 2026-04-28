@@ -2705,7 +2705,7 @@ git commit -m "feat(visualmap): map_visual AI fallback w/ catalog-constrained va
 - Create: `src/tableau2pbir/visualmap/summary.py`
 - Create: `tests/unit/visualmap/test_summary.py`
 
-- [ ] **Step 18.1: Write the failing test**
+- [x] **Step 18.1: Write the failing test**
 
 ```python
 """Stage-4 summary: visual-type histogram, rule-vs-AI rate, low-confidence
@@ -2731,14 +2731,14 @@ def test_summary_includes_required_sections():
     assert "polygon: 1" in md
 ```
 
-- [ ] **Step 18.2: Run test — verify failure**
+- [x] **Step 18.2: Run test — verify failure**
 
 ```bash
 pytest tests/unit/visualmap/test_summary.py -v
 ```
 Expected: ModuleNotFoundError.
 
-- [ ] **Step 18.3: Write `src/tableau2pbir/visualmap/summary.py`**
+- [x] **Step 18.3: Write `src/tableau2pbir/visualmap/summary.py`**
 
 ```python
 """Stage 4 summary.md renderer."""
@@ -2793,14 +2793,14 @@ def render_stage4_summary(stats: VisualMapStats) -> str:
     return "\n".join(lines) + "\n"
 ```
 
-- [ ] **Step 18.4: Run test — verify pass**
+- [x] **Step 18.4: Run test — verify pass**
 
 ```bash
 pytest tests/unit/visualmap/test_summary.py -v
 ```
 Expected: 1 passed.
 
-- [ ] **Step 18.5: Commit**
+- [x] **Step 18.5: Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/summary.py \
