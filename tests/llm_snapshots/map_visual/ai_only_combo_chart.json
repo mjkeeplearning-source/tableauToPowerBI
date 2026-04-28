@@ -1,0 +1,9 @@
+{
+  "visual_type": "clusteredBarChart",
+  "encoding_bindings": [
+    {"channel": "category", "field_ref": "t__col__region"},
+    {"channel": "value",    "field_ref": "t__col__sales"}
+  ],
+  "confidence": "medium",
+  "notes": "Synthetic snapshot — combo collapsed to bar."
+}
