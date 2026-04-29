@@ -3077,7 +3077,7 @@ git commit -m "feat(stage4): map visuals (dispatch + AI fallback + validator)"
 - Create: `tests/golden/synthetic/visual_marks_v1.twb`
 - Create: `tests/integration/test_stage3_stage4_integration.py`
 
-- [ ] **Step 20.1: Author the fixture**
+- [x] **Step 20.1: Author the fixture**
 
 `tests/golden/synthetic/visual_marks_v1.twb` — author by hand or by adapting an existing fixture. Minimum content: one CSV datasource (`Orders`) with columns `Region` (string, dim) and `Sales` (number, measure); seven worksheets named `bars`, `lines`, `areas`, `scatters`, `pies`, `tables`, `maps` (the last with a `Country` column added) — each binding the appropriate shelves; one dashboard tiling all seven. Author by copying the structure of `tests/golden/synthetic/trivial.twb` (already in repo) and changing one `<mark class>` per sheet. After authoring, sanity-check it loads:
 
@@ -3087,7 +3087,7 @@ python -c "from tableau2pbir.util.zip import read_workbook; from pathlib import 
 
 Expected: prints a non-zero byte count without an exception.
 
-- [ ] **Step 20.2: Write the failing integration test**
+- [x] **Step 20.2: Write the failing integration test**
 
 `tests/integration/test_stage3_stage4_integration.py`:
 
@@ -3166,14 +3166,14 @@ def test_stage4_attaches_visual_for_bar_fixture(
     assert "lineChart" in visual_types
 ```
 
-- [ ] **Step 20.3: Run tests — verify pass**
+- [x] **Step 20.3: Run tests — verify pass**
 
 ```bash
 pytest tests/integration/test_stage3_stage4_integration.py -v
 ```
 Expected: 3 passed.
 
-- [ ] **Step 20.4: Run full suite — verify no regressions**
+- [x] **Step 20.4: Run full suite — verify no regressions**
 
 ```bash
 pytest -q
@@ -3182,7 +3182,7 @@ make typecheck
 ```
 Expected: all green.
 
-- [ ] **Step 20.5: Commit**
+- [x] **Step 20.5: Commit**
 
 ```bash
 git add tests/golden/synthetic/visual_marks_v1.twb \
