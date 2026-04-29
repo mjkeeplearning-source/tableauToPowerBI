@@ -211,7 +211,7 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
         mark = next(
             (p.find("mark") for p in panes if p.find("mark") is not None), None
         )
-        mark_type = attr(mark, "class", default="Automatic") if mark is not None else "Automatic"
+        mark_type = (attr(mark, "class", default="automatic") if mark is not None else "automatic").lower()
 
         out.append({
             "name": attr(ws, "name"),

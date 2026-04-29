@@ -80,7 +80,7 @@ def test_basic_worksheet_extract():
     w = ws[0]
     assert w["name"] == "Revenue"
     assert w["datasource_refs"] == ("sample.csv",)
-    assert w["mark_type"] == "Bar"
+    assert w["mark_type"] == "bar"
     assert w["encodings"]["rows"] == ("amount",)
     assert w["encodings"]["columns"] == ("month",)
     assert w["encodings"]["color"] == "region"

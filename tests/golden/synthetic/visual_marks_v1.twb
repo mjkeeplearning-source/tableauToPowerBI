@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<workbook xmlns:user='http://www.tableausoftware.com/xml/user' source-build='2024.1' source-platform='win' version='18.1'>
+  <datasources>
+    <datasource caption='Orders' name='orders.csv' hasconnection='true'>
+      <connection class='textscan' directory='.' filename='orders.csv' server='' />
+      <column datatype='string'  name='[Region]'  role='dimension' type='nominal'/>
+      <column datatype='real'    name='[Sales]'   role='measure'   type='quantitative'/>
+      <column datatype='string'  name='[Country]' role='dimension' type='nominal'/>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='bars'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Bar'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='lines'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Line'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='areas'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Area'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='scatters'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Circle'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='pies'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Pie'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='tables'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Region]</columns>
+        <pane><mark class='Text'/></pane>
+      </view>
+    </worksheet>
+    <worksheet name='maps'>
+      <view>
+        <datasources><datasource name='orders.csv'/></datasources>
+        <rows>[Sales]</rows>
+        <columns>[Country]</columns>
+        <pane><mark class='Map'/></pane>
+      </view>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name='Overview'>
+      <size maxheight='1200' maxwidth='1600' minheight='1200' minwidth='1600'/>
+      <zones>
+        <zone name='bars'     type='worksheet' id='1' h='171' w='1600' x='0'    y='0'/>
+        <zone name='lines'    type='worksheet' id='2' h='171' w='1600' x='0'    y='171'/>
+        <zone name='areas'    type='worksheet' id='3' h='171' w='1600' x='0'    y='342'/>
+        <zone name='scatters' type='worksheet' id='4' h='171' w='1600' x='0'    y='513'/>
+        <zone name='pies'     type='worksheet' id='5' h='171' w='1600' x='0'    y='684'/>
+        <zone name='tables'   type='worksheet' id='6' h='171' w='1600' x='0'    y='855'/>
+        <zone name='maps'     type='worksheet' id='7' h='171' w='1600' x='0'    y='1026'/>
+      </zones>
+    </dashboard>
+  </dashboards>
+</workbook>

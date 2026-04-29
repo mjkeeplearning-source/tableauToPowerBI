@@ -27,6 +27,15 @@ def _known_field_ids(wb: Workbook) -> frozenset[str]:
     for tbl in wb.data_model.tables:
         fids.update(tbl.column_ids)
     fids.update(c.id for c in wb.data_model.calculations)
+    # Encoding FieldRef.column_ids use a different slug format than
+    # table.column_ids; include them so dispatch-generated bindings validate.
+    for sheet in wb.sheets:
+        enc = sheet.encoding
+        for fr in (*enc.rows, *enc.columns, *enc.detail):
+            fids.add(fr.column_id)
+        for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle):
+            if opt:
+                fids.add(opt.column_id)
     return frozenset(fids)
 
 
