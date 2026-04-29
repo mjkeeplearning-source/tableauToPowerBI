@@ -3197,7 +3197,7 @@ git commit -m "test(integration): stage 3+4 end-to-end on synthetic fixtures"
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 21.1: Update the implementation tracking table**
+- [x] **Step 21.1: Update the implementation tracking table**
 
 In `CLAUDE.md`, replace the Plan 3 row:
 
@@ -3213,7 +3213,7 @@ with:
 
 and update Plan 4 status from `🔲 TODO` to `🔲 NEXT` (no other table edits).
 
-- [ ] **Step 21.2: Run lint to confirm no markdown trailing-whitespace etc.**
+- [x] **Step 21.2: Run lint to confirm no markdown trailing-whitespace etc.**
 
 ```bash
 make lint
@@ -3221,7 +3221,7 @@ make lint
 
 Expected: clean.
 
-- [ ] **Step 21.3: Commit**
+- [x] **Step 21.3: Commit**
 
 ```bash
 git add CLAUDE.md
