@@ -59,3 +59,21 @@ def test_padding_shrinks_child_rect():
     container = Container(kind=ContainerKind.H, children=(leaf,), padding=10)
     out = walk_layout(container, canvas_w=1000, canvas_h=600, scale=1.0)
     assert out[0].position == Position(x=10, y=10, w=980, h=580)
+
+
+def test_floating_leaf_off_canvas_is_clamped():
+    leaf = Leaf(kind=LeafKind.SHEET, payload={"sheet_id": "x"},
+                position=Position(x=900, y=500, w=500, h=400))
+    container = Container(kind=ContainerKind.FLOATING, children=(leaf,))
+    out = walk_layout(container, canvas_w=1000, canvas_h=600, scale=1.0)
+    assert out[0].clamped is True
+    assert out[0].dropped is False
+    assert out[0].position == Position(x=900, y=500, w=100, h=100)
+
+
+def test_floating_leaf_completely_off_canvas_is_dropped():
+    leaf = Leaf(kind=LeafKind.SHEET, payload={"sheet_id": "x"},
+                position=Position(x=2000, y=2000, w=100, h=100))
+    container = Container(kind=ContainerKind.FLOATING, children=(leaf,))
+    out = walk_layout(container, canvas_w=1000, canvas_h=600, scale=1.0)
+    assert out[0].dropped is True

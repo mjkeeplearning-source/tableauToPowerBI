@@ -419,12 +419,12 @@ def test_floating_leaf_completely_off_canvas_is_dropped():
     assert out[0].dropped is True
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/layout/test_walker.py -v -k "clamp or drop"`
 Expected: FAIL — `clamped` / `dropped` not on `ResolvedLeaf`.
 
-- [ ] **Step 3: Update `ResolvedLeaf` and `_walk`**
+- [x] **Step 3: Update `ResolvedLeaf` and `_walk`**
 
 ```python
 # src/tableau2pbir/layout/walker.py — replace ResolvedLeaf and add clamp logic in the Leaf branch:
@@ -478,12 +478,12 @@ Then in `_walk`, after computing `pos` for a leaf with explicit `position`, run 
 
 (Add `canvas_w` and `canvas_h` as `_walk` arguments and thread them through; current implementation already has `canvas_w`/`canvas_h` only at the public wrapper — pass them down.)
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pytest tests/unit/layout/test_walker.py -v`
 Expected: PASS (8 tests, all 6 prior + 2 new).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/layout/walker.py tests/unit/layout/test_walker.py
