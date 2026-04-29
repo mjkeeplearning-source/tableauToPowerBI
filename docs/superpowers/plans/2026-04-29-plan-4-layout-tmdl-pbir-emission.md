@@ -241,7 +241,7 @@ git commit -m "feat(layout): add canvas size selection with config override"
 
 The walker takes the dashboard's `layout_tree` (a `Container | Leaf`) plus the canvas `(w, h, scale)` and returns a list of `(leaf_id, position, z_order)` tuples — leaves in document order, positions in absolute pixel space at the canvas size. Floating leaves keep their explicit `position` (scaled). Tiled containers split their rect among children: `h` containers split horizontally, `v` containers split vertically; padding is consumed off the parent before the split.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/layout/test_walker.py
@@ -303,12 +303,12 @@ def test_padding_shrinks_child_rect():
     assert out[0].position == Position(x=10, y=10, w=980, h=580)
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/layout/test_walker.py -v`
 Expected: FAIL with `ImportError`.
 
-- [ ] **Step 3: Implement the walker**
+- [x] **Step 3: Implement the walker**
 
 ```python
 # src/tableau2pbir/layout/walker.py
@@ -376,12 +376,12 @@ def _walk(node, x: int, y: int, w: int, h: int, scale: float,
             _walk(child, inner_x, inner_y + seg * i, inner_w, child_h, scale, out, counter)
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/layout/test_walker.py -v`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/layout/walker.py tests/unit/layout/test_walker.py
@@ -398,7 +398,7 @@ git commit -m "feat(layout): add container-tree walker resolving absolute leaf r
 
 A floating leaf may have a position that extends past the canvas. Per §6 Stage 5 step 6, clamp it and record a warning (the warning surfaces in the stage's `errors`, not here). When the clamped rect has zero or negative area, drop it (return `None` instead of a `ResolvedLeaf` and tag it). We surface clamp/drop decisions on the `ResolvedLeaf` itself with two new fields: `clamped: bool` and `dropped: bool`. Dropped leaves stay in the output list (so the stage runner can log them) but their position area is 0.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/layout/test_walker.py — append:
