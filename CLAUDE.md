@@ -10,8 +10,8 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 |------|-------|--------|------|
 | 1 | Scaffolding & Infrastructure | ✅ DONE | `docs/superpowers/plans/2026-04-23-plan-1-scaffolding-infra.md` |
 | 2 | Stage 1 & 2 — Extract + Canonicalize → IR | ✅ DONE | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
-| 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | 🔲 READY (plan written, awaiting inline execution) | `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md` |
-| 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | 🔲 TODO | TBD |
+| 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | ✅ DONE | `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md` |
+| 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | 🔲 NEXT | TBD |
 | 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔲 TODO | TBD |
 
 **Session rules:**
@@ -21,11 +21,9 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Resume Plan 3 here:** open `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md`,
-run the Pre-Task baseline check, then start at **Task 1** (IR bump 1.0.0 → 1.1.0,
-add `Sheet.pbir_visual`). Execute inline using the `superpowers:executing-plans`
-skill. Tasks use `- [ ]` checkboxes — pick up at the first unchecked step.
-When all 21 tasks are done, flip Plan 3 status to ✅ DONE and Plan 4 to 🔲 NEXT.
+**Plan 4 is next:** write `docs/superpowers/plans/` for Stage 5 (compute layout),
+Stage 6 (build TMDL), and Stage 7 (build PBIR emission). Use `superpowers:writing-plans`
+to author the plan, then execute with `superpowers:executing-plans`.
 
 ## Design Spec
 

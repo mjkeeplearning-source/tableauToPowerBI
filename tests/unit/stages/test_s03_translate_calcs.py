@@ -3,7 +3,6 @@ v1 calc, leaves deferred calcs untouched (their ids are already in
 unsupported[]), routes syntax-gate failures to unsupported[]."""
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from tableau2pbir.pipeline import StageContext
