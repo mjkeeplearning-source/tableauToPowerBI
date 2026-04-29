@@ -500,7 +500,7 @@ git commit -m "feat(layout): clamp off-canvas floating leaves; drop fully-out-of
 
 Per §6 Stage 5 step 4, a fixed table maps each `LeafKind` to a downstream "object plan" string consumed by Stage 7. Stage 5 itself doesn't write PBIR JSON — it just labels the leaf so Stage 7 dispatches correctly. The mapping is one-to-one for v1; placeholder leaves (web-page, blank) carry that label and emit a placeholder visual in Stage 7.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/layout/test_leaf_types.py
@@ -529,12 +529,12 @@ def test_web_page_and_blank_become_placeholder():
     assert map_leaf_kind(LeafKind.BLANK) == PbiObjectKind.DROP
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/layout/test_leaf_types.py -v`
 Expected: FAIL — `ImportError`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/layout/leaf_types.py
@@ -575,12 +575,12 @@ def map_leaf_kind(kind: LeafKind) -> PbiObjectKind:
     return _TABLE[kind]
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/layout/test_leaf_types.py -v`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/layout/leaf_types.py tests/unit/layout/test_leaf_types.py
