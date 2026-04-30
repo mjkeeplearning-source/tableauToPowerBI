@@ -595,7 +595,7 @@ git commit -m "feat(layout): map Tableau leaf kinds to PBI object kinds"
 - Create: `src/tableau2pbir/layout/summary.py`
 - Test: included in Task 6 stage runner test
 
-- [ ] **Step 1: Write the implementation directly (rendered text is end-to-end-tested in Task 6)**
+- [x] **Step 1: Write the implementation directly (rendered text is end-to-end-tested in Task 6)**
 
 ```python
 # src/tableau2pbir/layout/summary.py
@@ -619,7 +619,7 @@ def render_summary(per_dashboard: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/tableau2pbir/layout/summary.py
@@ -636,7 +636,7 @@ git commit -m "feat(layout): add stage 5 summary.md renderer"
 
 The stage's `run(input_json, ctx)` parses the IR JSON (from stage 4 output), iterates dashboards, walks each layout tree, mutates `Leaf.position`, and returns the IR-shaped dict back. Clamped/dropped leaves emit `StageError` records (severity `warn`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/stages/test_s05_compute_layout.py
@@ -690,12 +690,12 @@ def test_stage5_warns_on_clamp(tmp_path: Path):
     assert "layout.leaf_clamped" in codes
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/stages/test_s05_compute_layout.py -v`
 Expected: FAIL — current stub doesn't populate positions.
 
-- [ ] **Step 3: Implement the stage runner**
+- [x] **Step 3: Implement the stage runner**
 
 ```python
 # src/tableau2pbir/stages/s05_compute_layout.py
@@ -771,7 +771,7 @@ def _rebuild_tree(node, positions_iter):
     return node.model_copy(update={"children": new_children})
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/stages/test_s05_compute_layout.py -v`
 Expected: PASS (2 tests).
@@ -781,7 +781,7 @@ Then run the broader suite to make sure nothing regressed:
 Run: `pytest tests/ -v -x`
 Expected: ALL GREEN.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s05_compute_layout.py tests/unit/stages/test_s05_compute_layout.py
@@ -797,7 +797,7 @@ git commit -m "feat(stage5): replace stub with layout walker; populate Leaf.posi
 
 After Stage 5 the IR JSON must still validate against the IR JSON Schema (§5.4). Stage 5 only fills already-optional `position` fields, so this is a smoke check.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```python
 # tests/contract/test_stage5_layout_contract.py
@@ -821,12 +821,12 @@ def test_stage5_output_validates_against_ir(synthetic_fixtures_dir: Path, tmp_pa
 
 (If `run_stage` is not yet exported by `pipeline.py`, the test invokes `s05_compute_layout.run` directly using the prior stage's output — adapt to the actual pipeline API.)
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 Run: `pytest tests/contract/test_stage5_layout_contract.py -v`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/contract/test_stage5_layout_contract.py
@@ -847,7 +847,7 @@ git commit -m "test(contract): stage 5 output round-trips through IR validator"
 
 TMDL identifiers must be quoted with single-quotes when they contain spaces or special chars; embedded single quotes double up. String literals use double quotes; embedded double quotes double up.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_escape.py
@@ -869,12 +869,12 @@ def test_empty_ident_quoted():
     assert tmdl_ident("") == "''"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/emit/tmdl/test_escape.py -v`
 Expected: FAIL — `ImportError`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/__init__.py
@@ -904,12 +904,12 @@ def tmdl_string(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_escape.py -v`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/__init__.py src/tableau2pbir/emit/tmdl/__init__.py src/tableau2pbir/emit/tmdl/escape.py tests/unit/emit/__init__.py tests/unit/emit/tmdl/__init__.py tests/unit/emit/tmdl/test_escape.py
@@ -927,7 +927,7 @@ git commit -m "feat(tmdl): add identifier and string-literal escaping helpers"
 
 These two are essentially fixed text with workbook name and culture substituted.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/unit/emit/tmdl/test_database.py
@@ -950,12 +950,12 @@ def test_model_tmdl_includes_culture_and_default_table():
     assert "defaultPowerBIDataSourceVersion" in out
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_database.py tests/unit/emit/tmdl/test_model.py -v`
 Expected: FAIL — `ImportError`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/database.py
@@ -990,12 +990,12 @@ def render_model(culture: str = "en-US") -> str:
     )
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pytest tests/unit/emit/tmdl/test_database.py tests/unit/emit/tmdl/test_model.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/database.py src/tableau2pbir/emit/tmdl/model.py tests/unit/emit/tmdl/test_database.py tests/unit/emit/tmdl/test_model.py
@@ -1012,7 +1012,7 @@ git commit -m "feat(tmdl): render database.tmdl and model.tmdl"
 
 A column fragment is rendered nested under a `table` block and can be either a raw column (with `dataType` only) or a calculated column (with `expression: <DAX>`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_column.py
@@ -1047,12 +1047,12 @@ def test_calculated_column_without_dax_emits_nothing():
     assert render_column(col) == ""
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_column.py -v`
 Expected: FAIL — `ImportError`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/column.py
@@ -1076,12 +1076,12 @@ def render_column(col: Column) -> str:
     return f"\t{head}\n{body}\n"
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_column.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/column.py tests/unit/emit/tmdl/test_column.py
@@ -1096,7 +1096,7 @@ git commit -m "feat(tmdl): render column / calculated-column fragments"
 - Create: `src/tableau2pbir/emit/tmdl/measure.py`
 - Test: `tests/unit/emit/tmdl/test_measure.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_measure.py
@@ -1131,12 +1131,12 @@ def test_column_scope_is_not_a_measure():
     assert render_measure(calc) == ""
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_measure.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/measure.py
@@ -1157,12 +1157,12 @@ def render_measure(calc: Calculation) -> str:
     return f"\t{head}\n{body}\n"
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_measure.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/measure.py tests/unit/emit/tmdl/test_measure.py
@@ -1181,7 +1181,7 @@ Per §5.8: Tier 1 emits a real M with values inlined; Tier 2 emits an M with ser
 
 The function returns a multi-line M expression string (the `M` partition body) — the `partition` block wrapper is added in `table.py` (Task 13).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_m_expression.py
@@ -1236,12 +1236,12 @@ def test_tier4_emits_error_placeholder():
     assert "Web Data Connector unsupported" in m
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_m_expression.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/m_expression.py
@@ -1305,12 +1305,12 @@ def _string(s: str) -> str:
     return '"' + (s or "").replace('"', '""') + '"'
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_m_expression.py -v`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/m_expression.py tests/unit/emit/tmdl/test_m_expression.py
