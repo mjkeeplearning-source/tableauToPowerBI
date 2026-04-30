@@ -1331,7 +1331,7 @@ Mapping calculation → table for v1: a measure-scope `Calculation` is attached 
 
 For v1 simplicity this task accepts the table → owned-calculations mapping as an explicit argument; the assignment heuristic ships in Task 16 (the orchestrator).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_table.py
@@ -1362,12 +1362,12 @@ def test_table_with_one_column_one_measure_csv_partition():
     assert "Csv.Document" in out
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_table.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/table.py
@@ -1407,12 +1407,12 @@ def render_table(name: str, columns: list[Column], measures: list[Calculation],
     return "\n".join(parts) + "\n"
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_table.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/table.py tests/unit/emit/tmdl/test_table.py
@@ -1427,7 +1427,7 @@ git commit -m "feat(tmdl): render tables/<name>.tmdl assembling columns, measure
 - Create: `src/tableau2pbir/emit/tmdl/relationship.py`
 - Test: `tests/unit/emit/tmdl/test_relationship.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_relationship.py
@@ -1452,12 +1452,12 @@ def test_one_to_many_single_filter():
     assert "toCardinality: one" in out
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_relationship.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/relationship.py
@@ -1489,12 +1489,12 @@ def render_relationship(rel: Relationship, from_table_name: str, to_table_name: 
     )
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_relationship.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/relationship.py tests/unit/emit/tmdl/test_relationship.py
@@ -1519,7 +1519,7 @@ The `min`/`max`/`step` for `numeric_what_if` come from `Parameter.allowed_values
 
 Each function returns a `dict[filename, content]` (filename is relative to `SemanticModel/`) so the orchestrator (Task 16) can write them.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_parameters.py
@@ -1567,12 +1567,12 @@ def test_unsupported_intent_emits_nothing():
     assert render_parameter(p) == {}
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_parameters.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/tmdl/parameters.py
@@ -1636,12 +1636,12 @@ def _constants_header() -> str:
     return "table _Constants\n\tisHidden: true\n\n"
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_parameters.py -v`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/parameters.py tests/unit/emit/tmdl/test_parameters.py
@@ -1659,7 +1659,7 @@ git commit -m "feat(tmdl): emit parameter tables/measures per ParameterIntent"
 
 The orchestrator turns a `Workbook` into a directory tree under `<output_dir>/SemanticModel/` and returns a manifest dict.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/tmdl/test_render.py
@@ -1707,12 +1707,12 @@ def test_render_writes_files(tmp_path: Path):
     assert manifest["counts"]["measures"] == 1
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/tmdl/test_render.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/_io.py
@@ -1822,12 +1822,12 @@ def _all_columns(wb: Workbook):
 
 > NOTE for the implementer: verify whether columns live on `DataModel.columns` or are inlined into `Table.column_ids` referencing a workbook-level column list. Adjust `_all_columns` to read whichever exists. The tests above assume `DataModel.columns: tuple[Column, ...]` exists; if not, adapt the test fixture and the accessor together.
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/tmdl/test_render.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/_io.py src/tableau2pbir/emit/tmdl/render.py tests/unit/emit/tmdl/test_render.py
@@ -1843,7 +1843,7 @@ git commit -m "feat(tmdl): add render_semantic_model orchestrator + atomic write
 - Modify: `src/tableau2pbir/stages/s06_build_tmdl.py`
 - Test: `tests/unit/stages/test_s06_build_tmdl.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/stages/test_s06_build_tmdl.py
@@ -1887,12 +1887,12 @@ def test_stage6_writes_files_and_returns_manifest(tmp_path: Path):
     assert "Stage 6" in result.summary_md
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/stages/test_s06_build_tmdl.py -v`
 Expected: FAIL — current stub.
 
-- [ ] **Step 3: Implement summary + runner**
+- [x] **Step 3: Implement summary + runner**
 
 ```python
 # src/tableau2pbir/emit/tmdl/summary.py
@@ -1935,7 +1935,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/stages/test_s06_build_tmdl.py -v`
 Expected: PASS.
@@ -1945,7 +1945,7 @@ Then run the broader suite:
 Run: `pytest tests/ -v -x`
 Expected: ALL GREEN.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/tmdl/summary.py src/tableau2pbir/stages/s06_build_tmdl.py tests/unit/stages/test_s06_build_tmdl.py
@@ -1961,7 +1961,7 @@ git commit -m "feat(stage6): replace stub with TMDL emission orchestrator"
 
 Plan 4 cannot run TabularEditor 2 (Plan 5 ships that). The contract test verifies textual structure: every `tables/*.tmdl` file starts with `table `, every `relationships/*.tmdl` starts with `relationship `, the file is utf-8 + LF-only, and balanced indentation.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```python
 # tests/contract/test_stage6_tmdl_contract.py
@@ -1990,12 +1990,12 @@ def test_stage6_emits_well_formed_tmdl(synthetic_fixtures_dir: Path, tmp_path: P
         assert path.read_text(encoding="utf-8").startswith("relationship ")
 ```
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 Run: `pytest tests/contract/test_stage6_tmdl_contract.py -v`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/contract/test_stage6_tmdl_contract.py
@@ -2015,7 +2015,7 @@ git commit -m "test(contract): stage 6 TMDL output is utf-8/LF and headers are w
 
 PBIR uses content-hash-stable ids for visuals and pages so re-runs diff cleanly.
 
-- [ ] **Step 1: Write the implementation**
+- [x] **Step 1: Write the implementation**
 
 ```python
 # src/tableau2pbir/emit/pbir/__init__.py
@@ -2034,7 +2034,7 @@ def stable_id(*parts: str) -> str:
     return h[:16]
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/__init__.py src/tableau2pbir/emit/pbir/ids.py
@@ -2051,7 +2051,7 @@ git commit -m "feat(pbir): stable id helper for visuals + pages"
 
 Per PBIR v2: `definition/report.json` carries report-level metadata, theme name, and `pages` ordering.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_report.py
@@ -2068,12 +2068,12 @@ def test_report_json_minimal():
     assert obj["pages"]["activePageName"] == "pageA"
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_report.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/report.py
@@ -2095,12 +2095,12 @@ def render_report(report_name: str, page_order: list[str]) -> str:
     return json.dumps(obj, indent=2)
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_report.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/report.py tests/unit/emit/pbir/test_report.py
@@ -2117,7 +2117,7 @@ git commit -m "feat(pbir): render report.json root"
 
 Each Tableau dashboard becomes one PBIR `pages/<page_id>/page.json` with display name, ordinal, and canvas size.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_page.py
@@ -2136,12 +2136,12 @@ def test_page_json_basic():
     assert obj["height"] == 720
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_page.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/page.py
@@ -2166,12 +2166,12 @@ def render_page(page_id: str, display_name: str, ordinal: int,
     return json.dumps(obj, indent=2)
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_page.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/page.py tests/unit/emit/pbir/test_page.py
@@ -2190,7 +2190,7 @@ A visual JSON file contains: name (id), position, visualType, query (datatransfo
 
 For v1 we use a single emit function parameterized by the seven `visual_type` values; the per-type variations are limited to the `query` slot names that PBIR uses (`Y`, `Category`, etc.). A fixed table maps visualType → required slot order.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_visual.py
@@ -2223,12 +2223,12 @@ def test_visual_json_has_position_and_query():
     assert any("Region" in str(p) for p in obj["visual"]["query"]["queryState"]["Category"]["projections"])
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_visual.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/visual.py
@@ -2268,12 +2268,12 @@ def _field_obj(source_field_id: str) -> dict:
     return {"Measure": {"Expression": {"SourceRef": {"Source": "Sales"}}, "Property": source_field_id}}
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_visual.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/visual.py tests/unit/emit/pbir/test_visual.py
@@ -2290,7 +2290,7 @@ git commit -m "feat(pbir): render visual.json with position and query state"
 
 Filter-card leaf payload carries `field_id` (an IR `Column`). Parameter-card leaf payload carries `parameter_id`; for `numeric_what_if` and `categorical_selector`, the slicer binds to the `<param_name>[Value]` column emitted by Stage 6 Task 15.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_slicer.py
@@ -2319,12 +2319,12 @@ def test_parameter_slicer_minimal():
     assert "Discount Rate" in json.dumps(obj)
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_slicer.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/slicer.py
@@ -2370,12 +2370,12 @@ def _slicer_json(visual_id: str, source_field_id: str, position: Position, z_ord
     return json.dumps(obj, indent=2)
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_slicer.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/slicer.py tests/unit/emit/pbir/test_slicer.py
@@ -2394,7 +2394,7 @@ A `Filter` that appears on every sheet of every page promotes to a report-level 
 
 For Plan 4 simplicity, this task only handles the page-scope path: collect each dashboard's sheet filters, dedupe by `field.column_id`, and emit them in the page's `filterConfig`. Report-level promotion is a polish item that we can defer if it's not exercised by v1 fixtures.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_filters.py
@@ -2420,12 +2420,12 @@ def test_unique_filters_kept():
     assert len(out) == 2
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_filters.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/filters.py
@@ -2464,12 +2464,12 @@ def _filter_to_pbir(f: Filter) -> dict:
     return obj
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_filters.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/filters.py tests/unit/emit/pbir/test_filters.py
@@ -2486,7 +2486,7 @@ git commit -m "feat(pbir): collect and dedupe page-level filters"
 
 Tableau filter / highlight actions map to PBI `visualInteractions`. Per §14: filter action → `type: "filter"`, highlight action → `type: "highlight"`. URL / parameter actions are deferred (URL action is flag-gated to v1.1; parameter action is unsupported when it cascades). For Plan 4 we emit `filter` and `highlight` only.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_actions.py
@@ -2523,12 +2523,12 @@ def test_url_action_skipped_in_v1():
     assert out == []
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_actions.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/actions.py
@@ -2555,12 +2555,12 @@ def render_visual_interactions(actions: list[Action], sheet_to_visual: dict[str,
     return out
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_actions.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/actions.py tests/unit/emit/pbir/test_actions.py
@@ -2579,7 +2579,7 @@ Per §A.4-3 / §6 Stage 7: every rendered-page visual whose backing field traces
 
 A visual's "backing field" is the `source_field_id` of its first encoding binding (typically the measure or main column). We resolve that to a calculation or column, then to its datasource via the table.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/emit/pbir/test_blocked.py
@@ -2618,12 +2618,12 @@ def test_clean_visual_not_blocked():
     assert out == []
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_blocked.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/emit/pbir/blocked.py
@@ -2658,12 +2658,12 @@ def compute_blocked_visuals(
     return out
 ```
 
-- [ ] **Step 4: Run test**
+- [x] **Step 4: Run test**
 
 Run: `pytest tests/unit/emit/pbir/test_blocked.py -v`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/blocked.py tests/unit/emit/pbir/test_blocked.py
@@ -2682,7 +2682,7 @@ git commit -m "feat(pbir): compute blocked_visuals[] for deferred/Tier-4 backing
 
 The orchestrator walks `Workbook.dashboards`, resolves each `Leaf` per Stage 5's already-populated `position`, dispatches by leaf kind (using `layout.leaf_types.map_leaf_kind`), writes the page + visual files, computes filters and visualInteractions, computes `blocked_visuals[]`, and returns a manifest.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 # tests/unit/emit/pbir/test_render.py
@@ -2769,12 +2769,12 @@ def test_stage7_runner_writes_files_and_returns_manifest(tmp_path: Path):
     assert "blocked_visuals" in result.output
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/emit/pbir/test_render.py tests/unit/stages/test_s07_build_pbir.py -v`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement orchestrator + summary + runner**
+- [x] **Step 3: Implement orchestrator + summary + runner**
 
 ```python
 # src/tableau2pbir/emit/pbir/render.py
@@ -2958,7 +2958,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     )
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `pytest tests/unit/emit/pbir/test_render.py tests/unit/stages/test_s07_build_pbir.py -v`
 Expected: PASS.
@@ -2968,7 +2968,7 @@ Then run the broader suite:
 Run: `pytest tests/ -v -x`
 Expected: ALL GREEN.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/emit/pbir/render.py src/tableau2pbir/emit/pbir/summary.py src/tableau2pbir/stages/s07_build_pbir.py tests/unit/emit/pbir/test_render.py tests/unit/stages/test_s07_build_pbir.py

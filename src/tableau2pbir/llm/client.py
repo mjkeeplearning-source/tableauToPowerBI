@@ -22,7 +22,7 @@ from tableau2pbir.llm.prompt_loader import PromptPack, load_prompt_pack
 from tableau2pbir.llm.snapshots import SnapshotStore, is_replay_mode
 
 _METHODS = ("translate_calc", "map_visual", "cleanup_name")
-_DEFAULT_MODEL = "claude-sonnet-4-6"
+_DEFAULT_MODEL = "claude-haiku-4-5"  #"claude-sonnet-4-6"
 _SNAPSHOT_ROOT = Path(__file__).resolve().parents[3] / "tests" / "llm_snapshots"
 
 
