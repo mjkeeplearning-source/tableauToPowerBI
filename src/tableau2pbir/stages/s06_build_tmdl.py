@@ -12,8 +12,10 @@ from tableau2pbir.pipeline import StageContext, StageResult
 def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     wb = Workbook.model_validate(input_json)
     manifest = render_semantic_model(wb, ctx.output_dir)
+    # Pass through the Workbook IR so Stage 7 can consume it.
+    # TMDL files are written to disk; manifest summary is in summary_md.
     return StageResult(
-        output=manifest,
+        output=input_json,
         summary_md=render_summary(manifest),
         errors=(),
     )
