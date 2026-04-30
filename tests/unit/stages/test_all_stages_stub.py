@@ -9,8 +9,7 @@ import pytest
 from tableau2pbir.pipeline import StageContext, StageResult
 
 STAGE_MODULES = [
-    # s01–s05 require real IR; tested separately
-    "tableau2pbir.stages.s06_build_tmdl",
+    # s01–s05, s06 require real IR; tested separately
     "tableau2pbir.stages.s07_build_pbir",
     "tableau2pbir.stages.s08_package_validate",
 ]

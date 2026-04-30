@@ -1,12 +1,19 @@
-"""Stage 6 — build TMDL (pure python). See spec §6 Stage 6. Plan-1 stub."""
+"""Stage 6 — build TMDL (pure python). §6 Stage 6."""
 from __future__ import annotations
 
+from typing import Any
+
+from tableau2pbir.emit.tmdl.render import render_semantic_model
+from tableau2pbir.emit.tmdl.summary import render_summary
+from tableau2pbir.ir.workbook import Workbook
 from tableau2pbir.pipeline import StageContext, StageResult
 
 
-def run(input_json: dict[str, object], ctx: StageContext) -> StageResult:
+def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
+    wb = Workbook.model_validate(input_json)
+    manifest = render_semantic_model(wb, ctx.output_dir)
     return StageResult(
-        output={"stub_stage": "build_tmdl", "input_keys": list(input_json.keys())},
-        summary_md="# Stage 6 — build TMDL (stub)\n\nNo-op in Plan 1.\n",
+        output=manifest,
+        summary_md=render_summary(manifest),
         errors=(),
     )
