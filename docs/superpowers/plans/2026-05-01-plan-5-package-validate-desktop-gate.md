@@ -171,7 +171,7 @@ Each task follows red → green → commit. Run all of `pytest -q` after each co
 - Create: `tests/unit/validate/__init__.py`
 - Test: `tests/unit/validate/test_results.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_results.py
@@ -224,12 +224,12 @@ def test_dataclasses_are_frozen():
     raise AssertionError("ValidatorResult should be frozen")
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/validate/test_results.py -v`
 Expected: FAIL with `ImportError: cannot import name 'ValidatorOutcome' from 'tableau2pbir.validate.results'` (module not found).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `src/tableau2pbir/validate/__init__.py` (empty).
 Create `src/tableau2pbir/validate/results.py`:
@@ -302,12 +302,12 @@ class RubricResult:
     log_path: str | None = None
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/validate/test_results.py -v`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/__init__.py src/tableau2pbir/validate/results.py tests/unit/validate/__init__.py tests/unit/validate/test_results.py
@@ -334,7 +334,7 @@ The `.pbip` file is a small JSON pointing at the project's report folder. Per Mi
 }
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_pbip.py
@@ -371,12 +371,12 @@ def test_raises_when_report_dir_missing(tmp_path: Path):
         write_pbip_root(tmp_path, "NoReport")
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/validate/test_pbip.py -v`
 Expected: FAIL — `ModuleNotFoundError: tableau2pbir.validate.pbip`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```python
 # src/tableau2pbir/validate/pbip.py
@@ -406,12 +406,12 @@ def write_pbip_root(out_dir: Path, workbook_id: str) -> Path:
     return target
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/validate/test_pbip.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/pbip.py tests/unit/validate/test_pbip.py
