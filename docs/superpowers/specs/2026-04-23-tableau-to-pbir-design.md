@@ -115,20 +115,21 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
 
 ```
 ./out/<wb>/
-  <wb>.pbip                        # final artifact (open in PBI Desktop)
+  <wb>.pbip                        # project root — references both Report and SemanticModel
   Report/
-    definition.pbir                # required: binds report to SemanticModel (datasetReference)
-    definition/                    # PBIR JSON files
-      report.json
-      pages/
+    definition.pbir                # REQUIRED: binds report to SemanticModel (datasetReference)
+    definition/
+      version.json                 # REQUIRED: PBIR schema version ("1.0")
+      report.json                  # REQUIRED: report-level filters, theme, page order
+      pages/                       # REQUIRED: at least one page folder
         <page_id>/
-          page.json
+          page.json                # REQUIRED per page: name, display name, filters
           visuals/
             <visual_id>/
-              visual.json
+              visual.json          # REQUIRED per visual: position, query, bindings
   SemanticModel/
-    definition.pbism               # required: semantic model manifest, version "4.0" (TMDL mode)
-    definition/                    # TMDL files (NOT at SemanticModel/ root)
+    definition.pbism               # REQUIRED: semantic model manifest, version "4.0" (TMDL mode)
+    definition/                    # REQUIRED: TMDL files (NOT at SemanticModel/ root)
       database.tmdl
       model.tmdl
       tables/
@@ -153,11 +154,19 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
                                    # columns: workbook | status | trigger_reasons | link
 ```
 
-**PBIR project manifests (required by PBI Desktop):**
-- `Report/definition.pbir` — links the Report artifact to its SemanticModel via `datasetReference.byPath.path = "../SemanticModel"`. Version `"4.0"`. Written by Stage 8 (`validate/pbip.py`).
-- `SemanticModel/definition.pbism` — declares the semantic model artifact and its format. Version `"4.0"` enables TMDL mode; version `"1.0"` would require TMSL `model.bim` instead. Written by Stage 6 (`emit/tmdl/render.py`).
+**PBIR project manifests — all required by PBI Desktop:**
 
-**TMDL file location:** Per the Microsoft PBIR spec, TMDL files must reside in `SemanticModel/definition/` (not directly under `SemanticModel/`). The `definition/` folder replaces the legacy `model.bim` file.
+| File | Written by | Content |
+|------|-----------|---------|
+| `<wb>.pbip` | Stage 8 `validate/pbip.py` | `{"version":"1.0","artifacts":[{"report":{"path":"Report"}},{"dataset":{"path":"SemanticModel"}}],...}` — must list BOTH artifacts |
+| `Report/definition.pbir` | Stage 8 `validate/pbip.py` | `{"version":"4.0","datasetReference":{"byPath":{"path":"../SemanticModel"},"byConnection":null}}` |
+| `Report/definition/version.json` | Stage 7 `emit/pbir/render.py` | `{"version":"1.0"}` + `$schema` — determines which report definition files Desktop loads |
+| `Report/definition/report.json` | Stage 7 `emit/pbir/render.py` | Uses schema `1.0.0` (not `2.0.0`) |
+| `SemanticModel/definition.pbism` | Stage 6 `emit/tmdl/render.py` | `{"version":"4.0"}` + `$schema` — `"4.0"` activates TMDL mode; `"1.0"` requires TMSL `model.bim` |
+
+**TMDL file location:** TMDL files must reside in `SemanticModel/definition/` (not directly under `SemanticModel/`). The `definition/` subfolder replaces the legacy `model.bim` file per the Microsoft PBIR spec.
+
+**Minimum viable page:** Desktop rejects a project with zero pages. Every `pages/<id>/` folder needs at minimum `page.json` with `{"name":"<id>"}`. Visuals folder is optional if the page is empty.
 
 ### 4.5 Failure mode (fail-open with `--gate`)
 
