@@ -64,7 +64,7 @@ The following bugs were discovered while opening `simple_join` in PBI Desktop an
 | M expression `PostgreSQL.Database("", "")` — empty server/dbname | `_connection_params()` read the outer `<connection class='federated'>` stub which has no params, not `named_connections[0]` | `stages/_build_data_model.py:_connection_params()` — fall-through to `named_connections[0]` for federated |
 | One TMDL table per federated datasource instead of one per physical relation | `build_tables()` always emitted one table per raw datasource dict | `stages/_build_data_model.py:build_tables()` — federated path emits one `Table` per relation with `physical_schema` / `physical_table` fields; `ir/model.py` adds those fields to `Table` |
 | M `Navigation` used bare `Item=<table_name>` for schema-qualified PostgreSQL tables | `render_m_expression()` had no schema-navigation path | `emit/tmdl/m_expression.py` + `emit/tmdl/table.py` + `emit/tmdl/render.py` — `Source{[Schema=..., Item=...]}[Data]` when physical fields are set |
-| Tables not joined in PBI Desktop — relationship missing from semantic model | (1) Stage 1 never read `<object-graph><relationships>` (the only place Tableau stores join predicates — not inside `<connection>`); (2) Stage 2 never called `build_relationships()`; (3) `render_relationship()` used invalid TMDL `fromColumn: table.col` concatenation instead of separate `fromTable:` / `fromColumn:` / `toTable:` / `toColumn:` lines | `extract/datasources.py` — added `extract_object_graph_relationships()`; `stages/_build_data_model.py` — added `build_relationships()`; `stages/s01_extract.py` + `stages/s02_canonicalize.py` — wired both; `emit/tmdl/relationship.py` — fixed TMDL format |
+| Tables not joined in PBI Desktop — relationship missing from semantic model | (1) Stage 1 never read `<object-graph><relationships>` (the only place Tableau stores join predicates — not inside `<connection>`); (2) Stage 2 never called `build_relationships()`; (3) relationships were written to separate `relationships/{id}.tmdl` files — TMDL spec requires a single `relationships.tmdl` alongside `model.tmdl`; (4) an intermediate bad fix added non-existent `fromTable:` / `toTable:` properties — per the TMDL spec only `fromColumn: Table.Column` / `toColumn: Table.Column` dot-notation is valid | `extract/datasources.py` — added `extract_object_graph_relationships()`; `stages/_build_data_model.py` — added `build_relationships()`; `stages/s01_extract.py` + `stages/s02_canonicalize.py` — wired both; `emit/tmdl/relationship.py` — confirmed dot-notation format; `emit/tmdl/render.py` — consolidated all relationships into single `relationships.tmdl` |
 
 **Output additions to `./out/<wb>/`:**
 
@@ -442,7 +442,7 @@ git commit -m "feat(stage8): write_pbip_root emits PBIR project pointer"
 The structural check walks the on-disk PBIR + TMDL trees and asserts cross-references resolve. Plan 5 implements four checks:
 
 1. Every visual's `dataPath` field IDs (or `bindings`) refer to a measure or column actually emitted in TMDL.
-2. Every relationship's `from` / `to` table file exists.
+2. Every relationship's `fromColumn` / `toColumn` table prefix (e.g. `orders` in `orders.order_id`) matches a table file in `SemanticModel/tables/`.
 3. Per-page visual IDs are unique (PBIR requires this).
 4. `report.json.pageOrder` matches the directory listing of `pages/`.
 
@@ -472,10 +472,12 @@ def _scaffold(tmp_path: Path, *, pages: list[str], visuals: dict[str, list[tuple
     for tname, fields in tables.items():
         body = "\n".join([f"table {tname}"] + [f"\tmeasure {f} = 1" for f in fields])
         (sm / "tables" / f"{tname}.tmdl").write_text(body, encoding="utf-8")
-    (sm / "relationships").mkdir()
-    for i, (a, b) in enumerate(relationships):
-        (sm / "relationships" / f"r{i}.tmdl").write_text(
-            f"relationship r{i}\n\tfromTable: {a}\n\ttoTable: {b}\n", encoding="utf-8")
+    if relationships:
+        blocks = "\n".join(
+            f"relationship r{i}\n\tfromColumn: {a}.id\n\ttoColumn: {b}.id"
+            for i, (a, b) in enumerate(relationships)
+        )
+        (sm / "relationships.tmdl").write_text(blocks, encoding="utf-8")
 
     rd = out / "Report" / "definition"
     rd.mkdir(parents=True)
@@ -583,8 +585,9 @@ from tableau2pbir.validate.results import (
 
 _MEASURE_RE = re.compile(r"^\s*(?:measure|column|calculatedColumn)\s+([A-Za-z_][\w ]*)", re.M)
 _TABLE_RE   = re.compile(r"^table\s+([A-Za-z_][\w ]*)", re.M)
-_FROM_RE    = re.compile(r"fromTable\s*:\s*([A-Za-z_][\w ]*)")
-_TO_RE      = re.compile(r"toTable\s*:\s*([A-Za-z_][\w ]*)")
+# TMDL relationship dot-notation: "fromColumn: TableName.col" — table name is before the dot
+_FROM_RE    = re.compile(r"fromColumn\s*:\s*([A-Za-z_][\w ]*)\.")
+_TO_RE      = re.compile(r"toColumn\s*:\s*([A-Za-z_][\w ]*)\.")
 
 
 def run_structural(out_dir: Path) -> StructuralResult:
@@ -645,17 +648,18 @@ def run_structural(out_dir: Path) -> StructuralResult:
                 location="Report/definition/report.json",
             ))
 
-    # Relationship endpoint check.
-    rel_dir = sm / "relationships"
-    if rel_dir.is_dir():
-        for rel_path in sorted(rel_dir.glob("*.tmdl")):
-            text = rel_path.read_text(encoding="utf-8")
-            for m, side in ((_FROM_RE.search(text), "from"), (_TO_RE.search(text), "to")):
-                if m and m.group(1).strip() not in table_fields:
+    # Relationship endpoint check — all relationships in a single relationships.tmdl file.
+    rel_file = sm / "relationships.tmdl"
+    if rel_file.is_file():
+        text = rel_file.read_text(encoding="utf-8")
+        for m, side in ((_FROM_RE, "from"), (_TO_RE, "to")):
+            for match in m.finditer(text):
+                tname = match.group(1).strip()
+                if tname not in table_fields:
                     findings.append(StructuralFinding(
                         code="relationship.missing_table", severity="error",
-                        message=f"{side}Table {m.group(1).strip()!r} not in SemanticModel/tables/",
-                        location=str(rel_path.relative_to(out_dir)),
+                        message=f"{side}Column table {tname!r} not in SemanticModel/tables/",
+                        location="SemanticModel/relationships.tmdl",
                     ))
 
     outcome = ValidatorOutcome.FAILED if findings else ValidatorOutcome.PASSED
