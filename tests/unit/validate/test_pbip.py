@@ -16,8 +16,8 @@ def test_writes_pbip_pointer(tmp_path: Path):
     assert data["settings"]["enableAutoRecovery"] is True
 
 
-def test_pbip_artifacts_includes_both_report_and_dataset(tmp_path: Path):
-    """Both report and dataset artifacts are required for PBI Desktop to open the project."""
+def test_pbip_artifacts_includes_report_only(tmp_path: Path):
+    """The .pbip schema only allows 'report' artifact entries; the SM is referenced via definition.pbir."""
     (tmp_path / "Report" / "definition").mkdir(parents=True)
     (tmp_path / "SemanticModel").mkdir()
 
@@ -26,11 +26,9 @@ def test_pbip_artifacts_includes_both_report_and_dataset(tmp_path: Path):
 
     artifact_types = {list(a.keys())[0] for a in data["artifacts"]}
     assert "report" in artifact_types, "artifacts must include report entry"
-    assert "dataset" in artifact_types, "artifacts must include dataset (SemanticModel) entry"
+    assert "dataset" not in artifact_types, "'dataset' is not a valid .pbip artifact key"
     report_artifact = next(a for a in data["artifacts"] if "report" in a)
-    dataset_artifact = next(a for a in data["artifacts"] if "dataset" in a)
     assert report_artifact["report"]["path"] == "Report"
-    assert dataset_artifact["dataset"]["path"] == "SemanticModel"
 
 
 def test_overwrites_existing_placeholder(tmp_path: Path):

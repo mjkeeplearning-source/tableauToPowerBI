@@ -52,4 +52,4 @@ def test_stage8_manifest_has_expected_keys(tmp_path: Path, synthetic_workbook: P
     assert payload["version"] == "1.0"
     artifact_paths = {list(a.keys())[0]: list(a.values())[0]["path"] for a in payload["artifacts"]}
     assert artifact_paths.get("report") == "Report"
-    assert artifact_paths.get("dataset") == "SemanticModel"
+    assert "dataset" not in artifact_paths, "'dataset' is not a valid .pbip artifact key"

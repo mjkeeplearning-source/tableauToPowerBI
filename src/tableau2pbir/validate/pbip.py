@@ -8,7 +8,6 @@ _PBIP_PAYLOAD = {
     "version": "1.0",
     "artifacts": [
         {"report": {"path": "Report"}},
-        {"dataset": {"path": "SemanticModel"}},
     ],
     "settings": {"enableAutoRecovery": True},
 }
