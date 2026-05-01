@@ -54,6 +54,8 @@ def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
         body = render_table(
             name=t.name, columns=[],
             measures=measures_for_table.get(t.id, []), datasource=ds,
+            physical_schema=t.physical_schema,
+            physical_table=t.physical_table,
         )
         rel = f"tables/{t.name}.tmdl"
         write_text(sm / rel, body)
@@ -62,14 +64,15 @@ def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
         measure_count += len(measures_for_table.get(t.id, []))
 
     rel_count = 0
-    for r in wb.data_model.relationships:
-        from_t = next((t.name for t in wb.data_model.tables if t.id == r.from_ref.table_id), r.from_ref.table_id)
-        to_t = next((t.name for t in wb.data_model.tables if t.id == r.to_ref.table_id), r.to_ref.table_id)
-        body = render_relationship(r, from_t, to_t)
-        rel = f"relationships/{r.id}.tmdl"
-        write_text(sm / rel, body)
-        files.append(rel)
-        rel_count += 1
+    if wb.data_model.relationships:
+        rel_blocks: list[str] = []
+        for r in wb.data_model.relationships:
+            from_t = next((t.name for t in wb.data_model.tables if t.id == r.from_ref.table_id), r.from_ref.table_id)
+            to_t = next((t.name for t in wb.data_model.tables if t.id == r.to_ref.table_id), r.to_ref.table_id)
+            rel_blocks.append(render_relationship(r, from_t, to_t))
+            rel_count += 1
+        write_text(sm / "relationships.tmdl", "\n".join(rel_blocks))
+        files.append("relationships.tmdl")
 
     param_count = 0
     constants_path = sm / "tables/_Constants.tmdl"
