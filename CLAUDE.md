@@ -21,8 +21,9 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Plan 5 is next:** Stage 8 — package the output directory, validate PBIR structure,
-launch PBI Desktop for the open-gate check, and run the acceptance rubric.
+**Plan 5 is next:**  write `docs/superpowers/plans/` for Stage 8 — package the output directory, validate PBIR structure,
+launch PBI Desktop for the open-gate check, and run the acceptance rubric.Use `superpowers:writing-plans`
+to author the plan, then execute with `superpowers:executing-plans`
 
 ## Design Spec
 
