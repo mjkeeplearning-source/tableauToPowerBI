@@ -669,7 +669,7 @@ git commit -m "feat(stage8): structural cross-reference checker for PBIR + TMDL"
 - Create: `src/tableau2pbir/validate/tmdl_schema.py`
 - Test: `tests/unit/validate/test_tmdl_schema.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_tmdl_schema.py
@@ -719,12 +719,12 @@ def test_skipped_when_semanticmodel_missing(tmp_path, monkeypatch):
     assert r.reason == "semanticmodel_missing"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/validate/test_tmdl_schema.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```python
 # src/tableau2pbir/validate/tmdl_schema.py
@@ -783,12 +783,12 @@ def run_tmdl_validity(out_dir: Path) -> ValidatorResult:
     return ValidatorResult(outcome=outcome, reason=None, log_path=log_rel)
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/validate/test_tmdl_schema.py -v`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/tmdl_schema.py tests/unit/validate/test_tmdl_schema.py
