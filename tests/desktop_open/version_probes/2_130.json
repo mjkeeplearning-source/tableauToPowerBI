@@ -1,0 +1,15 @@
+{
+  "version": "2.130",
+  "map": {
+    "Microsoft.PowerBI.Client.Core.ReportLoaded":          "ReportLoaded",
+    "ReportLoaded":                                        "ReportLoaded",
+    "Microsoft.PowerBI.Client.Core.ModelLoaded":           "ModelLoaded",
+    "ModelLoaded":                                         "ModelLoaded",
+    "Microsoft.AnalysisServices.AuthenticationNeeded":     "AuthenticationNeeded",
+    "AuthenticationNeeded":                                "AuthenticationNeeded",
+    "AuthUIDisplayed":                                     "AuthUIDisplayed",
+    "VisualError":                                         "VisualError",
+    "ModelError":                                          "ModelError",
+    "RepairPrompt":                                        "RepairPrompt"
+  }
+}
