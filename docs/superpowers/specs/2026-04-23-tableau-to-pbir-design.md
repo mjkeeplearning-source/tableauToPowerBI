@@ -115,7 +115,7 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
 
 ```
 ./out/<wb>/
-  <wb>.pbip                        # project root — references both Report and SemanticModel
+  <wb>.pbip                        # project root — lists Report artifact only; SM located via definition.pbir
   Report/
     definition.pbir                # REQUIRED: binds report to SemanticModel (datasetReference)
     definition/
@@ -158,7 +158,7 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
 
 | File | Written by | Content |
 |------|-----------|---------|
-| `<wb>.pbip` | Stage 8 `validate/pbip.py` | `{"version":"1.0","artifacts":[{"report":{"path":"Report"}},{"dataset":{"path":"SemanticModel"}}],...}` — must list BOTH artifacts |
+| `<wb>.pbip` | Stage 8 `validate/pbip.py` | `{"version":"1.0","artifacts":[{"report":{"path":"Report"}}],...}` — the schema only allows `report` entries; the SemanticModel is located via `Report/definition.pbir` `datasetReference`, not via a second artifact entry (`"dataset"` is not a valid artifact key and causes a schema validation failure) |
 | `Report/definition.pbir` | Stage 8 `validate/pbip.py` | `{"version":"4.0","datasetReference":{"byPath":{"path":"../SemanticModel"},"byConnection":null}}` |
 | `Report/definition/version.json` | Stage 7 `emit/pbir/render.py` | `{"version":"1.0"}` + `$schema` — determines which report definition files Desktop loads |
 | `Report/definition/report.json` | Stage 7 `emit/pbir/render.py` | Uses schema `1.0.0` (not `2.0.0`) |
