@@ -13,7 +13,7 @@ def test_skipped_when_te2_unavailable(tmp_path: Path, monkeypatch):
 
 
 def test_passed_when_te2_returns_zero(tmp_path: Path, monkeypatch):
-    (tmp_path / "SemanticModel").mkdir()
+    (tmp_path / "SemanticModel" / "definition").mkdir(parents=True)
     monkeypatch.setenv("TE2_CLI_PATH", "C:/fake/TabularEditor.exe")
     fake_proc = MagicMock(returncode=0, stdout="OK", stderr="")
     with patch("tableau2pbir.validate.tmdl_schema.subprocess.run", return_value=fake_proc) as srun:
@@ -25,10 +25,12 @@ def test_passed_when_te2_returns_zero(tmp_path: Path, monkeypatch):
     cmd = srun.call_args[0][0]
     assert cmd[0] == "C:/fake/TabularEditor.exe"
     assert "-B" in cmd and "/c" in cmd
+    # TE2 must be pointed at the definition/ subfolder, not the root
+    assert str(tmp_path / "SemanticModel" / "definition") in cmd
 
 
 def test_failed_when_te2_returns_nonzero(tmp_path: Path, monkeypatch):
-    (tmp_path / "SemanticModel").mkdir()
+    (tmp_path / "SemanticModel" / "definition").mkdir(parents=True)
     monkeypatch.setenv("TE2_CLI_PATH", "C:/fake/TabularEditor.exe")
     fake_proc = MagicMock(returncode=1, stdout="", stderr="schema error: bad measure")
     with patch("tableau2pbir.validate.tmdl_schema.subprocess.run", return_value=fake_proc):

@@ -29,12 +29,13 @@ def run_tmdl_validity(out_dir: Path) -> ValidatorResult:
         return ValidatorResult(outcome=ValidatorOutcome.SKIPPED, reason="te2_unavailable",
                                log_path=log_rel)
 
-    sm = out_dir / "SemanticModel"
-    if not sm.is_dir():
+    sm_root = out_dir / "SemanticModel"
+    if not sm_root.is_dir():
         log_path.write_text("SemanticModel/ not found; nothing to validate.\n", encoding="utf-8")
         return ValidatorResult(outcome=ValidatorOutcome.SKIPPED, reason="semanticmodel_missing",
                                log_path=log_rel)
 
+    sm = sm_root / "definition"   # TMDL files are in definition/ per PBIR spec
     try:
         proc = subprocess.run(
             [te2, "-B", "/c", str(sm)],

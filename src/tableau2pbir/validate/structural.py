@@ -18,8 +18,8 @@ _TO_RE      = re.compile(r"toTable\s*:\s*([A-Za-z_][\w ]*)")
 def run_structural(out_dir: Path) -> StructuralResult:
     findings: list[StructuralFinding] = []
 
-    # Collect known table → fields from TMDL.
-    sm = out_dir / "SemanticModel"
+    # Collect known table → fields from TMDL (files live in SemanticModel/definition/).
+    sm = out_dir / "SemanticModel" / "definition"
     table_fields: dict[str, set[str]] = {}
     for tmdl_path in (sm / "tables").glob("*.tmdl"):
         text = tmdl_path.read_text(encoding="utf-8")
@@ -82,7 +82,7 @@ def run_structural(out_dir: Path) -> StructuralResult:
                 if m and m.group(1).strip() not in table_fields:
                     findings.append(StructuralFinding(
                         code="relationship.missing_table", severity="error",
-                        message=f"{side}Table {m.group(1).strip()!r} not in SemanticModel/tables/",
+                        message=f"{side}Table {m.group(1).strip()!r} not in SemanticModel/definition/tables/",
                         location=str(rel_path.relative_to(out_dir)),
                     ))
 

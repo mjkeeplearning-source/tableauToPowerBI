@@ -116,8 +116,25 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
 ```
 ./out/<wb>/
   <wb>.pbip                        # final artifact (open in PBI Desktop)
-  SemanticModel/                   # TMDL files
-  Report/definition/               # PBIR JSON files
+  Report/
+    definition.pbir                # required: binds report to SemanticModel (datasetReference)
+    definition/                    # PBIR JSON files
+      report.json
+      pages/
+        <page_id>/
+          page.json
+          visuals/
+            <visual_id>/
+              visual.json
+  SemanticModel/
+    definition.pbism               # required: semantic model manifest, version "4.0" (TMDL mode)
+    definition/                    # TMDL files (NOT at SemanticModel/ root)
+      database.tmdl
+      model.tmdl
+      tables/
+        <table>.tmdl
+      relationships/               # only when relationships present
+        <id>.tmdl
   stages/
     01_extract.json
     01_extract.summary.md
@@ -125,12 +142,22 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
     02_ir.summary.md
     ...
     08_package.summary.md
+  validation/                      # Stage 8 validator logs
+    tmdl.log
+    pbir_compile.log
+    structural.json
   unsupported.json                 # cumulative across all stages
   workbook-report.md               # human-readable conversion report
   acceptance.json                  # §15 rubric scores (real-workbook subset only)
 ./out/run-manifest.md              # portfolio-level summary
                                    # columns: workbook | status | trigger_reasons | link
 ```
+
+**PBIR project manifests (required by PBI Desktop):**
+- `Report/definition.pbir` — links the Report artifact to its SemanticModel via `datasetReference.byPath.path = "../SemanticModel"`. Version `"4.0"`. Written by Stage 8 (`validate/pbip.py`).
+- `SemanticModel/definition.pbism` — declares the semantic model artifact and its format. Version `"4.0"` enables TMDL mode; version `"1.0"` would require TMSL `model.bim` instead. Written by Stage 6 (`emit/tmdl/render.py`).
+
+**TMDL file location:** Per the Microsoft PBIR spec, TMDL files must reside in `SemanticModel/definition/` (not directly under `SemanticModel/`). The `definition/` folder replaces the legacy `model.bim` file.
 
 ### 4.5 Failure mode (fail-open with `--gate`)
 

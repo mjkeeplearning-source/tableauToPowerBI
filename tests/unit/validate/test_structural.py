@@ -15,7 +15,7 @@ def _scaffold(tmp_path: Path, *, pages: list[str], visuals: dict[str, list[tuple
     `relationships`: [(from_table, to_table), ...]
     """
     out = tmp_path
-    sm = out / "SemanticModel"
+    sm = out / "SemanticModel" / "definition"
     (sm / "tables").mkdir(parents=True)
     for tname, fields in tables.items():
         body = "\n".join([f"table {tname}"] + [f"\tmeasure {f} = 1" for f in fields])

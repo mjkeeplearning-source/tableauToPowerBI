@@ -31,9 +31,20 @@ def test_render_writes_files(tmp_path: Path):
     wb = _wb_with_one_table_and_one_measure()
     manifest = render_semantic_model(wb, tmp_path)
     sm = tmp_path / "SemanticModel"
-    assert (sm / "database.tmdl").is_file()
-    assert (sm / "model.tmdl").is_file()
-    assert (sm / "tables" / "Sales.tmdl").is_file()
+    defn = sm / "definition"
+    assert (sm / "definition.pbism").is_file(), "definition.pbism missing"
+    assert (defn / "database.tmdl").is_file()
+    assert (defn / "model.tmdl").is_file()
+    assert (defn / "tables" / "Sales.tmdl").is_file()
     assert "tables/Sales.tmdl" in manifest["files"]
     assert manifest["counts"]["tables"] == 1
     assert manifest["counts"]["measures"] == 1
+
+
+def test_definition_pbism_has_version_4(tmp_path: Path):
+    import json
+    wb = _wb_with_one_table_and_one_measure()
+    render_semantic_model(wb, tmp_path)
+    data = json.loads((tmp_path / "SemanticModel" / "definition.pbism").read_text(encoding="utf-8"))
+    assert data["version"] == "4.0"
+    assert "$schema" in data

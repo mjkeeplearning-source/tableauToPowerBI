@@ -21,7 +21,7 @@ def _scaffold_s08(out: Path) -> None:
     (out / "Report" / "definition" / "pages").mkdir(parents=True)
     (out / "Report" / "definition" / "report.json").write_text(
         json.dumps({"name": "wb", "pageOrder": []}), encoding="utf-8")
-    (out / "SemanticModel" / "tables").mkdir(parents=True)
+    (out / "SemanticModel" / "definition" / "tables").mkdir(parents=True)
     stages = out / "stages"
     stages.mkdir()
     (stages / "02_canonicalize.json").write_text(json.dumps({

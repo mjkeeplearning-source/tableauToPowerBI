@@ -14,7 +14,7 @@ def _scaffold_prior_outputs(out: Path, *, workbook_id: str = "wb"):
         json.dumps({"name": "p1"}), encoding="utf-8")
     (out / "Report" / "definition" / "pages" / "p1" / "visuals" / "v1" / "visual.json").write_text(
         json.dumps({"name": "v1", "fieldRefs": []}), encoding="utf-8")
-    (out / "SemanticModel" / "tables").mkdir(parents=True)
+    (out / "SemanticModel" / "definition" / "tables").mkdir(parents=True)
 
     stages = out / "stages"
     stages.mkdir()

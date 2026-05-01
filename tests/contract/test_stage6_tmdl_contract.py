@@ -32,15 +32,17 @@ def test_stage6_emits_well_formed_tmdl(
 
     wb_name = fixture
     sm = out / wb_name / "SemanticModel"
-    assert (sm / "database.tmdl").is_file(), "database.tmdl missing"
-    assert (sm / "model.tmdl").is_file(), "model.tmdl missing"
+    defn = sm / "definition"
+    assert (sm / "definition.pbism").is_file(), "definition.pbism missing"
+    assert (defn / "database.tmdl").is_file(), "database.tmdl missing"
+    assert (defn / "model.tmdl").is_file(), "model.tmdl missing"
 
-    for path in (sm / "tables").glob("*.tmdl"):
+    for path in (defn / "tables").glob("*.tmdl"):
         raw = path.read_bytes()
         assert b"\r\n" not in raw, f"{path.name} has CRLF line endings"
         decoded = raw.decode("utf-8")
         assert decoded.startswith("table "), f"{path.name} missing 'table ' header"
 
-    for path in (sm / "relationships").glob("*.tmdl"):
+    for path in (defn / "relationships").glob("*.tmdl"):
         decoded = path.read_text(encoding="utf-8")
         assert decoded.startswith("relationship "), f"{path.name} missing 'relationship ' header"

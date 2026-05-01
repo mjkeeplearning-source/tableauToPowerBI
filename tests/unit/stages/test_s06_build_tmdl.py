@@ -32,8 +32,9 @@ def test_stage6_writes_files_and_returns_manifest(tmp_path: Path):
     ctx = StageContext(workbook_id="wb", output_dir=tmp_path, config={}, stage_number=6)
     result = s06_build_tmdl.run(_wb(), ctx)
     sm = tmp_path / "SemanticModel"
-    assert (sm / "database.tmdl").is_file()
-    assert (sm / "tables" / "Sales.tmdl").is_file()
+    assert (sm / "definition.pbism").is_file()
+    assert (sm / "definition" / "database.tmdl").is_file()
+    assert (sm / "definition" / "tables" / "Sales.tmdl").is_file()
     assert "Stage 6" in result.summary_md
     # Stage 6 passes the Workbook IR through so Stage 7 can consume it.
     assert "data_model" in result.output

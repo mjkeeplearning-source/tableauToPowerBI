@@ -13,9 +13,23 @@ from tableau2pbir.ir.calculation import CalculationScope
 from tableau2pbir.ir.workbook import Workbook
 
 
+_DEFINITION_PBISM = {
+    "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definitionProperties/1.0.0/schema.json",
+    "version": "4.0",
+}
+
+
 def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
-    sm = out_dir / "SemanticModel"
+    import json as _json
+    sm_root = out_dir / "SemanticModel"
+    sm = sm_root / "definition"   # TMDL files live here per PBIR spec
     files: list[str] = []
+
+    # Write the semantic model manifest — required for PBI Desktop to open the project.
+    sm_root.mkdir(parents=True, exist_ok=True)
+    (sm_root / "definition.pbism").write_text(
+        _json.dumps(_DEFINITION_PBISM, indent=2), encoding="utf-8"
+    )
 
     db_name = Path(wb.source_path).stem or "Workbook"
     write_text(sm / "database.tmdl", render_database(name=db_name))

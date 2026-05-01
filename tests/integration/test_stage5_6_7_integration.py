@@ -50,8 +50,9 @@ def test_full_v1_pipeline_semantic_model_artifacts(
     assert result.returncode == 0, result.stderr
 
     sm = out / fixture / "SemanticModel"
-    assert (sm / "database.tmdl").is_file(), "database.tmdl missing"
-    assert (sm / "model.tmdl").is_file(), "model.tmdl missing"
+    assert (sm / "definition.pbism").is_file(), "definition.pbism missing"
+    assert (sm / "definition" / "database.tmdl").is_file(), "database.tmdl missing"
+    assert (sm / "definition" / "model.tmdl").is_file(), "model.tmdl missing"
 
 
 @pytest.mark.integration
