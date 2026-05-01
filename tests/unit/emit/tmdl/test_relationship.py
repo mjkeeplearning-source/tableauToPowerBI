@@ -14,13 +14,15 @@ def _rel(cardinality="many_to_one", cross_filter="single"):
     )
 
 
-def test_relationship_tmdl_uses_separate_from_to_table_lines():
+def test_relationship_tmdl_uses_dot_notation_for_standalone_file():
+    # Standalone relationships/*.tmdl uses Table.Column dot notation —
+    # fromTable:/toTable: are only valid when inline in model.tmdl.
     out = render_relationship(_rel(), from_table_name="orders", to_table_name="returns")
     assert "relationship r1" in out
-    assert "\tfromTable: orders" in out
-    assert "\tfromColumn: order_id" in out
-    assert "\ttoTable: returns" in out
-    assert "\ttoColumn: order_id" in out
+    assert "\tfromColumn: orders.order_id" in out
+    assert "\ttoColumn: returns.order_id" in out
+    assert "fromTable:" not in out
+    assert "toTable:" not in out
 
 
 def test_many_to_one_single_filter_cardinality_and_direction():

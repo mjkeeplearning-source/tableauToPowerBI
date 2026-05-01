@@ -18,10 +18,8 @@ def render_relationship(rel: Relationship, from_table_name: str, to_table_name: 
     cf = "bothDirections" if rel.cross_filter == "both" else "oneDirection"
     return (
         f"relationship {tmdl_ident(rel.id)}\n"
-        f"\tfromTable: {from_table_name}\n"
-        f"\tfromColumn: {rel.from_ref.column_id}\n"
-        f"\ttoTable: {to_table_name}\n"
-        f"\ttoColumn: {rel.to_ref.column_id}\n"
+        f"\tfromColumn: {from_table_name}.{rel.from_ref.column_id}\n"
+        f"\ttoColumn: {to_table_name}.{rel.to_ref.column_id}\n"
         f"\tfromCardinality: {fr}\n"
         f"\ttoCardinality: {to}\n"
         f"\tcrossFilteringBehavior: {cf}\n"
