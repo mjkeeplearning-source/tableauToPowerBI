@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from tableau2pbir.extract.datasources import extract_datasources
+from tableau2pbir.extract.datasources import extract_datasources, extract_object_graph_relationships
 from tableau2pbir.util.xml import parse_workbook_xml
 
 
@@ -91,9 +91,97 @@ def test_hyper_extract_preserves_upstream_connection():
     assert upstream["connection"]["server"] == "sql1"
 
 
+_XML_FEDERATED_JOIN = b"""<?xml version='1.0'?>
+<workbook>
+  <datasources>
+    <datasource name='federated.abc'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection name='pg.xyz' caption='srv'>
+            <connection class='postgres' server='srv' dbname='db'/>
+          </named-connection>
+        </named-connections>
+        <relation type='collection'>
+          <relation type='table' connection='pg.xyz' name='orders' table='[public].[orders]'/>
+          <relation type='table' connection='pg.xyz' name='returns' table='[public].[returns]'/>
+        </relation>
+        <cols>
+          <map key='[category]' value='[orders].[category]'/>
+          <map key='[returned]' value='[returns].[returned]'/>
+        </cols>
+      </connection>
+      <column datatype='string' name='[category]' role='dimension' type='nominal'/>
+      <column datatype='string' name='[returned]' role='dimension' type='nominal'/>
+    </datasource>
+  </datasources>
+</workbook>
+"""
+
+
+def test_federated_join_extracts_relations_and_col_map():
+    root = parse_workbook_xml(_XML_FEDERATED_JOIN)
+    ds = extract_datasources(root)[0]
+    assert "relations" in ds
+    assert len(ds["relations"]) == 2
+    orders_rel = next(r for r in ds["relations"] if r["name"] == "orders")
+    returns_rel = next(r for r in ds["relations"] if r["name"] == "returns")
+    assert orders_rel["table"] == "[public].[orders]"
+    assert orders_rel["connection"] == "pg.xyz"
+    assert returns_rel["table"] == "[public].[returns]"
+    assert "col_map" in ds
+    assert ds["col_map"]["category"] == ("orders", "category")
+    assert ds["col_map"]["returned"] == ("returns", "returned")
+
+
 def test_empty_workbook_returns_empty_list():
     root = parse_workbook_xml(b"<workbook><datasources/></workbook>")
     assert extract_datasources(root) == []
+
+
+_XML_WITH_OBJECT_GRAPH = b"""<?xml version='1.0'?>
+<workbook>
+  <datasources>
+    <datasource name='federated.abc'>
+      <connection class='federated'>
+        <relation type='collection'>
+          <relation type='table' name='orders' table='[public].[orders]'/>
+          <relation type='table' name='returns' table='[public].[returns]'/>
+        </relation>
+        <cols>
+          <map key='[order_id]' value='[orders].[order_id]'/>
+          <map key='[order_id (returns)]' value='[returns].[order_id]'/>
+        </cols>
+      </connection>
+    </datasource>
+  </datasources>
+  <object-graph>
+    <relationships>
+      <relationship>
+        <expression op="=">
+          <expression op="[order_id]"/>
+          <expression op="[order_id (returns)]"/>
+        </expression>
+        <first-end-point object-id="orders_OBJ123"/>
+        <second-end-point object-id="returns_OBJ456"/>
+      </relationship>
+    </relationships>
+  </object-graph>
+</workbook>
+"""
+
+
+def test_object_graph_relationships_extracts_join_columns():
+    root = parse_workbook_xml(_XML_WITH_OBJECT_GRAPH)
+    rels = extract_object_graph_relationships(root)
+    assert len(rels) == 1
+    r = rels[0]
+    assert r["left_col"] == "order_id"
+    assert r["right_col"] == "order_id (returns)"
+
+
+def test_object_graph_relationships_empty_when_no_object_graph():
+    root = parse_workbook_xml(b"<workbook><datasources/></workbook>")
+    assert extract_object_graph_relationships(root) == []
 
 
 def test_parameters_datasource_skipped_here():

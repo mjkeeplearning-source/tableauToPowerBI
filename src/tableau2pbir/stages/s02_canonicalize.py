@@ -11,7 +11,7 @@ from tableau2pbir.ir.version import IR_SCHEMA_VERSION
 from tableau2pbir.ir.workbook import DataModel, Workbook
 from tableau2pbir.pipeline import StageContext, StageResult
 from tableau2pbir.stages._build_data_model import (
-    build_calculations, build_datasources, build_parameters, build_tables,
+    build_calculations, build_datasources, build_parameters, build_relationships, build_tables,
 )
 from tableau2pbir.stages._build_dashboards import build_actions, build_dashboards
 from tableau2pbir.stages._calc_graph import detect_cycles
@@ -95,6 +95,11 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     """Orchestrator. Each sub-builder is pure and side-effect-free."""
     datasources, ds_unsupported = build_datasources(input_json.get("datasources", []))
     tables, _columns = build_tables(input_json.get("datasources", []))
+    relationships = build_relationships(
+        input_json.get("relationships", []),
+        input_json.get("datasources", []),
+        tables,
+    )
     calculations = build_calculations(input_json.get("datasources", []))
     usage = _parameter_usage(input_json)
     parameters = build_parameters(input_json.get("parameters", []), usage)
@@ -145,6 +150,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     # Columns live inside tables via column_ids; IR DataModel tracks tables only.
     data_model = DataModel(
         datasources=datasources, tables=tables,
+        relationships=relationships,
         calculations=calculations, parameters=parameters,
     )
 

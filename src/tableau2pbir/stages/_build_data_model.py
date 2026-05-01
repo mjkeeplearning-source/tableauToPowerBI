@@ -15,12 +15,18 @@ from tableau2pbir.ir.calculation import (
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
 from tableau2pbir.ir.parameter import Parameter, ParameterExposure, ParameterIntent
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
-from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Table
+from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Relationship, RelationshipSource, Table
 from tableau2pbir.util.ids import stable_id
 
 
 def _connection_params(raw_ds: dict[str, Any]) -> dict[str, str]:
     conn = raw_ds.get("connection") or {}
+    # For federated datasources the top-level connection has no real params;
+    # use the first named-connection's connection instead.
+    if conn.get("class") == "federated":
+        named = raw_ds.get("named_connections") or []
+        if named and named[0].get("connection"):
+            conn = named[0]["connection"]
     params: dict[str, str] = {}
     for key in ("server", "dbname", "database", "warehouse", "filename",
                 "directory", "host", "port", "schema", "http_path",
@@ -86,52 +92,142 @@ def _column_role(raw_role: str) -> ColumnRole:
     return ColumnRole.MEASURE if raw_role == "measure" else ColumnRole.DIMENSION
 
 
+def _parse_physical(table_attr: str) -> tuple[str, str]:
+    """Parse '[schema].[table]' → (schema, table). Falls back to ('', name) for bare names."""
+    parts = [p.strip("[]") for p in table_attr.split("].") if p]
+    if len(parts) == 2:
+        return parts[0], parts[1]
+    return "", parts[0] if parts else table_attr
+
+
+def _build_column(col: dict[str, Any], col_id: str,
+                  calc_by_host: dict[str, Any]) -> Column:
+    calc = calc_by_host.get(col["name"])
+    if calc is not None:
+        return Column(
+            id=col_id, name=col["name"],
+            datatype=col["datatype"], role=_column_role(col["role"]),
+            kind=ColumnKind.CALCULATED,
+            tableau_expr=calc["tableau_expr"],
+            dax_expr=None,
+        )
+    return Column(
+        id=col_id, name=col["name"],
+        datatype=col["datatype"], role=_column_role(col["role"]),
+        kind=ColumnKind.RAW,
+    )
+
+
 def build_tables(
     raw_datasources: list[dict[str, Any]],
 ) -> tuple[tuple[Table, ...], tuple[Column, ...]]:
-    """Emit one IR Table per datasource with all its columns.
+    """Emit IR Tables with their columns.
 
-    Calculated columns are recognized here: when a raw column's name matches
-    a calculation's `host_column_name`, its kind becomes CALCULATED and the
-    `tableau_expr` is carried through. DAX translation happens in Plan 3."""
+    For plain datasources: one Table per datasource.
+    For federated joins (raw["relations"] non-empty): one Table per relation,
+    with columns assigned to tables via col_map.  Columns not in col_map go to
+    the first (primary) relation table."""
     tables: list[Table] = []
     columns: list[Column] = []
 
     for raw in raw_datasources:
         ds_id = stable_id("ds", raw["name"])
-        table_id = stable_id("tbl", raw["name"])
         calc_by_host = {c["host_column_name"]: c for c in raw.get("calculations", [])}
-        col_ids: list[str] = []
+        relations = raw.get("relations") or []
+        col_map: dict[str, tuple[str, str]] = raw.get("col_map") or {}
 
-        for col in raw.get("columns", []):
-            col_id = f"{table_id}__{stable_id('col', col['name'])}"
-            calc = calc_by_host.get(col["name"])
-            if calc is not None:
-                column = Column(
-                    id=col_id, name=col["name"],
-                    datatype=col["datatype"], role=_column_role(col["role"]),
-                    kind=ColumnKind.CALCULATED,
-                    tableau_expr=calc["tableau_expr"],
-                    dax_expr=None,
-                )
-            else:
-                column = Column(
-                    id=col_id, name=col["name"],
-                    datatype=col["datatype"], role=_column_role(col["role"]),
-                    kind=ColumnKind.RAW,
-                )
-            columns.append(column)
-            col_ids.append(col_id)
+        if relations:
+            # Federated join: emit one Table per physical relation.
+            # Build column lists keyed by relation name, then assign remainder to primary.
+            primary_rel_name = relations[0]["name"]
+            cols_by_table: dict[str, list[str]] = {r["name"]: [] for r in relations}
+            for col in raw.get("columns", []):
+                # Use a shared prefix derived from ds name so col IDs stay stable.
+                col_prefix = stable_id("tbl", raw["name"])
+                col_id = f"{col_prefix}__{stable_id('col', col['name'])}"
+                owner_table = col_map.get(col["name"], (primary_rel_name, col["name"]))[0]
+                if owner_table not in cols_by_table:
+                    owner_table = primary_rel_name
+                cols_by_table[owner_table].append(col_id)
+                columns.append(_build_column(col, col_id, calc_by_host))
 
-        tables.append(Table(
-            id=table_id,
-            name=raw["name"],
-            datasource_id=ds_id,
-            column_ids=tuple(col_ids),
-            primary_key=None,
-        ))
+            for rel in relations:
+                schema, phys_table = _parse_physical(rel["table"])
+                table_id = stable_id("tbl", rel["name"])
+                tables.append(Table(
+                    id=table_id,
+                    name=rel["name"],
+                    datasource_id=ds_id,
+                    column_ids=tuple(cols_by_table[rel["name"]]),
+                    physical_schema=schema or None,
+                    physical_table=phys_table or None,
+                ))
+        else:
+            # Plain datasource: one Table.
+            table_id = stable_id("tbl", raw["name"])
+            col_ids: list[str] = []
+            for col in raw.get("columns", []):
+                col_id = f"{table_id}__{stable_id('col', col['name'])}"
+                col_ids.append(col_id)
+                columns.append(_build_column(col, col_id, calc_by_host))
+            tables.append(Table(
+                id=table_id,
+                name=raw["name"],
+                datasource_id=ds_id,
+                column_ids=tuple(col_ids),
+            ))
 
     return tuple(tables), tuple(columns)
+
+
+def build_relationships(
+    raw_rels: list[dict[str, Any]],
+    raw_datasources: list[dict[str, Any]],
+    tables: tuple[Table, ...],
+) -> tuple[Relationship, ...]:
+    """Build Relationship IR from raw Stage-1 join predicates.
+
+    Resolves logical column names to physical (table, column) via the merged
+    col_map from all datasources, then matches table names to IR Table IDs.
+    """
+    if not raw_rels:
+        return ()
+
+    merged_col_map: dict[str, tuple[str, str]] = {}
+    for raw_ds in raw_datasources:
+        merged_col_map.update(raw_ds.get("col_map") or {})
+
+    table_by_name: dict[str, Table] = {t.name: t for t in tables}
+
+    out: list[Relationship] = []
+    for raw in raw_rels:
+        left_col = raw.get("left_col", "")
+        right_col = raw.get("right_col", "")
+
+        left_resolved = merged_col_map.get(left_col)
+        right_resolved = merged_col_map.get(right_col)
+        if not left_resolved or not right_resolved:
+            continue
+
+        left_table_name, left_phys_col = left_resolved
+        right_table_name, right_phys_col = right_resolved
+
+        left_table = table_by_name.get(left_table_name)
+        right_table = table_by_name.get(right_table_name)
+        if not left_table or not right_table:
+            continue
+
+        rel_id = stable_id("rel", f"{left_table_name}__{right_table_name}")
+        out.append(Relationship(
+            id=rel_id,
+            from_ref=FieldRef(table_id=left_table.id, column_id=left_phys_col),
+            to_ref=FieldRef(table_id=right_table.id, column_id=right_phys_col),
+            cardinality="many_to_one",
+            cross_filter="single",
+            source=RelationshipSource.TABLEAU_JOIN,
+        ))
+
+    return tuple(out)
 
 
 _LOD_HEADER = re.compile(

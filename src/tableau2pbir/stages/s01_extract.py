@@ -10,7 +10,7 @@ from typing import Any
 
 from tableau2pbir.extract.actions import extract_actions
 from tableau2pbir.extract.dashboards import extract_dashboards
-from tableau2pbir.extract.datasources import extract_datasources
+from tableau2pbir.extract.datasources import extract_datasources, extract_object_graph_relationships
 from tableau2pbir.extract.parameters import extract_parameters
 from tableau2pbir.extract.tier_c_detect import detect_tier_c
 from tableau2pbir.extract.worksheets import extract_worksheets
@@ -42,6 +42,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     root = parse_workbook_xml(wb.xml_bytes)
 
     datasources = extract_datasources(root)
+    relationships = extract_object_graph_relationships(root)
     parameters = extract_parameters(root)
     worksheets = extract_worksheets(root)
     dashboards = extract_dashboards(root)
@@ -53,6 +54,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         "source_hash": wb.source_hash,
         "tableau_version": _tableau_version(root),
         "datasources": datasources,
+        "relationships": relationships,
         "parameters": parameters,
         "worksheets": worksheets,
         "dashboards": dashboards,

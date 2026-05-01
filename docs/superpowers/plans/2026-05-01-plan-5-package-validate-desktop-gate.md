@@ -53,6 +53,19 @@
 - `--with-visual-tests` opt-in flag.
 - `tableau2pbir resume <out> --from package_validate` end-to-end re-run path beyond what the pipeline runner already provides (no new behavior required).
 
+**Pre-Plan-5 bug fixes applied (2026-05-01) — backported to Plans 2 + 4:**
+
+The following bugs were discovered while opening `simple_join` in PBI Desktop and were fixed before Plan 5 tasks begin. All unit + E2E tests remain green.
+
+| Bug | Root cause | Fix location |
+|-----|-----------|--------------|
+| TMDL parse error — `Indentation` on `expression:` line | `render_measure()` indented `expression:` at 1 tab (same level as `measure` keyword); TMDL requires 2 tabs (child property) | `emit/tmdl/measure.py:14` — `indent(..., "\t\t")` |
+| Table named `federated.17kv7r…` instead of physical name | Stage 1 never extracted `<relation type='table'>` elements; Stage 2 used the Tableau internal federated ID as the table name | `extract/datasources.py` — added `_relations()` + `_col_map()` helpers |
+| M expression `PostgreSQL.Database("", "")` — empty server/dbname | `_connection_params()` read the outer `<connection class='federated'>` stub which has no params, not `named_connections[0]` | `stages/_build_data_model.py:_connection_params()` — fall-through to `named_connections[0]` for federated |
+| One TMDL table per federated datasource instead of one per physical relation | `build_tables()` always emitted one table per raw datasource dict | `stages/_build_data_model.py:build_tables()` — federated path emits one `Table` per relation with `physical_schema` / `physical_table` fields; `ir/model.py` adds those fields to `Table` |
+| M `Navigation` used bare `Item=<table_name>` for schema-qualified PostgreSQL tables | `render_m_expression()` had no schema-navigation path | `emit/tmdl/m_expression.py` + `emit/tmdl/table.py` + `emit/tmdl/render.py` — `Source{[Schema=..., Item=...]}[Data]` when physical fields are set |
+| Tables not joined in PBI Desktop — relationship missing from semantic model | (1) Stage 1 never read `<object-graph><relationships>` (the only place Tableau stores join predicates — not inside `<connection>`); (2) Stage 2 never called `build_relationships()`; (3) `render_relationship()` used invalid TMDL `fromColumn: table.col` concatenation instead of separate `fromTable:` / `fromColumn:` / `toTable:` / `toColumn:` lines | `extract/datasources.py` — added `extract_object_graph_relationships()`; `stages/_build_data_model.py` — added `build_relationships()`; `stages/s01_extract.py` + `stages/s02_canonicalize.py` — wired both; `emit/tmdl/relationship.py` — fixed TMDL format |
+
 **Output additions to `./out/<wb>/`:**
 
 ```
@@ -803,7 +816,7 @@ git commit -m "feat(stage8): TMDL validity via TabularEditor 2 CLI (skip when un
 - Create: `src/tableau2pbir/validate/pbir_compile.py`
 - Test: `tests/unit/validate/test_pbir_compile.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_pbir_compile.py
@@ -839,12 +852,12 @@ def test_failed_on_nonzero_exit(tmp_path, monkeypatch):
     assert r.outcome == ValidatorOutcome.FAILED
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `pytest tests/unit/validate/test_pbir_compile.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/validate/pbir_compile.py
@@ -897,12 +910,12 @@ def run_pbir_compile(out_dir: Path) -> ValidatorResult:
     return ValidatorResult(outcome=outcome, reason=None, log_path=log_rel)
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_pbir_compile.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/pbir_compile.py tests/unit/validate/test_pbir_compile.py
@@ -921,7 +934,7 @@ git commit -m "feat(stage8): PBIR compile via pbi-tools (skip when unavailable)"
 
 The trace parser reads PBI Desktop trace files and maps version-specific event names to a canonical set: `{ReportLoaded, ModelLoaded, RepairPrompt, ModelError, VisualError, AuthenticationNeeded, AuthUIDisplayed}`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_trace_events.py
@@ -960,12 +973,12 @@ def test_load_version_map_unknown_version_returns_default(tmp_path):
     assert "ReportLoaded" in m.values()
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/validate/test_trace_events.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `tests/desktop_open/version_probes/README.md`:
 
@@ -1059,12 +1072,12 @@ def parse_trace_file(path: Path, *, version_map: dict[str, str]) -> tuple[TraceE
     return tuple(events)
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_trace_events.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/trace_events.py tests/desktop_open/version_probes/ tests/unit/validate/test_trace_events.py
@@ -1088,7 +1101,7 @@ Pass criteria per workbook tier (spec §6 Stage 8 step 5):
 | Any Tier 4 | (already forced `failed` by §8.1, gate not run) | n/a | n/a |
 | Tier 3 | follows Tier 1 or Tier 2 per `user_action_required` (driver install → Tier 1; OAuth → Tier 2) | per fall-through | n/a |
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_desktop_open.py
@@ -1193,12 +1206,12 @@ def test_tier1_fails_when_visual_error_present(tmp_path, monkeypatch):
     assert r.outcome == ValidatorOutcome.FAILED
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/validate/test_desktop_open.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/validate/desktop_open.py
@@ -1286,12 +1299,12 @@ def run_desktop_open(pbip_path: Path, *, datasource_tiers: tuple[int, ...],
             pass
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_desktop_open.py -v`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/desktop_open.py tests/unit/validate/test_desktop_open.py
@@ -1316,7 +1329,7 @@ The rubric YAML schema follows spec §15. Stage 8 evaluates:
 - `desktop_open_gate` — value comes from the Desktop-open result (`PASSED` → `passed`).
 - `all_measure_values_within_tolerance` — **skipped** in Plan 5 (reason `dax_probe_runner_unavailable`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_rubric.py
@@ -1441,12 +1454,12 @@ def test_write_acceptance_json_emits_per_item(tmp_path):
     }
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/validate/test_rubric.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `tests/golden/real/Superstore.rubric.yaml`:
 
@@ -1633,12 +1646,12 @@ def write_acceptance_json(path: Path, result: RubricResult) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_rubric.py -v`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/rubric.py tests/unit/validate/test_rubric.py tests/golden/real/Superstore.rubric.yaml
@@ -1663,7 +1676,7 @@ The status rule reads:
 
 Returns `(status: 'ok'|'partial'|'failed', triggers: list[str])`. Top-to-bottom rule.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_status.py
@@ -1769,12 +1782,12 @@ def test_failed_dominates_partial_signals():
     assert s == "failed"
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/validate/test_status.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/validate/status.py
@@ -1861,12 +1874,12 @@ def compute_status(obs: ObservationBundle) -> tuple[str, list[str]]:
     return ("ok", [])
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_status.py -v`
 Expected: PASS (11 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/status.py tests/unit/validate/test_status.py
@@ -1881,7 +1894,7 @@ git commit -m "feat(stage8): workbook status rule (spec §8.1) with explicit tri
 - Create: `src/tableau2pbir/validate/report.py`
 - Test: `tests/unit/validate/test_report.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_report.py
@@ -1936,12 +1949,12 @@ def test_run_manifest_row_columns():
     assert "Foo/workbook-report.md" in row
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/validate/test_report.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```python
 # src/tableau2pbir/validate/report.py
@@ -2003,12 +2016,12 @@ def render_run_manifest_row(workbook_id: str, status: str,
     return f"| {workbook_id} | {status} | {','.join(triggers) or '—'} | {link} |"
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/validate/test_report.py -v`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/report.py tests/unit/validate/test_report.py
@@ -2037,7 +2050,7 @@ The orchestrator:
 
 Real-workbook detection: a `<wb>.rubric.yaml` file in `tests/golden/real/` adjacent to the source path triggers rubric + Desktop-open. Synthetic workbooks skip both.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/stages/test_s08_package_validate.py
@@ -2137,12 +2150,12 @@ def test_orchestrator_skips_rubric_for_synthetic_workbook(tmp_path):
     assert result.output["validators"]["desktop_open"]["result"] == "skipped"
 ```
 
-- [ ] **Step 2: Verify failure**
+- [x] **Step 2: Verify failure**
 
 Run: `pytest tests/unit/stages/test_s08_package_validate.py -v`
 Expected: FAIL — current stub has no orchestrator behavior.
 
-- [ ] **Step 3: Implement orchestrator (full file replacement)**
+- [x] **Step 3: Implement orchestrator (full file replacement)**
 
 ```python
 # src/tableau2pbir/stages/s08_package_validate.py
@@ -2351,14 +2364,14 @@ def _build_observation(ir: dict, s07: dict, desktop_outcome: str) -> dict:
     }
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `pytest tests/unit/stages/test_s08_package_validate.py -v`
 Expected: PASS (3 tests).
 
 Also run: `pytest -q` — full suite must stay green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s08_package_validate.py tests/unit/stages/test_s08_package_validate.py
@@ -2372,7 +2385,7 @@ git commit -m "feat(stage8): replace stub with package+validate orchestrator"
 **Files:**
 - Create: `tests/contract/test_stage8_package_contract.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/contract/test_stage8_package_contract.py
@@ -2431,14 +2444,14 @@ def test_stage8_manifest_has_expected_keys(tmp_path: Path, synthetic_workbook: P
     assert payload["artifacts"][0]["report"]["path"] == "Report"
 ```
 
-- [ ] **Step 2: Run test to verify it passes**
+- [x] **Step 2: Run test to verify it passes**
 
 The orchestrator from Task 11 already produces this manifest, so this test should pass on first run (it is a contract guard, not a feature driver).
 
 Run: `pytest tests/contract/test_stage8_package_contract.py -v`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/contract/test_stage8_package_contract.py

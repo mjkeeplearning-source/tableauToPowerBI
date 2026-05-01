@@ -53,6 +53,46 @@ def _extract_block(conn: etree._Element) -> dict[str, Any] | None:
     return {"connection": _connection_to_dict(inner)}
 
 
+def _parse_bracket_pair(val: str) -> tuple[str, str]:
+    """Parse '[schema].[table]' or '[table]' → (schema, table) or ('', table)."""
+    parts = [p.strip("[]") for p in val.split("].") if p]
+    if len(parts) == 2:
+        return parts[0], parts[1]
+    return "", parts[0] if parts else val
+
+
+def _relations(conn: etree._Element) -> list[dict[str, Any]]:
+    """Extract <relation type='table'> children from a <relation type='collection'>."""
+    coll = conn.find("relation[@type='collection']")
+    if coll is None:
+        return []
+    out: list[dict[str, Any]] = []
+    for rel in coll.findall("relation[@type='table']"):
+        out.append({
+            "name": attr(rel, "name"),
+            "table": attr(rel, "table", default=""),
+            "connection": optional_attr(rel, "connection") or "",
+        })
+    return out
+
+
+def _col_map(conn: etree._Element) -> dict[str, tuple[str, str]]:
+    """Extract <cols><map> elements → {col_name: (table_name, physical_col_name)}.
+
+    Map key is like '[category]', value is like '[orders].[category]'.
+    """
+    out: dict[str, tuple[str, str]] = {}
+    for m in conn.findall("cols/map"):
+        key = optional_attr(m, "key") or ""
+        val = optional_attr(m, "value") or ""
+        col_name = key.strip("[]")
+        if not col_name or not val:
+            continue
+        table_name, physical_col = _parse_bracket_pair(val)
+        out[col_name] = (table_name, physical_col)
+    return out
+
+
 def _named_connections(conn: etree._Element) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for nc in conn.findall("named-connections/named-connection"):
@@ -87,6 +127,29 @@ def _columns_and_calculations(
     return cols, calcs
 
 
+def extract_object_graph_relationships(root: etree._Element) -> list[dict[str, Any]]:
+    """Extract <object-graph><relationships> — Tableau join predicates.
+
+    Returns list of {"left_col": str, "right_col": str} dicts whose column
+    names can be resolved to physical (table, column) pairs via the datasource
+    col_map in Stage 2.
+    """
+    out: list[dict[str, Any]] = []
+    for og in root.iter("object-graph"):
+        for rel in og.findall("relationships/relationship"):
+            expr = rel.find("expression[@op='=']")
+            if expr is None:
+                continue
+            children = expr.findall("expression")
+            if len(children) != 2:
+                continue
+            left_col = children[0].get("op", "").strip("[]")
+            right_col = children[1].get("op", "").strip("[]")
+            if left_col and right_col:
+                out.append({"left_col": left_col, "right_col": right_col})
+    return out
+
+
 def extract_datasources(root: etree._Element) -> list[dict[str, Any]]:
     """Extract every `<datasource>` in the workbook except the reserved
     `Parameters` datasource (handled by extract/parameters.py)."""
@@ -100,10 +163,14 @@ def extract_datasources(root: etree._Element) -> list[dict[str, Any]]:
             conn_dict: dict[str, Any] = {"class": "unknown"}
             named: list[dict[str, Any]] = []
             extract: dict[str, Any] | None = None
+            rels: list[dict[str, Any]] = []
+            cmap: dict[str, tuple[str, str]] = {}
         else:
             conn_dict = _connection_to_dict(conn)
             named = _named_connections(conn)
             extract = _extract_block(conn)
+            rels = _relations(conn)
+            cmap = _col_map(conn)
         cols, calcs = _columns_and_calculations(ds)
         out.append({
             "name": name,
@@ -111,6 +178,8 @@ def extract_datasources(root: etree._Element) -> list[dict[str, Any]]:
             "connection": conn_dict,
             "named_connections": named,
             "extract": extract,
+            "relations": rels,
+            "col_map": cmap,
             "columns": cols,
             "calculations": calcs,
         })
