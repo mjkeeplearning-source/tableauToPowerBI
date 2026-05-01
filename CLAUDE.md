@@ -12,7 +12,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 2 | Stage 1 & 2 — Extract + Canonicalize → IR | ✅ DONE | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
 | 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | ✅ DONE | `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md` |
 | 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | ✅ DONE | `docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md` |
-| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔲 NEXT | TBD |
+| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 📝 PLANNED | `docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -21,9 +21,12 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Plan 5 is next:**  write `docs/superpowers/plans/` for Stage 8 — package the output directory, validate PBIR structure,
-launch PBI Desktop for the open-gate check, and run the acceptance rubric.Use `superpowers:writing-plans`
-to author the plan, then execute with `superpowers:executing-plans`
+**Plan 5 is next to execute:** the plan is authored at
+`docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` (16
+TDD tasks: `.pbip` writer, structural checker, TE2/pbi-tools wrappers,
+trace-event mapper, Desktop-open gate, rubric + `acceptance.json`, §8.1 status
+rule, reporters, orchestrator, contract + integration tests, CLI run-manifest).
+Execute inline with `superpowers:executing-plans` one task at a time.
 
 ## Design Spec
 
