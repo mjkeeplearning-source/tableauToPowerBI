@@ -11,8 +11,8 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 1 | Scaffolding & Infrastructure | ✅ DONE | `docs/superpowers/plans/2026-04-23-plan-1-scaffolding-infra.md` |
 | 2 | Stage 1 & 2 — Extract + Canonicalize → IR | ✅ DONE | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
 | 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | ✅ DONE | `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md` |
-| 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | 🔲 NEXT | `docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md` |
-| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔲 TODO | TBD |
+| 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | ✅ DONE | `docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md` |
+| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔲 NEXT | TBD |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -21,10 +21,8 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Plan 4 is next:** the plan for Stage 5 (compute layout), Stage 6 (build TMDL),
-and Stage 7 (build PBIR emission) is authored at
-`docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md`.
-Execute it task-by-task with `superpowers:executing-plans` (inline mode).
+**Plan 5 is next:** Stage 8 — package the output directory, validate PBIR structure,
+launch PBI Desktop for the open-gate check, and run the acceptance rubric.
 
 ## Design Spec
 

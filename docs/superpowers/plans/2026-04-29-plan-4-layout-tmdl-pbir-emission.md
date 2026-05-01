@@ -2984,7 +2984,7 @@ git commit -m "feat(stage7): replace stub with PBIR emission orchestrator"
 
 Plan 4 cannot run `pbi-tools compile` (Plan 5). The contract test verifies: (a) every emitted JSON is valid JSON, (b) `report.json` carries `pages.pageOrder` matching the page directories on disk, (c) every `visual.json` has `name`, `position`, `visual.visualType`, (d) `manifest['blocked_visuals']` is a list of well-formed records.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```python
 # tests/contract/test_stage7_pbir_contract.py
@@ -3023,12 +3023,12 @@ def test_stage7_emits_valid_json(synthetic_fixtures_dir: Path, tmp_path: Path,
     assert isinstance(result.output["blocked_visuals"], list)
 ```
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 Run: `pytest tests/contract/test_stage7_pbir_contract.py -v`
 Expected: PASS (or report a precise gap in the orchestrator if a fixture exposes a path the tests didn't cover — fix forward in this task before commit).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/contract/test_stage7_pbir_contract.py
@@ -3046,7 +3046,7 @@ git commit -m "test(contract): stage 7 emits valid JSON + page-order matches dis
 
 Confirms: pipeline runs through all stages, all artifacts land at the documented paths in §4.4, and `manifest['blocked_visuals']` has the expected emptiness on a clean v1 fixture.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```python
 # tests/integration/test_stage5_6_7_integration.py
@@ -3085,7 +3085,7 @@ def test_full_v1_pipeline_through_stage7(synthetic_fixtures_dir: Path, tmp_path:
     assert "pages" in report
 ```
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 Run: `pytest tests/integration/test_stage5_6_7_integration.py -v`
 Expected: PASS for all five v1 fixtures.
@@ -3097,14 +3097,14 @@ Then run the entire suite end-to-end:
 Run: `pytest tests/ -v`
 Expected: ALL GREEN. No new skips beyond pre-existing deferred fixtures.
 
-- [ ] **Step 3: Update `CLAUDE.md` to mark Plan 4 complete**
+- [x] **Step 3: Update `CLAUDE.md` to mark Plan 4 complete**
 
 Edit `CLAUDE.md`:
 - Change Plan 4 row's status from `🔲 NEXT` to `✅ DONE` and fill in the `File` column with this plan's path.
 - Change Plan 5 row's status from `🔲 TODO` to `🔲 NEXT`.
 - Update the "Plan 4 is next:" paragraph at the bottom to read "Plan 5 is next:" with a one-line description (Stage 8: package, validate, Desktop-open gate).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/integration/test_stage5_6_7_integration.py CLAUDE.md
