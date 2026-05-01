@@ -433,7 +433,7 @@ The structural check walks the on-disk PBIR + TMDL trees and asserts cross-refer
 3. Per-page visual IDs are unique (PBIR requires this).
 4. `report.json.pageOrder` matches the directory listing of `pages/`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/unit/validate/test_structural.py
@@ -548,12 +548,12 @@ def test_passes_with_no_relationships(tmp_path):
     assert r.outcome == ValidatorOutcome.PASSED
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/validate/test_structural.py -v`
 Expected: FAIL — module not found.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```python
 # src/tableau2pbir/validate/structural.py
@@ -649,12 +649,12 @@ def run_structural(out_dir: Path) -> StructuralResult:
     return StructuralResult(outcome=outcome, findings=tuple(findings))
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `pytest tests/unit/validate/test_structural.py -v`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/structural.py tests/unit/validate/test_structural.py
