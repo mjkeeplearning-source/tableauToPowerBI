@@ -1,6 +1,7 @@
 """Stage 7 orchestrator. §6 Stage 7."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from tableau2pbir.emit._io import write_text
@@ -88,6 +89,10 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
 
     write_text(rd / "report.json",
                render_report_json(report_name=Path(wb.source_path).stem, page_order=page_ids))
+    write_text(rd / "version.json", json.dumps({
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/versionMetadata/1.0.0/schema.json",
+        "version": "1.0",
+    }, indent=2))
 
     interactions: list[dict] = []
     for dash in wb.dashboards:

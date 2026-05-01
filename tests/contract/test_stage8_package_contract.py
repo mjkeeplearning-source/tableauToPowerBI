@@ -50,4 +50,6 @@ def test_stage8_manifest_has_expected_keys(tmp_path: Path, synthetic_workbook: P
     assert pbip.is_file()
     payload = json.loads(pbip.read_text(encoding="utf-8"))
     assert payload["version"] == "1.0"
-    assert payload["artifacts"][0]["report"]["path"] == "Report"
+    artifact_paths = {list(a.keys())[0]: list(a.values())[0]["path"] for a in payload["artifacts"]}
+    assert artifact_paths.get("report") == "Report"
+    assert artifact_paths.get("dataset") == "SemanticModel"

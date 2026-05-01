@@ -6,7 +6,10 @@ from pathlib import Path
 
 _PBIP_PAYLOAD = {
     "version": "1.0",
-    "artifacts": [{"report": {"path": "Report"}}],
+    "artifacts": [
+        {"report": {"path": "Report"}},
+        {"dataset": {"path": "SemanticModel"}},
+    ],
     "settings": {"enableAutoRecovery": True},
 }
 

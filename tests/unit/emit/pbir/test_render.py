@@ -46,10 +46,15 @@ def _wb_one_page_one_visual() -> Workbook:
 
 
 def test_render_writes_page_and_visual(tmp_path: Path):
+    import json as _json
     wb = _wb_one_page_one_visual()
     manifest = render_report(wb, tmp_path)
     rd = tmp_path / "Report" / "definition"
     assert (rd / "report.json").is_file()
+    assert (rd / "version.json").is_file(), "version.json required by PBI Desktop"
+    ver = _json.loads((rd / "version.json").read_text(encoding="utf-8"))
+    assert ver["version"] == "1.0"
+    assert "$schema" in ver
     pages = list((rd / "pages").iterdir())
     assert len(pages) == 1
     visuals = list((pages[0] / "visuals").iterdir())
