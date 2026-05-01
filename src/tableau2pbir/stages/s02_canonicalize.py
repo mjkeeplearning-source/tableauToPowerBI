@@ -43,6 +43,54 @@ def _parameter_usage(input_json: dict[str, Any]) -> dict[str, str]:
     return usage
 
 
+def _collect_dashboard_sheet_ids(dashboards) -> set[str]:
+    """Walk all dashboard layout trees and return every referenced sheet ID."""
+    from tableau2pbir.ir.dashboard import Container, Leaf, LeafKind
+    seen: set[str] = set()
+
+    def _walk(node):
+        if isinstance(node, Leaf):
+            if node.kind == LeafKind.SHEET:
+                seen.add(node.payload.get("sheet_id", ""))
+        elif isinstance(node, Container):
+            for child in node.children:
+                _walk(child)
+
+    for dash in dashboards:
+        _walk(dash.layout_tree)
+    return seen
+
+
+def _synthesise_standalone_sheet_dashboards(sheets, dashboards, sheet_id_for_name):
+    """Return synthetic Dashboard objects for sheets not referenced in any dashboard."""
+    from tableau2pbir.ir.dashboard import (
+        Container, ContainerKind, Dashboard, DashboardSize, Leaf, LeafKind, Position,
+    )
+    referenced = _collect_dashboard_sheet_ids(dashboards)
+    name_for_id = {v: k for k, v in sheet_id_for_name.items()}
+    synthetic = []
+    for sheet in sheets:
+        if sheet.id in referenced:
+            continue
+        leaf = Leaf(
+            kind=LeafKind.SHEET,
+            payload={"sheet_id": sheet.id},
+            position=Position(x=0, y=0, w=1280, h=720),
+        )
+        dash = Dashboard(
+            id=_sid("synth_dash", sheet.id),
+            name=name_for_id.get(sheet.id, sheet.name),
+            size=DashboardSize(w=1280, h=720, kind="auto"),
+            layout_tree=Container(
+                kind=ContainerKind.FLOATING,
+                children=(leaf,),
+                padding=0,
+            ),
+        )
+        synthetic.append(dash)
+    return tuple(synthetic)
+
+
 def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     """Orchestrator. Each sub-builder is pure and side-effect-free."""
     datasources, ds_unsupported = build_datasources(input_json.get("datasources", []))
@@ -77,6 +125,10 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     actions = build_actions(input_json.get("actions", []), sheet_id_for_name)
     if actions and dashboards:
         dashboards = (dashboards[0].model_copy(update={"actions": actions}), *dashboards[1:])
+
+    dashboards = dashboards + _synthesise_standalone_sheet_dashboards(
+        sheets, dashboards, sheet_id_for_name,
+    )
 
     cycle_items = detect_cycles(calculations)
     tier_c_items = lift_tier_c_detections(input_json.get("unsupported", []))

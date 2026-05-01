@@ -40,6 +40,45 @@ def test_stage2_preserves_source_metadata(tmp_path: Path):
     assert out["tableau_version"] == "2024.1"
 
 
+def test_stage2_synthesises_dashboard_for_standalone_sheets(tmp_path: Path):
+    """Worksheets with no dashboard wrapper must become synthetic Dashboard IR objects."""
+    extract = {
+        **_MIN_EXTRACT,
+        "worksheets": [
+            {"name": "Sheet 1", "mark_type": "bar", "dual_axis": False, "reference_lines": [],
+             "encodings": {"rows": [], "columns": [], "color": [], "size": [], "label": [],
+                           "tooltip": [], "detail": [], "shape": [], "angle": []},
+             "filters": [], "sort": [], "datasource_refs": []},
+            {"name": "Sheet 2", "mark_type": "line", "dual_axis": False, "reference_lines": [],
+             "encodings": {"rows": [], "columns": [], "color": [], "size": [], "label": [],
+                           "tooltip": [], "detail": [], "shape": [], "angle": []},
+             "filters": [], "sort": [], "datasource_refs": []},
+        ],
+        "dashboards": [],  # no dashboards — both sheets are standalone
+    }
+    result = s02_canonicalize.run(extract, _ctx(tmp_path))
+    dashboards = result.output["dashboards"]
+    assert len(dashboards) == 2, "one synthetic Dashboard per standalone sheet"
+    sheet_ids_in_dashboards = {
+        leaf["payload"]["sheet_id"]
+        for d in dashboards
+        for leaf in _iter_leaves(d["layout_tree"])
+        if leaf["kind"] == "sheet"
+    }
+    assert len(sheet_ids_in_dashboards) == 2
+    for d in dashboards:
+        assert d["size"]["w"] == 1280
+        assert d["size"]["h"] == 720
+
+
+def _iter_leaves(node):
+    if "children" in node:
+        for c in node["children"]:
+            yield from _iter_leaves(c)
+    else:
+        yield node
+
+
 def test_stage2_empty_workbook_has_empty_data_model(tmp_path: Path):
     result = s02_canonicalize.run(_MIN_EXTRACT, _ctx(tmp_path))
     dm = result.output["data_model"]
