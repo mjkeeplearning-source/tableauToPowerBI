@@ -1,0 +1,17 @@
+workbook: Superstore.twbx
+pages:
+  - name: "Overview"
+    must_render_visuals: []
+    must_have_slicers: []
+    known_degradations: []
+measures: []
+datasources:
+  - name: Orders
+    expected_tier: 1
+    user_action: "none"
+pass_criteria:
+  all_pages_load: true
+  all_must_render_visuals_present: true
+  all_must_have_slicers_present: true
+  no_unexpected_placeholders: false
+  desktop_open_gate: passed

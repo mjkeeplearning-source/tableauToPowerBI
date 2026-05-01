@@ -60,5 +60,6 @@ class RubricItemResult:
 @dataclass(frozen=True)
 class RubricResult:
     outcome: ValidatorOutcome
+    reason: str | None
     items: tuple[RubricItemResult, ...] = ()
     log_path: str | None = None
