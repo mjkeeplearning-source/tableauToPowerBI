@@ -407,6 +407,7 @@ Rationale: in-process M flattening only works well when at least one side is loc
   - **Classify each `Parameter` into an `intent`** using the §5.7 detection table.
   - **Classify each `Datasource` into a `connector_tier`** using the §5.8 matrix; record `pbi_m_connector` and `user_action_required[]`.
   - Drop tier-C objects to `unsupported[]` with source excerpts.
+  - **Synthesise `Dashboard` IR for standalone worksheets:** after `build_dashboards`, collect every sheet ID referenced in any dashboard layout tree. For each `Sheet` whose ID is not in that set, emit a synthetic `Dashboard(size=1280×720, kind="auto")` with a single full-canvas `Leaf(kind=SHEET)`. This ensures every worksheet becomes at least one PBIR page regardless of whether the Tableau author wrapped it in a dashboard. Implementation: `_synthesise_standalone_sheet_dashboards()` in `s02_canonicalize.py`.
 - **Summary.md:** IR object counts by kind; calc kind histogram (row/aggregate/table_calc/lod_*); parameter intent histogram; datasource tier histogram; dependency graph stats; unsupported breakdown.
 - **Tests:** unit; contract (output validates against IR JSON Schema); golden against IR fixtures; cycle detection on calc dependency graph; classification fixtures per calc-kind / parameter-intent / connector-tier.
 
