@@ -5,11 +5,12 @@ from pathlib import Path
 
 from tableau2pbir.emit._io import write_text
 from tableau2pbir.emit.tmdl.database import render_database
+from tableau2pbir.emit.tmdl.implicit_measures import collect_implicit_measures
 from tableau2pbir.emit.tmdl.model import render_model
 from tableau2pbir.emit.tmdl.parameters import render_parameter
 from tableau2pbir.emit.tmdl.relationship import render_relationship
 from tableau2pbir.emit.tmdl.table import render_table
-from tableau2pbir.ir.calculation import CalculationScope
+from tableau2pbir.ir.calculation import Calculation, CalculationKind, CalculationPhase, CalculationScope
 from tableau2pbir.ir.model import Column
 from tableau2pbir.ir.workbook import Workbook
 
@@ -43,6 +44,23 @@ def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
     for calc in wb.data_model.calculations:
         if calc.scope == CalculationScope.MEASURE and calc.dax_expr and primary_table_id:
             measures_for_table[primary_table_id].append(calc)
+
+    implicit = collect_implicit_measures(wb)
+    table_by_name = {t.name: t.id for t in wb.data_model.tables}
+    for tbl_name, entries in implicit.items():
+        tbl_id = table_by_name.get(tbl_name)
+        if tbl_id is None:
+            continue
+        for (mname, dax) in entries:
+            measures_for_table[tbl_id].append(Calculation(
+                id=f"implicit__{tbl_name}__{mname}",
+                name=mname,
+                scope=CalculationScope.MEASURE,
+                tableau_expr="",
+                dax_expr=dax,
+                kind=CalculationKind.AGGREGATE,
+                phase=CalculationPhase.AGGREGATE,
+            ))
 
     col_by_id: dict[str, Column] = {c.id: c for c in wb.data_model.columns}
     cols_for_table: dict[str, list[Column]] = {}

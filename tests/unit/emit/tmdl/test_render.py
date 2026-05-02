@@ -4,7 +4,8 @@ from tableau2pbir.emit.tmdl.render import render_semantic_model
 from tableau2pbir.ir.calculation import Calculation, CalculationKind, CalculationPhase, CalculationScope
 from tableau2pbir.ir.common import FieldRef
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
-from tableau2pbir.ir.model import Relationship, RelationshipSource, Table
+from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Relationship, RelationshipSource, Table
+from tableau2pbir.ir.sheet import Encoding, EncodingBinding, PbirVisual, Sheet
 from tableau2pbir.ir.workbook import DataModel, Workbook
 
 
@@ -93,3 +94,47 @@ def test_definition_pbism_has_version_4(tmp_path: Path):
     data = json.loads((tmp_path / "SemanticModel" / "definition.pbism").read_text(encoding="utf-8"))
     assert data["version"] == "4.0"
     assert "$schema" in data
+
+
+def _wb_with_sum_pill_visual() -> Workbook:
+    """Workbook with a visual that uses SUM(profit) — no explicit Calculation."""
+    ds = Datasource(
+        id="d1", name="orders", tableau_kind="postgres", connector_tier=ConnectorTier.TIER_2,
+        pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "srv", "dbname": "db"},
+        user_action_required=(), table_ids=("t1",), extract_ignored=False,
+    )
+    col_profit = Column(id="c1", name="profit", datatype="real",
+                        role=ColumnRole.MEASURE, kind=ColumnKind.RAW, source_column="profit")
+    table = Table(id="t1", name="orders", datasource_id="d1", column_ids=("c1",))
+    sheet = Sheet(
+        id="s1", name="Sheet 1", mark_type="bar",
+        datasource_refs=("t1",),
+        encoding=Encoding(rows=(FieldRef(table_id="t1", column_id="sum_profit_qk"),)),
+        filters=(), sort=(), dual_axis=False, reference_lines=(),
+        uses_calculations=(),
+        pbir_visual=PbirVisual(
+            visual_type="columnChart",
+            encoding_bindings=(EncodingBinding(channel="Y", source_field_id="sum_profit_qk"),),
+        ),
+    )
+    dm = DataModel(datasources=(ds,), tables=(table,), columns=(col_profit,))
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="a",
+        tableau_version="2024.1", config={},
+        data_model=dm, sheets=(sheet,), dashboards=(), unsupported=(),
+    )
+
+
+def test_implicit_measure_emitted_in_tmdl(tmp_path: Path):
+    wb = _wb_with_sum_pill_visual()
+    render_semantic_model(wb, tmp_path)
+    tmdl = (tmp_path / "SemanticModel" / "definition" / "tables" / "orders.tmdl").read_text()
+    assert "measure profit" in tmdl, "Expected implicit measure 'profit' in orders.tmdl"
+    assert "SUM('orders'[profit])" in tmdl
+
+
+def test_implicit_measure_count_in_manifest(tmp_path: Path):
+    wb = _wb_with_sum_pill_visual()
+    manifest = render_semantic_model(wb, tmp_path)
+    assert manifest["counts"]["measures"] == 1, "Manifest measure count must include implicit measures"
