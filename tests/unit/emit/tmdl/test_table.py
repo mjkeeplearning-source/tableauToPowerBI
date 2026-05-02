@@ -23,3 +23,25 @@ def test_table_with_one_column_one_measure_csv_partition():
     assert "measure Total" in out
     assert "partition Sales = m" in out
     assert "Csv.Document" in out
+
+
+def test_db_table_uses_direct_query_mode():
+    ds = Datasource(
+        id="d2", name="PG", tableau_kind="postgres", connector_tier=ConnectorTier.TIER_2,
+        pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "localhost", "dbname": "sales", "schema": "public", "table": "orders"},
+        user_action_required=("enter credentials",), table_ids=("t2",), extract_ignored=False,
+    )
+    out = render_table(name="orders", columns=[], measures=[], datasource=ds)
+    assert "mode: directQuery" in out, "DB-backed tables must use directQuery partition mode"
+
+
+def test_csv_table_uses_import_mode():
+    ds = Datasource(
+        id="d1", name="DS", tableau_kind="csv", connector_tier=ConnectorTier.TIER_1,
+        pbi_m_connector="Csv.Document",
+        connection_params={"filename": "C:/data.csv"},
+        user_action_required=(), table_ids=("t1",), extract_ignored=False,
+    )
+    out = render_table(name="Sales", columns=[], measures=[], datasource=ds)
+    assert "mode: import" in out, "File-based tables must use import partition mode"
