@@ -14,7 +14,7 @@ def render_visual(visual_id: str, pbir_visual: PbirVisual, position: Position, z
         query_state[b.channel]["projections"].append({"field": _field_obj(b.source_field_id)})
 
     obj = {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
         "name": visual_id,
         "position": {"x": position.x, "y": position.y,
                      "width": position.w, "height": position.h, "z": z_order},

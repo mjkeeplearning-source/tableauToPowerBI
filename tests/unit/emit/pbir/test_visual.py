@@ -16,6 +16,13 @@ def _bar_visual() -> PbirVisual:
     )
 
 
+def test_visual_json_schema_is_1_0_0():
+    pos = Position(x=0, y=0, w=400, h=300)
+    out = render_visual(visual_id="v1", pbir_visual=_bar_visual(), position=pos, z_order=0)
+    obj = json.loads(out)
+    assert "/1.0.0/" in obj["$schema"], f"Expected schema 1.0.0, got: {obj['$schema']}"
+
+
 def test_visual_json_has_position_and_query():
     pos = Position(x=10, y=20, w=400, h=300)
     out = render_visual(visual_id="v1", pbir_visual=_bar_visual(), position=pos, z_order=0)
