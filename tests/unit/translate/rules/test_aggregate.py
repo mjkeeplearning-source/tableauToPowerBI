@@ -31,3 +31,28 @@ def test_conditional_sum_to_calculate_filter():
 
 def test_unmatched_returns_none():
     assert translate_aggregate("WEIRDFN([x])") is None
+
+
+def test_compound_subtraction_two_countd():
+    out = translate_aggregate("COUNTD([order_id]) - COUNTD([order_id (returns)])")
+    assert out == "DISTINCTCOUNT([order_id]) - DISTINCTCOUNT([order_id (returns)])", \
+        f"COUNTD must become DISTINCTCOUNT in compound expr, got: {out}"
+
+
+def test_compound_subtraction_two_sum():
+    out = translate_aggregate("SUM([profit]) - sum([discount])")
+    assert out == "SUM([profit]) - SUM([discount])", \
+        f"lowercase sum must be normalised in compound expr, got: {out}"
+
+
+def test_compound_addition():
+    out = translate_aggregate("SUM([a]) + AVG([b])")
+    assert out == "SUM([a]) + AVERAGE([b])"
+
+
+def test_lowercase_single_sum():
+    assert translate_aggregate("sum([Sales])") == "SUM([Sales])"
+
+
+def test_compound_non_agg_returns_none():
+    assert translate_aggregate("COUNTD([x]) - [plain_field]") is None

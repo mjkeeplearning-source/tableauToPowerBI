@@ -913,7 +913,7 @@ git commit -m "fix(extract): use caption attribute as calculation name instead o
 
 `_OUTER_RE` only matches single-aggregate calls (`SUM(x)`). Compound expressions like `COUNTD([order_id]) - COUNTD([order_id (returns)])` return `None`, falling through to the AI which produces broken DAX (`COUNTD` is not valid DAX). The fix: add a compound path that substitutes each aggregate term individually and verifies only arithmetic operators remain between them.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Add to `tests/unit/translate/rules/test_aggregate.py`:
 
@@ -943,7 +943,7 @@ def test_compound_non_agg_returns_none():
     assert translate_aggregate("COUNTD([x]) - [plain_field]") is None
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```
 pytest tests/unit/translate/rules/test_aggregate.py -v
@@ -951,7 +951,7 @@ pytest tests/unit/translate/rules/test_aggregate.py -v
 
 Expected: the four new tests FAIL; existing tests still PASS.
 
-- [ ] **Step 3: Rewrite `src/tableau2pbir/translate/rules/aggregate.py`**
+- [x] **Step 3: Rewrite `src/tableau2pbir/translate/rules/aggregate.py`**
 
 ```python
 """Aggregate-calc rules. Returns DAX or None on no match."""
@@ -1011,7 +1011,7 @@ def translate_aggregate(tableau_expr: str) -> str | None:
     return None
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```
 pytest tests/unit/translate/rules/test_aggregate.py -v
@@ -1019,7 +1019,7 @@ pytest tests/unit/translate/rules/test_aggregate.py -v
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```
 git add src/tableau2pbir/translate/rules/aggregate.py tests/unit/translate/rules/test_aggregate.py
@@ -1033,7 +1033,7 @@ git commit -m "fix(translate): compound aggregate expressions translate correctl
 **Files:**
 - No code changes — verification only.
 
-Run the complete pipeline against `simple_join.twb` and verify the output matches the MVP file structure.
+Run the complete pipeline against `simple_join.twb  and  simple_join_calculated_line.twb` and verify the output matches the MVP file structure.
 
 - [ ] **Step 1: Delete stale output to start clean**
 
