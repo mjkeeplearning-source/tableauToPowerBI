@@ -24,6 +24,7 @@ class Column(IRBase):
     kind: ColumnKind
     tableau_expr: str | None = None         # calculated columns only
     dax_expr: str | None = None             # populated by stage 3 for calculated columns
+    source_column: str | None = None        # physical DB column name; used as TMDL sourceColumn
 
 
 class Table(IRBase):
@@ -32,6 +33,8 @@ class Table(IRBase):
     datasource_id: str
     column_ids: tuple[str, ...]
     primary_key: tuple[str, ...] | None = None    # column ids forming the PK (if known)
+    physical_schema: str | None = None            # e.g. "superstore" (from federated relation)
+    physical_table: str | None = None             # e.g. "orders" (from federated relation)
 
 
 class RelationshipSource(str, Enum):

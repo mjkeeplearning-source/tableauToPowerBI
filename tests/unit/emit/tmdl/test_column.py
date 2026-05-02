@@ -29,3 +29,40 @@ def test_calculated_column_without_dax_emits_nothing():
         tableau_expr="some_unsupported", dax_expr=None,
     )
     assert render_column(col) == ""
+
+
+# ── datatype mapping ───────────────────────────────────────────────────────
+def test_datatype_integer_maps_to_int64():
+    col = Column(id="c4", name="row_id", datatype="integer", role=ColumnRole.DIMENSION, kind=ColumnKind.RAW)
+    assert "dataType: int64" in render_column(col)
+
+
+def test_datatype_real_maps_to_double():
+    col = Column(id="c5", name="sales", datatype="real", role=ColumnRole.MEASURE, kind=ColumnKind.RAW)
+    assert "dataType: double" in render_column(col)
+
+
+def test_datatype_datetime_maps_to_dateTime():
+    col = Column(id="c6", name="order_date", datatype="datetime", role=ColumnRole.DIMENSION, kind=ColumnKind.RAW)
+    assert "dataType: dateTime" in render_column(col)
+
+
+# ── sourceColumn ────────────────────────────────────────────────────────────
+def test_raw_column_emits_source_column():
+    col = Column(id="c7", name="order_id", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW, source_column="order_id")
+    out = render_column(col)
+    assert "sourceColumn: order_id" in out
+
+
+def test_raw_column_falls_back_to_name_when_source_column_none():
+    col = Column(id="c8", name="region", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW, source_column=None)
+    assert "sourceColumn: region" in render_column(col)
+
+
+# ── internal column filter ──────────────────────────────────────────────────
+def test_internal_table_datatype_column_returns_empty():
+    col = Column(id="c9", name="__tableau_internal_object_id__", datatype="table",
+                 role=ColumnRole.DIMENSION, kind=ColumnKind.RAW)
+    assert render_column(col) == ""

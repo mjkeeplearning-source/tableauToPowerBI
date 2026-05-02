@@ -1219,6 +1219,30 @@
           "title": "Name",
           "type": "string"
         },
+        "physical_schema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physical Schema"
+        },
+        "physical_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physical Table"
+        },
         "primary_key": {
           "anyOf": [
             {
