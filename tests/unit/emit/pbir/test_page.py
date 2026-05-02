@@ -11,3 +11,9 @@ def test_page_json_basic():
     assert obj["ordinal"] == 0
     assert obj["width"] == 1280
     assert obj["height"] == 720
+
+
+def test_page_json_schema_is_2_1_0():
+    out = render_page(page_id="p1", display_name="Revenue", ordinal=0, width=1280, height=720)
+    obj = json.loads(out)
+    assert "/2.1.0/" in obj["$schema"], f"Expected schema 2.1.0, got: {obj['$schema']}"
