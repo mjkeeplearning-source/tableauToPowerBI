@@ -66,6 +66,15 @@ def test_raw_column_falls_back_to_name_when_source_column_none():
     assert "sourceColumn: region" in render_column(col)
 
 
+# ── column name uses physical (source_column) name, not Tableau alias ───────
+def test_raw_column_name_is_source_column_not_alias():
+    col = Column(id="c_alias", name="order_id (returns)", datatype="string",
+                 role=ColumnRole.DIMENSION, kind=ColumnKind.RAW, source_column="order_id")
+    out = render_column(col)
+    assert "\tcolumn order_id\n" in out, "TMDL column name must be physical source_column, not Tableau alias"
+    assert "order_id (returns)" not in out, "Tableau alias must not appear as TMDL column name"
+
+
 # ── indentation ─────────────────────────────────────────────────────────────
 def test_column_properties_indented_two_tabs():
     col = Column(id="c10", name="region", datatype="string", role=ColumnRole.DIMENSION,
