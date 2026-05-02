@@ -17,8 +17,10 @@ def test_v1_visuals_present():
 
 def test_slots_for_clustered_bar():
     s = slots_for("clusteredBarChart")
-    assert "category" in s
-    assert "value" in s
+    assert "Category" in s
+    assert "Y" in s
+    assert "category" not in s   # old lowercase name must be gone
+    assert "value" not in s      # old lowercase name must be gone
 
 
 def test_slots_for_unknown_visual_raises():

@@ -5,14 +5,14 @@ a non-existent visual."""
 from __future__ import annotations
 
 _SLOTS: dict[str, frozenset[str]] = {
-    "clusteredBarChart": frozenset({"category", "value", "series", "tooltip"}),
-    "stackedBarChart":   frozenset({"category", "value", "series", "tooltip"}),
-    "lineChart":         frozenset({"category", "value", "series", "tooltip"}),
-    "areaChart":         frozenset({"category", "value", "series", "tooltip"}),
-    "scatterChart":      frozenset({"x", "y", "size", "color", "details", "tooltip"}),
-    "tableEx":           frozenset({"values", "tooltip"}),  # matrix-like text-table
-    "pieChart":          frozenset({"category", "value", "tooltip"}),
-    "filledMap":         frozenset({"location", "value", "color", "tooltip"}),
+    "clusteredBarChart": frozenset({"Category", "Y", "Series", "Tooltips"}),
+    "stackedBarChart":   frozenset({"Category", "Y", "Series", "Tooltips"}),
+    "lineChart":         frozenset({"Category", "Y", "Series", "Tooltips"}),
+    "areaChart":         frozenset({"Category", "Y", "Series", "Tooltips"}),
+    "scatterChart":      frozenset({"X", "Y", "Size", "Color", "Details", "Tooltips"}),
+    "tableEx":           frozenset({"Values", "Tooltips"}),
+    "pieChart":          frozenset({"Category", "Y", "Tooltips"}),
+    "filledMap":         frozenset({"Location", "Y", "Color", "Tooltips"}),
 }
 
 VISUAL_TYPES: frozenset[str] = frozenset(_SLOTS)
