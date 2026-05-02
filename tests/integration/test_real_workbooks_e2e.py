@@ -78,6 +78,18 @@ def test_real_workbook_full_pipeline(workbook: Path, tmp_path: Path):
     assert "sheets" in ir2
     assert len(ir2["sheets"]) >= 1, f"{workbook.name} has no sheets in IR"
 
+    # simple_join must have column blocks (fixes PBI Desktop relationship resolution error)
+    if workbook.name == "simple_join.twb":
+        orders_tmdl = out / wb_name / "SemanticModel" / "definition" / "tables" / "orders.tmdl"
+        assert orders_tmdl.is_file(), "orders.tmdl missing"
+        orders_text = orders_tmdl.read_text(encoding="utf-8")
+        assert "column order_id" in orders_text, "orders.tmdl missing column order_id"
+        assert "sourceColumn: order_id" in orders_text, "orders.tmdl missing sourceColumn"
+        assert "dataType: int64" in orders_text, "orders.tmdl missing int64 column (row_id)"
+        assert "dataType: double" in orders_text, "orders.tmdl missing double column (profit/sales)"
+        assert "dataType: date" in orders_text, "orders.tmdl missing date column (order_date)"
+        assert "__tableau_internal" not in orders_text, "Tableau internal column leaked into TMDL"
+
 
 @pytest.mark.integration
 @pytest.mark.parametrize("workbook", _WORKBOOKS, ids=[p.name for p in _WORKBOOKS])
