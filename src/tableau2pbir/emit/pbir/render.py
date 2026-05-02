@@ -10,7 +10,7 @@ from tableau2pbir.emit.pbir.blocked import compute_blocked_visuals
 from tableau2pbir.emit.pbir.filters import collect_page_filters
 from tableau2pbir.emit.pbir.ids import stable_id
 from tableau2pbir.emit.pbir.page import render_page
-from tableau2pbir.emit.pbir.report import render_report as render_report_json
+from tableau2pbir.emit.pbir.report import render_pages_manifest, render_report as render_report_json
 from tableau2pbir.emit.pbir.slicer import render_filter_slicer, render_parameter_slicer
 from tableau2pbir.emit.pbir.visual import render_visual
 from tableau2pbir.ir.dashboard import Container, Leaf, LeafKind
@@ -87,11 +87,12 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                                width=dash.size.w or 1280, height=dash.size.h or 720,
                                filters=page_filters))
 
-    write_text(rd / "report.json",
-               render_report_json(report_name=Path(wb.source_path).stem, page_order=page_ids))
+    write_text(rd / "pages" / "pages.json",
+               render_pages_manifest(page_order=page_ids))
+    write_text(rd / "report.json", render_report_json())
     write_text(rd / "version.json", json.dumps({
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/versionMetadata/1.0.0/schema.json",
-        "version": "1.0",
+        "version": "2.0.0",
     }, indent=2))
 
     interactions: list[dict] = []

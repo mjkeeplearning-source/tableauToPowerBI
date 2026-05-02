@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from tableau2pbir.emit.pbir.render import render_report
@@ -36,7 +37,8 @@ def _wb_one_page_one_visual() -> Workbook:
         user_action_required=(), table_ids=("t1",), extract_ignored=False,
     )
     table = Table(id="t1", name="Sales", datasource_id="d1", column_ids=("c1",))
-    col = Column(id="c1", name="Region", datatype="string", role=ColumnRole.DIMENSION, kind=ColumnKind.RAW)
+    col = Column(id="c1", name="Region", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW)
     return Workbook(
         ir_schema_version="1.1.0", source_path="x.twb", source_hash="a",
         tableau_version="2024.1", config={},
@@ -45,19 +47,42 @@ def _wb_one_page_one_visual() -> Workbook:
     )
 
 
+def test_render_writes_required_files(tmp_path: Path):
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+
+    assert (rd / "report.json").is_file(), "report.json required"
+    assert (rd / "version.json").is_file(), "version.json required"
+    assert (rd / "pages" / "pages.json").is_file(), "pages/pages.json required by schema 3.2.0"
+
+
+def test_version_json_is_2_0_0(tmp_path: Path):
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    ver = json.loads((rd / "version.json").read_text(encoding="utf-8"))
+    assert ver["version"] == "2.0.0", f"version.json must be '2.0.0', got: {ver['version']}"
+
+
+def test_pages_json_contains_page_id(tmp_path: Path):
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    pages_manifest = json.loads((rd / "pages" / "pages.json").read_text(encoding="utf-8"))
+    assert len(pages_manifest["pageOrder"]) == 1
+    assert pages_manifest["activePageName"] == pages_manifest["pageOrder"][0]
+
+
 def test_render_writes_page_and_visual(tmp_path: Path):
-    import json as _json
     wb = _wb_one_page_one_visual()
     manifest = render_report(wb, tmp_path)
     rd = tmp_path / "Report" / "definition"
-    assert (rd / "report.json").is_file()
-    assert (rd / "version.json").is_file(), "version.json required by PBI Desktop"
-    ver = _json.loads((rd / "version.json").read_text(encoding="utf-8"))
-    assert ver["version"] == "1.0"
-    assert "$schema" in ver
     pages = list((rd / "pages").iterdir())
-    assert len(pages) == 1
-    visuals = list((pages[0] / "visuals").iterdir())
+    # pages/ has pages.json + one page folder
+    page_dirs = [p for p in pages if p.is_dir()]
+    assert len(page_dirs) == 1
+    visuals = list((page_dirs[0] / "visuals").iterdir())
     assert len(visuals) == 1
     assert (visuals[0] / "visual.json").is_file()
     assert manifest["counts"]["pages"] == 1
