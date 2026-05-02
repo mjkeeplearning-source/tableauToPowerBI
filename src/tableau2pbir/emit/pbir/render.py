@@ -89,7 +89,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
 
         page_filters = collect_page_filters(per_sheet_filters)
         write_text(page_dir / "page.json",
-                   render_page(page_id, dash.name, ordinal,
+                   render_page(page_id, dash.name,
                                width=dash.size.w or 1280, height=dash.size.h or 720,
                                filters=page_filters))
 

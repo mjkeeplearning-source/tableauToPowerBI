@@ -123,7 +123,8 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
       report.json                  # REQUIRED: report-level filters, theme, page order
       pages/                       # REQUIRED: at least one page folder
         ReportSection1/            # page_id = "ReportSection{N}" (1-indexed)
-          page.json                # REQUIRED per page: name, display name, filters
+          page.json                # REQUIRED per page: name, displayName, width, height, filterConfig (NO ordinal — see §4.4 note)
+        pages.json               # REQUIRED: pagesMetadata/1.0.0 — pageOrder array is the sole ordering mechanism
           visuals/
             visual_1/              # visual_id = "visual_{N}" (global counter across all pages)
               visual.json          # REQUIRED per visual: position, query, bindings
@@ -162,6 +163,8 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
 | `Report/definition/version.json` | Stage 7 `emit/pbir/render.py` | `{"version":"1.0"}` + `$schema` — determines which report definition files Desktop loads |
 | `Report/definition/report.json` | Stage 7 `emit/pbir/render.py` | Uses schema `1.0.0` (not `2.0.0`) |
 | `SemanticModel/definition.pbism` | Stage 6 `emit/tmdl/render.py` | `{"version":"4.0"}` + `$schema` — `"4.0"` activates TMDL mode; `"1.0"` requires TMSL `model.bim` |
+
+**`page.json` schema (2.1.0) — allowed root properties only:** `$schema`, `name`, `displayName`, `displayOption`, `width`, `height`, `filterConfig`. The `ordinal` field does NOT exist in page/2.1.0; PBI Desktop rejects it as an additional property. Page ordering is expressed solely via `pages/pages.json` (`pagesMetadata/1.0.0`) using its `pageOrder` array.
 
 **TMDL file location:** TMDL files must reside in `SemanticModel/definition/` (not directly under `SemanticModel/`). The `definition/` subfolder replaces the legacy `model.bim` file per the Microsoft PBIR spec.
 
