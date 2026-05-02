@@ -5,6 +5,8 @@ a non-existent visual."""
 from __future__ import annotations
 
 _SLOTS: dict[str, frozenset[str]] = {
+    "columnChart":       frozenset({"Category", "Y", "Series", "Tooltips"}),
+    "barChart":          frozenset({"Category", "Y", "Series", "Tooltips"}),
     "clusteredBarChart": frozenset({"Category", "Y", "Series", "Tooltips"}),
     "stackedBarChart":   frozenset({"Category", "Y", "Series", "Tooltips"}),
     "lineChart":         frozenset({"Category", "Y", "Series", "Tooltips"}),

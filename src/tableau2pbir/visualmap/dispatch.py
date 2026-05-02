@@ -12,8 +12,9 @@ def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
     return EncodingBinding(channel=channel, source_field_id=fr.column_id)
 
 
-def _has(rows: tuple[FieldRef, ...]) -> FieldRef | None:
-    return rows[0] if rows else None
+def _is_measure(fr: FieldRef) -> bool:
+    """Infer measure role from the _qk suffix embedded by stable_id in the column_id."""
+    return fr.column_id.endswith("_qk")
 
 
 def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
@@ -24,11 +25,17 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     color = enc.color
 
     if mark in ("bar", "automatic") and rows and cols:
-        # Tableau vertical bar: ROWS=measure (Y axis), COLUMNS=dimension (X axis)
+        # Horizontal bar: Tableau places measure on COLUMNS shelf, dimension on ROWS
+        if _is_measure(cols[0]) and not _is_measure(rows[0]):
+            bindings = [_bind("Category", rows[0]), _bind("Y", cols[0])]
+            if color:
+                bindings.append(_bind("Series", color))
+            return PbirVisual(visual_type="barChart", encoding_bindings=tuple(bindings), format={})
+        # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure→Y
         bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]
         if color:
             bindings.append(_bind("Series", color))
-        return PbirVisual(visual_type="clusteredBarChart", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="columnChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "line" and rows and cols:
         bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]

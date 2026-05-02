@@ -47,7 +47,7 @@ def test_stage4_attaches_pbir_visual_for_bar(tmp_path: Path):
     [sh] = out["sheets"]
     pv = sh["pbir_visual"]
     assert pv is not None
-    assert pv["visual_type"] == "clusteredBarChart"
+    assert pv["visual_type"] in ("columnChart", "barChart")
 
 
 def test_stage4_routes_unsupported_mark(tmp_path: Path):

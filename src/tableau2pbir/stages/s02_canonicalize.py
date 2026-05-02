@@ -75,7 +75,7 @@ def _synthesise_standalone_sheet_dashboards(sheets, dashboards, sheet_id_for_nam
         leaf = Leaf(
             kind=LeafKind.SHEET,
             payload={"sheet_id": sheet.id},
-            position=Position(x=0, y=0, w=1280, h=720),
+            position=Position(x=20, y=20, w=560, h=360),
         )
         dash = Dashboard(
             id=_sid("synth_dash", sheet.id),

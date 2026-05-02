@@ -79,6 +79,31 @@ def _iter_leaves(node):
         yield node
 
 
+def test_synthetic_leaf_position_has_margin_and_reasonable_size(tmp_path: Path):
+    """Synthetic-dashboard leaves must use a canvas-proportional size with a small
+    margin — matching the working MVP output (x=20, y=20, w=560, h=360)."""
+    extract = {
+        **_MIN_EXTRACT,
+        "worksheets": [
+            {"name": "Sheet 1", "mark_type": "bar", "dual_axis": False, "reference_lines": [],
+             "encodings": {"rows": [], "columns": [], "color": [], "size": [], "label": [],
+                           "tooltip": [], "detail": [], "shape": [], "angle": []},
+             "filters": [], "sort": [], "datasource_refs": []},
+        ],
+        "dashboards": [],
+    }
+    result = s02_canonicalize.run(extract, _ctx(tmp_path))
+    dashboards = result.output["dashboards"]
+    assert len(dashboards) == 1
+    leaves = list(_iter_leaves(dashboards[0]["layout_tree"]))
+    assert len(leaves) == 1
+    pos = leaves[0]["position"]
+    assert pos["x"] == 20
+    assert pos["y"] == 20
+    assert pos["w"] == 560
+    assert pos["h"] == 360
+
+
 def test_stage2_empty_workbook_has_empty_data_model(tmp_path: Path):
     result = s02_canonicalize.run(_MIN_EXTRACT, _ctx(tmp_path))
     dm = result.output["data_model"]

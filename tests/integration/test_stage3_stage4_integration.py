@@ -67,6 +67,6 @@ def test_stage4_attaches_visual_for_bar_fixture(
     visual_types = {sh["pbir_visual"]["visual_type"]
                     for sh in ir4["sheets"]
                     if sh["pbir_visual"] is not None}
-    # At least the bar and line marks should map to v1 visuals.
-    assert "clusteredBarChart" in visual_types
+    # At least bar and line marks should map to v1 visuals.
+    assert visual_types & {"columnChart", "barChart"}, "expected a bar-type visual"
     assert "lineChart" in visual_types
