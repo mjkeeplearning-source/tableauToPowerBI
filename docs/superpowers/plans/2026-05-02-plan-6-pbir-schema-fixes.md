@@ -1035,13 +1035,13 @@ git commit -m "fix(translate): compound aggregate expressions translate correctl
 
 Run the complete pipeline against `simple_join.twb  and  simple_join_calculated_line.twb` and verify the output matches the MVP file structure.
 
-- [ ] **Step 1: Delete stale output to start clean**
+- [x] **Step 1: Delete stale output to start clean**
 
 ```powershell
 Remove-Item -Recurse -Force out\simple_join -ErrorAction SilentlyContinue
 ```
 
-- [ ] **Step 2: Run the full pipeline**
+- [x] **Step 2: Run the full pipeline**
 
 ```
 python -m tableau2pbir.cli convert "tests/golden/real/simple_join.twb"
@@ -1049,7 +1049,7 @@ python -m tableau2pbir.cli convert "tests/golden/real/simple_join.twb"
 
 Expected: no Python exceptions, `out/simple_join/` created.
 
-- [ ] **Step 3: Verify required PBIR files exist**
+- [x] **Step 3: Verify required PBIR files exist**
 
 ```powershell
 $base = "out\simple_join"
@@ -1070,7 +1070,7 @@ foreach ($f in $required) {
 
 Expected: all lines show `OK`.
 
-- [ ] **Step 4: Verify schema versions in output files**
+- [x] **Step 4: Verify schema versions in output files**
 
 ```powershell
 $base = "out\simple_join"
@@ -1095,7 +1095,7 @@ pages.json pageOrder count: <N >= 1>
 definition.pbir keys: datasetReference, version
 ```
 
-- [ ] **Step 5: Verify at least one page folder and visual exist**
+- [x] **Step 5: Verify at least one page folder and visual exist**
 
 ```powershell
 $pagesDir = "out\simple_join\Report\definition\pages"
@@ -1113,7 +1113,7 @@ foreach ($p in $pageFolders) {
 
 Expected: at least 1 page folder, at least 1 visual, schema contains `1.0.0`.
 
-- [ ] **Step 6: Verify partition mode in TMDL tables**
+- [x] **Step 6: Verify partition mode in TMDL tables**
 
 ```powershell
 Get-ChildItem "out\simple_join\SemanticModel\definition\tables\*.tmdl" |
@@ -1126,7 +1126,7 @@ Get-ChildItem "out\simple_join\SemanticModel\definition\tables\*.tmdl" |
 
 Expected: postgres-backed tables show `directQuery`.
 
-- [ ] **Step 7: Run the full unit + integration suite**
+- [x] **Step 7: Run the full unit + integration suite**
 
 ```
 pytest tests/unit/ -v --tb=short 2>&1 | tail -20
@@ -1135,7 +1135,7 @@ pytest tests/integration/ -m integration -v --tb=short 2>&1 | tail -20
 
 Expected: unit suite passes, integration E2E smoke test passes (or skips if no API key).
 
-- [ ] **Step 8: Final commit**
+- [x] **Step 8: Final commit**
 
 ```
 git add -A
