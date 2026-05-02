@@ -27,12 +27,19 @@ def _scaffold(tmp_path: Path, *, pages: list[str], visuals: dict[str, list[tuple
 
     rd = out / "Report" / "definition"
     rd.mkdir(parents=True)
-    (rd / "report.json").write_text(json.dumps({
-        "name": "wb", "pageOrder": page_order or pages,
-    }), encoding="utf-8")
+    # schema 3.2.0: report.json has no pageOrder
+    (rd / "report.json").write_text(json.dumps({"$schema": "...report/3.2.0/..."}), encoding="utf-8")
+
+    pages_dir = rd / "pages"
+    pages_dir.mkdir()
+    effective_order = page_order if page_order is not None else pages
+    (pages_dir / "pages.json").write_text(
+        json.dumps({"pageOrder": effective_order, "activePageName": effective_order[0] if effective_order else ""}),
+        encoding="utf-8"
+    )
     for p in pages:
-        pdir = rd / "pages" / p
-        pdir.mkdir(parents=True)
+        pdir = pages_dir / p
+        pdir.mkdir(exist_ok=True)
         (pdir / "page.json").write_text(json.dumps({"name": p}), encoding="utf-8")
         for vid, refs in visuals.get(p, []):
             vdir = pdir / "visuals" / vid
@@ -107,3 +114,30 @@ def test_passes_with_no_relationships(tmp_path):
     out = _scaffold(tmp_path, pages=["p1"], visuals={"p1": []}, tables={"Sales": []})
     r = run_structural(out)
     assert r.outcome == ValidatorOutcome.PASSED
+
+
+def test_fails_when_pages_json_order_disagrees_with_disk(tmp_path):
+    """Validator must read page order from pages/pages.json, not report.json."""
+    out = tmp_path
+    sm = out / "SemanticModel" / "definition"
+    (sm / "tables").mkdir(parents=True)
+    (sm / "tables" / "Sales.tmdl").write_text("table Sales\n\tmeasure Total = 1", encoding="utf-8")
+
+    rd = out / "Report" / "definition"
+    # report.json has no pageOrder (schema 3.2.0 format)
+    rd.mkdir(parents=True)
+    (rd / "report.json").write_text(json.dumps({"$schema": "...report/3.2.0/..."}), encoding="utf-8")
+
+    pages_dir = rd / "pages"
+    pages_dir.mkdir()
+    # pages.json says ["p1", "ghost_page"] but only p1 exists on disk
+    (pages_dir / "pages.json").write_text(
+        json.dumps({"pageOrder": ["p1", "ghost_page"], "activePageName": "p1"}),
+        encoding="utf-8"
+    )
+    (pages_dir / "p1").mkdir()
+    (pages_dir / "p1" / "page.json").write_text(json.dumps({"name": "p1"}), encoding="utf-8")
+
+    r = run_structural(out)
+    codes = {f.code for f in r.findings}
+    assert "report.page_order_mismatch" in codes

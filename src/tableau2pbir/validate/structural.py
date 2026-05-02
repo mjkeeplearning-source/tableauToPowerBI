@@ -61,16 +61,16 @@ def run_structural(out_dir: Path) -> StructuralResult:
                                 location=str(vjson.relative_to(out_dir)),
                             ))
 
-    # Page-order check.
-    report_json = rd / "report.json"
-    if report_json.is_file():
-        order = json.loads(report_json.read_text(encoding="utf-8")).get("pageOrder", [])
-        disk_pages = {p.name for p in (pages_dir.iterdir() if pages_dir.is_dir() else [])}
+    # Page-order check — reads pages/pages.json (schema 3.2.0 format).
+    pages_manifest = rd / "pages" / "pages.json"
+    if pages_manifest.is_file():
+        order = json.loads(pages_manifest.read_text(encoding="utf-8")).get("pageOrder", [])
+        disk_pages = {p.name for p in pages_dir.iterdir() if p.is_dir()} if pages_dir.is_dir() else set()
         if set(order) != disk_pages:
             findings.append(StructuralFinding(
                 code="report.page_order_mismatch", severity="error",
                 message=f"pageOrder {order!r} != on-disk pages {sorted(disk_pages)!r}",
-                location="Report/definition/report.json",
+                location="Report/definition/pages/pages.json",
             ))
 
     # Relationship endpoint check.
