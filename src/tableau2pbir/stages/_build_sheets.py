@@ -14,17 +14,24 @@ def _ref(column_name: str, table_id: str) -> FieldRef:
     return FieldRef(table_id=table_id, column_id=stable_id("", column_name).lstrip("_"))
 
 
+def _is_datasource_marker(name: str) -> bool:
+    """Tableau datasource markers use 'class.hash' format: contains '.' but no ':'."""
+    return "." in name and ":" not in name
+
+
 def _build_encoding(raw_enc: dict[str, Any], table_id: str) -> Encoding:
     def r(name: str | None) -> FieldRef | None:
-        return _ref(name, table_id) if name else None
+        if not name or _is_datasource_marker(name):
+            return None
+        return _ref(name, table_id)
     return Encoding(
-        rows=tuple(_ref(n, table_id) for n in raw_enc.get("rows", ())),
-        columns=tuple(_ref(n, table_id) for n in raw_enc.get("columns", ())),
+        rows=tuple(_ref(n, table_id) for n in raw_enc.get("rows", ()) if not _is_datasource_marker(n)),
+        columns=tuple(_ref(n, table_id) for n in raw_enc.get("columns", ()) if not _is_datasource_marker(n)),
         color=r(raw_enc.get("color")),
         size=r(raw_enc.get("size")),
         label=r(raw_enc.get("label")),
         tooltip=r(raw_enc.get("tooltip")),
-        detail=tuple(_ref(n, table_id) for n in raw_enc.get("detail", ())),
+        detail=tuple(_ref(n, table_id) for n in raw_enc.get("detail", ()) if not _is_datasource_marker(n)),
         shape=r(raw_enc.get("shape")),
         angle=r(raw_enc.get("angle")),
     )

@@ -57,6 +57,29 @@ def test_categorical_filter():
     assert f.include == ('"West"',)
 
 
+def test_datasource_marker_pills_are_filtered_from_encoding():
+    """Pills that are class.hash (dot-separated, no colon) must be dropped."""
+    raw = [{
+        "name": "Sheet 1",
+        "datasource_refs": ("fed.ds",),
+        "mark_type": "bar",
+        "encodings": {
+            "rows": ("federated.17kv7r10vp81pc1g60xgp0re1it8", "usr:DeltaOrder:qk"),
+            "columns": ("federated.17kv7r10vp81pc1g60xgp0re1it8", "none:category:nk"),
+            "color": None, "size": None, "label": None, "tooltip": None,
+            "detail": (), "shape": None, "angle": None,
+        },
+        "filters": [], "sort": [], "dual_axis": False,
+        "reference_lines": [], "quick_table_calcs": [],
+    }]
+    sheets, _ = build_sheets(raw, calc_names=set(), table_id_for_ref={"fed.ds": "tbl__fed"})
+    enc = sheets[0].encoding
+    col_ids = {fr.column_id for fr in enc.rows} | {fr.column_id for fr in enc.columns}
+    assert not any("federated" in cid for cid in col_ids), "marker must be absent"
+    assert len(enc.rows) == 1, "only the real field must remain on rows"
+    assert len(enc.columns) == 1, "only the real field must remain on columns"
+
+
 def test_quick_table_calc_surfaces_deferred_item():
     raw = [{
         "name": "Running", "datasource_refs": ("ds",), "mark_type": "Line",
