@@ -61,6 +61,15 @@ def test_raw_column_falls_back_to_name_when_source_column_none():
     assert "sourceColumn: region" in render_column(col)
 
 
+# ── indentation ─────────────────────────────────────────────────────────────
+def test_column_properties_indented_two_tabs():
+    col = Column(id="c10", name="region", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW, source_column="region")
+    out = render_column(col)
+    assert "\t\tdataType: string" in out, "dataType must be indented 2 tabs under column header"
+    assert "\t\tsourceColumn: region" in out, "sourceColumn must be indented 2 tabs under column header"
+
+
 # ── internal column filter ──────────────────────────────────────────────────
 def test_internal_table_datatype_column_returns_empty():
     col = Column(id="c9", name="__tableau_internal_object_id__", datatype="table",

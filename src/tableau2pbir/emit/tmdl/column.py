@@ -29,5 +29,5 @@ def render_column(col: Column) -> str:
     else:
         src = col.source_column if col.source_column is not None else col.name
         body_lines.append(f"sourceColumn: {src}")
-    body = indent("\n".join(body_lines), "\t")
+    body = indent("\n".join(body_lines), "\t\t")
     return f"\t{head}\n{body}\n"
