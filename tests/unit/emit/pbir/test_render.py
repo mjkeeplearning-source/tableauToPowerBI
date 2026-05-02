@@ -74,6 +74,43 @@ def test_pages_json_contains_page_id(tmp_path: Path):
     assert pages_manifest["activePageName"] == pages_manifest["pageOrder"][0]
 
 
+def test_page_folder_named_report_section(tmp_path: Path):
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    page_dirs = [p for p in (rd / "pages").iterdir() if p.is_dir()]
+    assert len(page_dirs) == 1
+    assert page_dirs[0].name == "ReportSection1", f"got: {page_dirs[0].name}"
+
+
+def test_visual_folder_named_visual_1(tmp_path: Path):
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    page_dirs = [p for p in (rd / "pages").iterdir() if p.is_dir()]
+    visual_dirs = list((page_dirs[0] / "visuals").iterdir())
+    assert len(visual_dirs) == 1
+    assert visual_dirs[0].name == "visual_1", f"got: {visual_dirs[0].name}"
+
+
+def test_visual_projections_have_queryref(tmp_path: Path):
+    """render_report must emit queryRef in every projection."""
+    wb = _wb_one_page_one_visual()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    page_dirs = [p for p in (rd / "pages").iterdir() if p.is_dir()]
+    visual_json = json.loads(
+        (page_dirs[0] / "visuals" / "visual_1" / "visual.json").read_text(encoding="utf-8")
+    )
+    projections = [
+        p
+        for ch in visual_json["visual"]["query"]["queryState"].values()
+        for p in ch["projections"]
+    ]
+    assert all("queryRef" in p for p in projections), "every projection must have queryRef"
+    assert all(p.get("active") is True for p in projections), "every projection must be active"
+
+
 def test_render_writes_page_and_visual(tmp_path: Path):
     wb = _wb_one_page_one_visual()
     manifest = render_report(wb, tmp_path)

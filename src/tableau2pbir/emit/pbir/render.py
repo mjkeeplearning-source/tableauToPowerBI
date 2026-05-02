@@ -16,6 +16,7 @@ from tableau2pbir.emit.pbir.visual import render_visual
 from tableau2pbir.ir.dashboard import Container, Leaf, LeafKind
 from tableau2pbir.ir.workbook import Workbook
 from tableau2pbir.layout.leaf_types import PbiObjectKind, map_leaf_kind
+from tableau2pbir.visualmap.field_lookup import build_field_lookup
 
 
 def render_report(wb: Workbook, out_dir: Path) -> dict:
@@ -24,6 +25,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
     parameter_by_id = {p.id: p for p in wb.data_model.parameters}
     column_to_tier: dict[str, int] = _column_tier_index(wb)
 
+    field_lookup = build_field_lookup(wb)
     page_ids: list[str] = []
     rendered_visuals: list[dict] = []
     sheet_to_visual: dict[str, str] = {}
@@ -31,7 +33,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
     slicer_count = 0
 
     for ordinal, dash in enumerate(wb.dashboards):
-        page_id = stable_id("page", dash.id)
+        page_id = f"ReportSection{ordinal + 1}"
         page_ids.append(page_id)
         page_dir = rd / "pages" / page_id
 
@@ -45,16 +47,17 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
             if obj_kind == PbiObjectKind.DROP:
                 continue
 
-            visual_id = stable_id("visual", page_id, str(z))
-            v_dir = page_dir / "visuals" / visual_id
-
             if obj_kind == PbiObjectKind.VISUAL:
                 sheet_id = leaf.payload.get("sheet_id")
                 sheet = sheet_by_id.get(sheet_id)
                 if sheet is None or sheet.pbir_visual is None:
                     continue
+                visual_count += 1
+                visual_id = f"visual_{visual_count}"
+                v_dir = page_dir / "visuals" / visual_id
                 write_text(v_dir / "visual.json",
-                           render_visual(visual_id, sheet.pbir_visual, leaf.position, z))
+                           render_visual(visual_id, sheet.pbir_visual, leaf.position, z,
+                                         field_lookup))
                 sheet_to_visual[sheet.id] = visual_id
                 field_ids = tuple(b.source_field_id for b in sheet.pbir_visual.encoding_bindings)
                 rendered_visuals.append({
@@ -62,23 +65,26 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                     "field_ids": field_ids,
                 })
                 per_sheet_filters.append(((sheet.id,), list(sheet.filters)))
-                visual_count += 1
 
             elif obj_kind == PbiObjectKind.SLICER_FILTER:
-                source_field_id = leaf.payload.get("field_id", "")
-                write_text(v_dir / "visual.json",
-                           render_filter_slicer(visual_id, source_field_id, leaf.position, z))
                 slicer_count += 1
+                slicer_id = f"slicer_{slicer_count}"
+                s_dir = page_dir / "visuals" / slicer_id
+                source_field_id = leaf.payload.get("field_id", "")
+                write_text(s_dir / "visual.json",
+                           render_filter_slicer(slicer_id, source_field_id, leaf.position, z))
 
             elif obj_kind == PbiObjectKind.SLICER_PARAMETER:
                 pid = leaf.payload.get("parameter_id", "")
                 p = parameter_by_id.get(pid)
                 if p is None:
                     continue
-                write_text(v_dir / "visual.json",
-                           render_parameter_slicer(visual_id, p.name, p.intent.value,
-                                                   leaf.position, z))
                 slicer_count += 1
+                slicer_id = f"slicer_{slicer_count}"
+                s_dir = page_dir / "visuals" / slicer_id
+                write_text(s_dir / "visual.json",
+                           render_parameter_slicer(slicer_id, p.name, p.intent.value,
+                                                   leaf.position, z))
             # TEXTBOX / IMAGE / NAV_BUTTON / PLACEHOLDER / LEGEND_SUPPRESS — v1 skips emission
 
         page_filters = collect_page_filters(per_sheet_filters)

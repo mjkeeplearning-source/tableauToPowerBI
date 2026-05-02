@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 
-from tableau2pbir.emit.pbir.visual import _field_obj
+from tableau2pbir.emit.pbir.visual import _make_projection
 from tableau2pbir.ir.dashboard import Position
 
 
@@ -31,7 +31,7 @@ def _slicer_json(visual_id: str, source_field_id: str, position: Position, z_ord
             "visualType": "slicer",
             "query": {
                 "queryState": {
-                    "Values": {"projections": [{"field": _field_obj(source_field_id)}]},
+                    "Values": {"projections": [_make_projection(source_field_id, {})]},
                 },
             },
             "objects": {},
