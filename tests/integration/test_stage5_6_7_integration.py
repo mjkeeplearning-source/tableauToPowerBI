@@ -69,8 +69,12 @@ def test_full_v1_pipeline_report_artifacts(
 
     rd = out / fixture / "Report" / "definition"
     assert (rd / "report.json").is_file(), "report.json missing"
-    report = json.loads((rd / "report.json").read_text(encoding="utf-8"))
-    assert "pages" in report
+    assert (rd / "pages" / "pages.json").is_file(), "pages/pages.json missing"
+    pages_manifest = json.loads((rd / "pages" / "pages.json").read_text(encoding="utf-8"))
+    assert "pageOrder" in pages_manifest, "pageOrder missing from pages.json"
+    page_dirs = [p for p in (rd / "pages").iterdir() if p.is_dir()]
+    for pd in page_dirs:
+        assert pd.name.startswith("ReportSection"), f"page folder must be ReportSectionN, got {pd.name}"
 
 
 @pytest.mark.integration
