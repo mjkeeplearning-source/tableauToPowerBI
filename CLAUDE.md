@@ -14,6 +14,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | ✅ DONE | `docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md` |
 | 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` |
 | 6 | PBIR Schema Fixes — Desktop-Open Unblocking | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-6-pbir-schema-fixes.md` |
+| 7 | TMDL Column Emission Fix | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-7-tmdl-column-emission.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -22,11 +23,9 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Plan 5 resumes (Plan 6 complete):** All 11 PBIR schema root causes fixed — schema
-versions, `pages/pages.json` manifest, `definition.pbir` cleanup, partition modes,
-calculation captions, and compound aggregate translation. Output verified against
-`simple_join.twb`. Plan 5 (Stage 8 — Package, Validate & Desktop-Open Gate) is now
-the active plan. Execute inline with `superpowers:executing-plans` one task at a time.
+**Plan 5 now active (Plan 7 complete):** Plan 7 fixed all four TMDL column emission bugs
+(DataModel.columns field, sourceColumn emission, Tableau→TMDL datatype map, internal column
+filter) and bumped compatibilityLevel to 1600. Resume Plan 5 from where it left off.
 
 **Pre-Plan-5 bug fixes (2026-05-01):** Before Plan 5 tasks begin, five bugs were
 found opening `simple_join` in PBI Desktop and fixed: (1) TMDL measure `expression:`
