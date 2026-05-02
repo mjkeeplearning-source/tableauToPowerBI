@@ -10,8 +10,8 @@ def test_valid_visual_passes():
     pv = PbirVisual(
         visual_type="clusteredBarChart",
         encoding_bindings=(
-            EncodingBinding(channel="category", source_field_id="t__col__region"),
-            EncodingBinding(channel="value", source_field_id="t__col__sales"),
+            EncodingBinding(channel="Category", source_field_id="t__col__region"),
+            EncodingBinding(channel="Y", source_field_id="t__col__sales"),
         ),
         format={},
     )

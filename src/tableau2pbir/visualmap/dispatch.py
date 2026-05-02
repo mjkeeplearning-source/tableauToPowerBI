@@ -24,76 +24,49 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     color = enc.color
 
     if mark in ("bar", "automatic") and rows and cols:
-        bindings = [_bind("category", rows[0]), _bind("value", cols[0])]
+        # Tableau vertical bar: ROWS=measure (Y axis), COLUMNS=dimension (X axis)
+        bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]
         if color:
-            bindings.append(_bind("series", color))
-        return PbirVisual(
-            visual_type="clusteredBarChart",
-            encoding_bindings=tuple(bindings),
-            format={},
-        )
+            bindings.append(_bind("Series", color))
+        return PbirVisual(visual_type="clusteredBarChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "line" and rows and cols:
-        bindings = [_bind("category", cols[0]), _bind("value", rows[0])]
+        bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]
         if color:
-            bindings.append(_bind("series", color))
-        return PbirVisual(
-            visual_type="lineChart",
-            encoding_bindings=tuple(bindings),
-            format={},
-        )
+            bindings.append(_bind("Series", color))
+        return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "area" and rows and cols:
         return PbirVisual(
             visual_type="areaChart",
-            encoding_bindings=(
-                _bind("category", cols[0]), _bind("value", rows[0]),
-            ),
+            encoding_bindings=(_bind("Category", cols[0]), _bind("Y", rows[0])),
             format={},
         )
 
     if mark in ("circle", "shape", "scatter") and rows and cols:
-        bindings = [_bind("x", cols[0]), _bind("y", rows[0])]
+        bindings = [_bind("X", cols[0]), _bind("Y", rows[0])]
         if enc.size:
-            bindings.append(_bind("size", enc.size))
+            bindings.append(_bind("Size", enc.size))
         if color:
-            bindings.append(_bind("color", color))
-        return PbirVisual(
-            visual_type="scatterChart",
-            encoding_bindings=tuple(bindings),
-            format={},
-        )
+            bindings.append(_bind("Color", color))
+        return PbirVisual(visual_type="scatterChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "pie" and rows:
-        bindings = [_bind("value", rows[0])]
+        bindings = [_bind("Y", rows[0])]
         if color:
-            bindings.insert(0, _bind("category", color))
-        return PbirVisual(
-            visual_type="pieChart",
-            encoding_bindings=tuple(bindings),
-            format={},
-        )
+            bindings.insert(0, _bind("Category", color))
+        return PbirVisual(visual_type="pieChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "text":
-        bindings = []
-        for r in rows:
-            bindings.append(_bind("values", r))
-        for c in cols:
-            bindings.append(_bind("values", c))
+        bindings = [_bind("Values", r) for r in rows] + [_bind("Values", c) for c in cols]
         if not bindings:
             return None
-        return PbirVisual(
-            visual_type="tableEx",
-            encoding_bindings=tuple(bindings),
-            format={},
-        )
+        return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format={})
 
     if mark == "map" and rows and cols:
         return PbirVisual(
             visual_type="filledMap",
-            encoding_bindings=(
-                _bind("location", cols[0]), _bind("value", rows[0]),
-            ),
+            encoding_bindings=(_bind("Location", cols[0]), _bind("Y", rows[0])),
             format={},
         )
 

@@ -23,12 +23,47 @@ def _fr(col: str) -> FieldRef:
 
 
 def test_bar_with_dim_on_rows_and_measure_on_cols():
-    sh = _sheet("bar", rows=(_fr("region"),), cols=(_fr("sales"),))
+    sh = _sheet("bar", rows=(_fr("sales"),), cols=(_fr("region"),))
     pv = dispatch_visual(sh)
     assert pv is not None
     assert pv.visual_type == "clusteredBarChart"
     channels = {b.channel for b in pv.encoding_bindings}
-    assert "category" in channels and "value" in channels
+    assert "Category" in channels and "Y" in channels
+
+
+def test_bar_emits_pbi_channel_names():
+    sh = _sheet("bar", rows=(_fr("sales"),), cols=(_fr("region"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    channels = {b.channel for b in pv.encoding_bindings}
+    assert "Category" in channels and "Y" in channels
+    assert "category" not in channels and "value" not in channels
+
+
+def test_bar_assigns_cols_to_category_and_rows_to_y():
+    """Tableau vertical bar: COLUMNS=dimension→Category, ROWS=measure→Y."""
+    sh = _sheet("bar", rows=(_fr("sales"),), cols=(_fr("region"),))
+    pv = dispatch_visual(sh)
+    cat = next(b.source_field_id for b in pv.encoding_bindings if b.channel == "Category")
+    y_val = next(b.source_field_id for b in pv.encoding_bindings if b.channel == "Y")
+    assert cat == "region"
+    assert y_val == "sales"
+
+
+def test_line_emits_pbi_channel_names():
+    sh = _sheet("line", rows=(_fr("sales"),), cols=(_fr("date"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    channels = {b.channel for b in pv.encoding_bindings}
+    assert "Category" in channels and "Y" in channels
+
+
+def test_scatter_emits_pbi_channel_names():
+    sh = _sheet("circle", rows=(_fr("profit"),), cols=(_fr("sales"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    channels = {b.channel for b in pv.encoding_bindings}
+    assert "X" in channels and "Y" in channels
 
 
 def test_line_chart():
