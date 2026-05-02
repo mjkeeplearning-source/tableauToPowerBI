@@ -31,6 +31,26 @@ def test_replay_returns_dax_when_syntax_passes(tmp_path: Path, monkeypatch):
     assert out["dax_expr"]
 
 
+def test_columns_by_table_included_in_payload(tmp_path: Path, monkeypatch):
+    """translate_via_ai must pass columns_by_table to LLMClient.translate_calc."""
+    captured: dict = {}
+
+    def fake_translate(payload):
+        captured["payload"] = payload
+        return {"dax_expr": "DISTINCTCOUNT('orders'[order_id])", "confidence": "high", "notes": ""}
+
+    client = LLMClient(cache_dir=tmp_path / "cache")
+    monkeypatch.setattr(client, "translate_calc", fake_translate)
+
+    columns_by_table = {"orders": ["order_id", "profit"], "returns": ["order_id", "returned"]}
+    c = _calc("COUNTD([order_id])")
+    out = translate_via_ai(c, fixture=None, client=client, columns_by_table=columns_by_table)
+
+    assert out is not None
+    assert "columns_by_table" in captured["payload"]
+    assert captured["payload"]["columns_by_table"] == columns_by_table
+
+
 def test_replay_drops_when_syntax_fails(tmp_path: Path, monkeypatch):
     """A snapshot whose dax_expr is intentionally malformed must be
     rejected by the gate and return None."""

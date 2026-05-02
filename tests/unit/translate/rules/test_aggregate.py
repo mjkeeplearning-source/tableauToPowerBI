@@ -56,3 +56,36 @@ def test_lowercase_single_sum():
 
 def test_compound_non_agg_returns_none():
     assert translate_aggregate("COUNTD([x]) - [plain_field]") is None
+
+
+# ---------------------------------------------------------------------------
+# col_ref_map qualification
+# ---------------------------------------------------------------------------
+
+def test_single_agg_qualifies_column_with_map():
+    col_ref_map = {"order_id": ("orders", "order_id")}
+    out = translate_aggregate("COUNTD([order_id])", col_ref_map=col_ref_map)
+    assert out == "DISTINCTCOUNT('orders'[order_id])"
+
+
+def test_compound_qualifies_disambiguation_ref():
+    col_ref_map = {
+        "order_id": ("orders", "order_id"),
+        "order_id (returns)": ("returns", "order_id"),
+    }
+    out = translate_aggregate(
+        "COUNTD([order_id]) - COUNTD([order_id (returns)])",
+        col_ref_map=col_ref_map,
+    )
+    assert out == "DISTINCTCOUNT('orders'[order_id]) - DISTINCTCOUNT('returns'[order_id])", out
+
+
+def test_no_map_leaves_refs_unqualified():
+    out = translate_aggregate("COUNTD([order_id]) - COUNTD([order_id (returns)])")
+    assert out == "DISTINCTCOUNT([order_id]) - DISTINCTCOUNT([order_id (returns)])"
+
+
+def test_sum_compound_qualifies_with_map():
+    col_ref_map = {"profit": ("orders", "profit"), "discount": ("orders", "discount")}
+    out = translate_aggregate("SUM([profit]) - SUM([discount])", col_ref_map=col_ref_map)
+    assert out == "SUM('orders'[profit]) - SUM('orders'[discount])"

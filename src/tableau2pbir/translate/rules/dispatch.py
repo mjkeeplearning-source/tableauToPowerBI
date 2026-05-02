@@ -13,7 +13,10 @@ from tableau2pbir.translate.rules.row import translate_row
 
 
 def dispatch_rule(
-    calc: Calculation, *, parameters: tuple[Parameter, ...],
+    calc: Calculation,
+    *,
+    parameters: tuple[Parameter, ...],
+    col_ref_map: dict[str, tuple[str, str]] | None = None,
 ) -> tuple[str | None, str | None]:
     """Return (dax_expr, rule_name).
     `rule_name` records which rule was *attempted* — useful for the stage-3
@@ -30,7 +33,7 @@ def dispatch_rule(
     if calc.kind is CalculationKind.ROW:
         return translate_row(expr), "row"
     if calc.kind is CalculationKind.AGGREGATE:
-        return translate_aggregate(expr), "aggregate"
+        return translate_aggregate(expr, col_ref_map=col_ref_map), "aggregate"
     if calc.kind is CalculationKind.LOD_FIXED:
         # Inject the rewritten expr back into the calc for the lod rule
         # which re-parses {FIXED ... : ...}.

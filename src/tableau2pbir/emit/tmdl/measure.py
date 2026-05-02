@@ -11,5 +11,5 @@ def render_measure(calc: Calculation) -> str:
     if calc.scope != CalculationScope.MEASURE or not calc.dax_expr:
         return ""
     head = "measure " + tmdl_ident(calc.name)
-    body = indent(f"expression: {calc.dax_expr}", "\t")
+    body = indent(f"expression: {calc.dax_expr}", "\t\t")
     return f"\t{head}\n{body}\n"

@@ -13,6 +13,7 @@ from tableau2pbir.ir.workbook import Workbook
 from tableau2pbir.llm.client import LLMClient
 from tableau2pbir.pipeline import StageContext, StageResult
 from tableau2pbir.translate.ai_fallback import translate_via_ai
+from tableau2pbir.translate.col_qualifier import build_col_context
 from tableau2pbir.translate.rules.dispatch import dispatch_rule
 from tableau2pbir.translate.summary import TranslationStats, render_stage3_summary
 from tableau2pbir.translate.syntax_gate import is_valid_dax
@@ -31,6 +32,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         if u.code.startswith("deferred_feature_") or u.code == "calc_cycle"
     }
     parameters: tuple[Parameter, ...] = wb.data_model.parameters
+    col_ref_map, columns_by_table = build_col_context(wb.data_model)
 
     global_lane, per_sheet_lane = partition_lanes(wb.data_model.calculations)
     ordered = (*topo_sort(global_lane), *topo_sort(per_sheet_lane))
@@ -51,7 +53,9 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
             new_calcs_by_id[calc.id] = calc
             continue
 
-        dax, rule_name = dispatch_rule(calc, parameters=parameters)
+        dax, rule_name = dispatch_rule(
+            calc, parameters=parameters, col_ref_map=col_ref_map or None,
+        )
         if dax is not None and is_valid_dax(dax):
             by_source["rule"] = by_source.get("rule", 0) + 1
             if rule_name:
@@ -65,7 +69,10 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         cache_before = sum(
             1 for _ in client.cache.root.iterdir()
         ) if client.cache.root.exists() else 0
-        ai = translate_via_ai(calc, fixture=None, client=client)
+        ai = translate_via_ai(
+            calc, fixture=None, client=client,
+            columns_by_table=columns_by_table or None,
+        )
         cache_after = sum(
             1 for _ in client.cache.root.iterdir()
         ) if client.cache.root.exists() else 0

@@ -122,10 +122,10 @@ The pipeline runner persists `output` to `<n>_<stage>.json` and `summary_md` to 
       version.json                 # REQUIRED: PBIR schema version ("1.0")
       report.json                  # REQUIRED: report-level filters, theme, page order
       pages/                       # REQUIRED: at least one page folder
-        <page_id>/
+        ReportSection1/            # page_id = "ReportSection{N}" (1-indexed)
           page.json                # REQUIRED per page: name, display name, filters
           visuals/
-            <visual_id>/
+            visual_1/              # visual_id = "visual_{N}" (global counter across all pages)
               visual.json          # REQUIRED per visual: position, query, bindings
   SemanticModel/
     definition.pbism               # REQUIRED: semantic model manifest, version "4.0" (TMDL mode)
@@ -195,7 +195,15 @@ Workbook { ir_schema_version, source_path, source_hash, tableau_version, config 
 │   │             # (e.g. "superstore" / "orders"); used by Stage 6 M-expression renderer
 │   │             # to emit Source{[Schema=..., Item=...]}[Data] navigation.
 │   │   └─ columns[]: { id, name, datatype, role (dim|measure),
-│   │                   kind (raw|calculated), tableau_expr?, dax_expr? }
+│   │                   kind (raw|calculated), tableau_expr?, dax_expr?,
+│   │                   source_column? }
+│   │             # source_column = physical DB column name = TMDL column identifier.
+│   │             # For federated-join datasources, Stage 2 sets col.name to the
+│   │             # Tableau logical name (e.g. "order_id (returns)" for the
+│   │             # cross-table disambiguation form) and col.source_column to the
+│   │             # physical DB column (e.g. "order_id"). The TMDL emitter uses
+│   │             # source_column as the TMDL column keyword and DAX identifier;
+│   │             # Stage 3 col qualification must use source_column accordingly.
 │   ├─ relationships[]: { from_table.column, to_table.column, cardinality, cross_filter,
 │   │                     source ('tableau_join'|'tableau_blend'|'cross_db_flatten') }
 │   ├─ calculations[]: Calculation    # see §5.6
@@ -413,6 +421,7 @@ Rationale: in-process M flattening only works well when at least one side is loc
   - **Classify each `Parameter` into an `intent`** using the §5.7 detection table.
   - **Classify each `Datasource` into a `connector_tier`** using the §5.8 matrix; record `pbi_m_connector` and `user_action_required[]`.
   - **Federated single-upstream datasources** (Tableau joined/extracted data with one named connection): Stage 1 extracts `relations[]` (`{name, table, connection}`) from `<relation type='collection'>` children and `col_map{}` from `<cols><map>` elements. Stage 2 uses both to: (a) resolve `connection_params` from `named_connections[0]` rather than the outer federated stub; (b) emit **one `Table` per relation** (not one per datasource), naming each table from `rel.name` and setting `physical_schema`/`physical_table` by parsing `rel.table` (e.g. `[superstore].[orders]` → schema=`superstore`, table=`orders`); (c) assign each datasource column to the correct relation table via `col_map`.
+  - **Datasource marker pill filtering** (`_build_encoding` in `stages/_build_sheets.py`): Tableau shelf text always contains a hidden `[federated.{hash}]` token as the first item on every shelf. After unbracketing, this token takes the form `class.hash` (e.g. `federated.17kv7r10vp81pc1g60xgp0re1it8`) — a dot-separated, colon-free string. It is a datasource identity marker, not a column reference. `_build_encoding` filters out any shelf token where `"." in name and ":" not in name` before constructing `FieldRef` objects. All valid Tableau field pills use `prefix:field_name:type_suffix` colon format (e.g. `none:category:nk`, `usr:DeltaOrder:qk`) and are kept.
   - **Relationships**: `build_relationships()` (in `stages/_build_data_model.py`) takes the `relationships[]` list from Stage 1 and builds `Relationship` IR objects. For each `{left_col, right_col}` pair: merges `col_map{}` from all datasources; resolves each logical column name (e.g. `"order_id"`, `"order_id (returns)"`) to `(table_name, physical_col)` via the merged col_map; looks up the IR `Table.id` for each resolved table name; emits a `Relationship(from_ref, to_ref, cardinality="many_to_one", cross_filter="single", source=TABLEAU_JOIN)`. Defaults to `many_to_one` / single-direction since cardinality is not stored in the Tableau XML. Pairs that cannot be resolved (column not in any col_map, or table not in IR) are silently skipped.
   - Drop tier-C objects to `unsupported[]` with source excerpts.
   - **Synthesise `Dashboard` IR for standalone worksheets:** after `build_dashboards`, collect every sheet ID referenced in any dashboard layout tree. For each `Sheet` whose ID is not in that set, emit a synthetic `Dashboard(size=1280×720, kind="auto")` with a single full-canvas `Leaf(kind=SHEET)`. This ensures every worksheet becomes at least one PBIR page regardless of whether the Tableau author wrapped it in a dashboard. Implementation: `_synthesise_standalone_sheet_dashboards()` in `s02_canonicalize.py`.
@@ -425,16 +434,20 @@ Rationale: in-process M flattening only works well when at least one side is loc
 - **Output:** `03_calcs.json` = IR with `dax_expr` populated on every `Calculation` (including anonymous ones) and calculated `Column`.
 - **Algorithm:**
   - Topo-sort calcs in two lanes: **global** (row, aggregate, lod_fixed, named table_calc) and **per-sheet** (lod_include, lod_exclude, anonymous quick-table-calcs) — global emitted first.
+  - **Column reference qualification**: before dispatching each calc, Stage 3 builds `(col_ref_map, columns_by_table)` once from `DataModel` via `translate.col_qualifier.build_col_context()`:
+    - `col_ref_map` maps every Tableau column reference name (including Tableau's cross-table disambiguation form `"col_name (table_name)"`) to `(table_name, dax_col_name)` where `dax_col_name = Column.source_column` (the physical DB column name / TMDL column identifier). For ambiguous column names (same physical name in multiple tables), the first table in the IR wins the unambiguous entry; all tables register a `"col (table)"` disambiguation entry.
+    - `columns_by_table` maps each table name to its list of `source_column` values; passed to the AI fallback so Claude can qualify column references without guessing.
+    - All rule functions receive `col_ref_map` and call `qualify_bracket_refs()` on aggregate arguments, rewriting `[order_id]` → `'orders'[order_id]` and `[order_id (returns)]` → `'returns'[order_id]`.
   - For each calc: select rule by `kind` × `frame` / `phase`. Rule library covers:
     - `row` — existing arithmetic + string + date rules.
-    - `aggregate` — SUM/AVG/COUNT/MIN/MAX + conditional variants.
+    - `aggregate` — SUM/AVG/COUNT/MIN/MAX + conditional variants; bracket refs qualified via `col_ref_map`.
     - `lod_fixed` — `CALCULATE(<agg>, REMOVEFILTERS(other), KEEPFILTERS(dims))`.
     - `lod_include` / `lod_exclude` — per-sheet viz-LoD expansion using ALLEXCEPT/ALLSELECTED patterns.
     - `table_calc.frame=cumulative` — CALCULATE+FILTER on sort-field ≤ current.
     - `table_calc.frame=rank` — RANKX with ALLEXCEPT(partition_cols).
     - `table_calc.frame=window` — DATESINPERIOD or window measure pattern.
     - `table_calc.frame=lookup` — LOOKUPVALUE or offset measure pattern.
-  - On rule miss → `LLMClient.translate_calc(calc_subset)` → `{dax_expr, confidence, notes}`. Input bundle includes the enriched IR subset (kind, table_calc/lod_fixed/lod_relative, depends_on signatures).
+  - On rule miss → `LLMClient.translate_calc(calc_subset)` → `{dax_expr, confidence, notes}`. Input bundle includes the enriched IR subset (kind, table_calc/lod_fixed/lod_relative, depends_on signatures) **plus `columns_by_table`** so Claude can emit fully table-qualified `'Table'[col]` references.
   - **Syntax gate:** validate output by parsing as DAX (sqlglot tsql dialect or msdax-py). Parse failure → drop to `unsupported[]`. Note: this is syntax only; semantic correctness is verified by §9 layer iv-c on the downstream TMDL.
   - For `lod_include` / `lod_exclude` and anonymous calcs, emit one DAX measure per `(calc, consuming_sheet)` named `<calc_name>__<sheet_safe_name>`.
 - **AI:** structured-output via tool-use; strict output schema `{dax_expr, confidence ∈ {high,medium,low}, notes}`; validator: parses as DAX; per-fixture snapshot; cached by hash.
@@ -446,6 +459,9 @@ Rationale: in-process M flattening only works well when at least one side is loc
 - **Input:** `03_calcs.json`.
 - **Output:** `04_viz_map.json` = IR with each `Sheet` annotated with `pbir_visual` `{visual_type, encoding_bindings[], format}`. Bindings reference per-sheet measure names for LOD INCLUDE/EXCLUDE calcs.
 - **Algorithm:** Python dispatch table on `(mark_type, shelf_signature)` → PBIR visual + encoding plan. Consumes the already-normalized IR — does NOT re-infer semantics. On miss or ambiguity → `LLMClient.map_visual(sheet_subset)`. Output schema enumerates the PBIR visual catalog so the model cannot invent a non-existent visual. Validator: every binding's source field exists in IR; every target slot exists for that visual.
+- **Channel naming:** `EncodingBinding.channel` values must use PBI's exact capitalized channel names — `"Category"`, `"Y"`, `"Series"`, `"X"`, `"Size"`, `"Color"`, `"Details"`, `"Values"`, `"Location"`, `"Tooltips"`. Lowercase equivalents (`"category"`, `"value"`) are rejected by PBI Desktop. The `visualmap/catalog.py` `_SLOTS` dict is the single source of truth; dispatch and the AI fallback tool schema both reference it.
+- **Bar/automatic mark shelf assignment:** In a Tableau vertical bar chart, the MEASURE is placed on the ROWS shelf and the DIMENSION on the COLUMNS shelf — the opposite of the channel assignment one might assume. The dispatch rule for `bar`/`automatic` therefore maps `Category ← enc.columns[0]` (dimension) and `Y ← enc.rows[0]` (measure). Horizontal bar charts (dimension on ROWS, measure on COLUMNS) are not distinguished in v1; the vertical-bar rule is applied consistently.
+- **FieldRef.column_id format:** `EncodingBinding.source_field_id` stores the `FieldRef.column_id` from the sheet encoding, which is a slug of the Tableau pill name (e.g. `none_category_nk`, `usr_calculation_0390937790091264_qk`). These IDs do **not** match DataModel column IDs (which use the format `tbl__{datasource}__{stable_id('col', col.name)}`). The resolution of pill slugs to semantic model names is deferred to Stage 7 via `visualmap/field_lookup.py` (see Stage 7 and §A.6).
 - **AI:** structured-output via tool-use; constrained enum; per-fixture snapshot.
 - **Summary.md:** visual-type histogram; rule-hit vs AI-fallback rate; sheets with low-confidence AI decisions; unsupported mark types.
 - **Tests:** rule-table coverage (each row exercised); AI snapshot per ambiguous-sheet fixture; contract on output.
@@ -477,6 +493,25 @@ Rationale: in-process M flattening only works well when at least one side is loc
 - **Input:** `05_layout.json` (reads stage 4 + stage 3 transitively via IR).
 - **Output:** `./out/<wb>/Report/definition/` tree of PBIR JSON files + `07_pbir.json` manifest.
 - **Algorithm:** For each Tableau dashboard → one PBIR `page/`. For each leaf with a sheet → a PBIR `visual/` using the `pbir_visual` binding from stage 4 + position from stage 5. Filter cards → slicers. Parameter cards → slicers bound to the §5.7-emitted tables. Actions → PBIR `visualInteractions` + bookmark navigation. Workbook-level filters → page filters (promoted to report filter when the same filter applies to all pages). **Emit `blocked_visuals[]`** in the stage manifest: for every rendered-page visual whose backing field traces to a `deferred_feature_*` or `connector_tier == 4` datasource, record `{page_id, visual_id, blocked_by: [unsupported.id, ...]}`. §8.1 consumes this list.
+- **Page and visual folder naming:** Page folders are named `ReportSection{N}` (1-indexed, e.g. `ReportSection1`, `ReportSection2`). Visual folders are named `visual_{N}` with a global counter across all pages (e.g. `visual_1`, `visual_2`). The `name` field inside `page.json` and `visual.json` matches the folder name. PBI Desktop accepts any stable string as the name; human-readable sequential names are used to match the PBIR convention observed in working PBI projects.
+- **Field resolution lookup (`visualmap/field_lookup.py`):** Stage 7 calls `build_field_lookup(wb)` once before emitting visuals. This function bridges the two ID spaces present in the IR:
+  - *Input:* `EncodingBinding.source_field_id` — a slug of a Tableau pill name, e.g. `none_category_nk` for the `category` column, `usr_calculation_0390937790091264_qk` for the `DeltaOrder` measure. These are produced by `stable_id("", raw_pill_name)` in Stage 2's `_build_encoding`.
+  - *Output:* `dict[field_id → {table_name, col_name, is_measure}]` where `table_name` is `Table.name` (e.g. `"orders"`), `col_name` is `Column.name` for raw columns or `Calculation.name` (user display name, e.g. `"DeltaOrder"`) for calculated fields, and `is_measure` is derived from `Column.role`.
+  - *Matching algorithm:* For each `source_field_id`, apply regex `^[a-z]+_(.+)_[a-z]{2}$` to extract the base slug (e.g. `"category"` from `none_category_nk`). Look this up against `slug_id(col.name)` for every column in the DataModel. For calculations, override `col_name` with `Calculation.name` when the base matches `slug_id(calc.id.removeprefix("calc__"))`. Pill IDs that do not match the regex (e.g. datasource markers already filtered by Stage 2) are not resolved and produce no entry.
+- **Visual.json projection format:** Each projection in `visual.json` must include three fields that PBI requires to bind the projection to the semantic model:
+  ```json
+  {
+    "field": {
+      "Column": {                            // or "Measure" for role=measure
+        "Expression": {"SourceRef": {"Entity": "orders"}},   // "Entity" key, not "Source"
+        "Property": "category"               // resolved col_name from field_lookup
+      }
+    },
+    "queryRef": "orders.category",           // "Table.ColumnName" format
+    "active": true
+  }
+  ```
+  `SourceRef` must use the `"Entity"` key (semantic model table name). Using `"Source"` (a query-scope alias) causes PBI to fail to locate the column. `queryRef` is the cross-reference PBI uses to bind the projection to the semantic model; omitting it renders the visual empty. `active: true` enables the projection.
 - **Summary.md:** page count; visual count by type; slicers/filters/actions; bookmark count; `blocked_visuals` count.
 - **Tests:** unit per emitter; golden on PBIR JSON; validity via `pbi-tools compile`.
 
@@ -519,7 +554,7 @@ At LLMClient init time, each method's folder is loaded once; the hash of `(syste
 
 Each method:
 
-1. Build pydantic input bundle from the enriched IR subset (§5.6 / §5.7 data included).
+1. Build pydantic input bundle from the enriched IR subset (§5.6 / §5.7 data included). For `translate_calc`, the bundle additionally includes `columns_by_table: {table_name: [col_name, ...]}` when the DataModel has any tables — this lets Claude emit fully qualified `'Table'[col]` DAX references without guessing the table for each column. (See §6 Stage 3 column-qualification note for how `col_ref_map` and `columns_by_table` are built from the DataModel.)
 2. `cache_key = hash(model + system_prompt_hash + tool_schema_hash + input)`.
 3. If cache hit → return cached parsed output (zero tokens).
 4. If `PYTEST_SNAPSHOT=replay` → return from `tests/llm_snapshots/` (zero network).
@@ -938,3 +973,42 @@ Per-prompt folder structure introduced in §7 and §10: each LLM call site (`tra
    §16's "status rule behavior" section rewritten to point at the new direct triggers rather than the indirect volume-threshold path. Stage 7 output contract updated.
 4. **Finding 4 (corpus split clarification)** — §9 header clarifies it describes the full-roadmap corpus; §16 states the v1 CI subset (~30 of ~50 fixtures) runs on every PR, deferred fixtures live in the same tree, tagged with their flag, and are skipped by default pytest collection. CI matrix jobs (`v1`, `v1.1-preview`, `v1.2-preview`) toggle flag sets.
 5. **Finding 5 (§Stage 5 typo)** — fixed: now `§6 Stage 5`.
+
+### A.6 Visual emission fix (2026-05-02)
+
+Root-cause analysis against a working reference project (`C:\vibe_coding\tabToPbi`) revealed seven compounding bugs that caused all PBIR visuals to be broken in PBI Desktop. Fixed in Plan 8.
+
+**Bug 1 — Datasource marker pills polluting encoding IR** (Stage 2 `_build_sheets.py`).  
+Tableau shelf text contains a hidden `[federated.{hash}]` token as the first item on every shelf. This was being parsed into `FieldRef` objects and becoming `rows[0]`/`cols[0]` in dispatch, overwriting the actual data fields. Fixed by filtering tokens with `"." in name and ":" not in name` in `_build_encoding`. See Stage 2 algorithm note added above.
+
+**Bug 2 — Bar chart shelf assignment reversed** (Stage 4 `dispatch.py`).  
+Dispatch mapped `category ← rows[0]` and `value ← cols[0]`. In Tableau's vertical bar chart convention, ROWS holds the MEASURE and COLUMNS holds the DIMENSION. Fixed to `Category ← cols[0]`, `Y ← rows[0]`.
+
+**Bug 3 — All channel names lowercase** (Stage 4 `catalog.py`, `dispatch.py`).  
+`_SLOTS` used lowercase names (`"category"`, `"value"`, `"x"`, `"y"`, etc.). PBI Desktop requires the exact capitalized forms it defines internally (`"Category"`, `"Y"`, `"X"`, `"Series"`, `"Values"`, `"Location"`, etc.). Updated throughout catalog and dispatch.
+
+**Bug 4 — `SourceRef.Source` instead of `SourceRef.Entity`** (Stage 7 `visual.py`).  
+`Source` is a query-scope alias reference; `Entity` is the semantic model table reference. PBI cannot locate the table with `Source`. Fixed to always emit `{"Entity": table_name}`.
+
+**Bug 5 — Raw IR pill slugs used as `Property`** (Stage 7 `visual.py`, new `field_lookup.py`).  
+`EncodingBinding.source_field_id` contains Tableau pill slugs (e.g. `federated_17kv7r10vp81pc1g60xgp0re1it8`, `none_category_nk`) which are not valid PBI column names. A new `visualmap/field_lookup.py` module bridges pill slugs to semantic model names via regex-based base-slug extraction and DataModel lookup. Used by Stage 7 at render time.
+
+**Bug 6 — `queryRef` and `active` missing from projections** (Stage 7 `visual.py`).  
+PBI uses `queryRef` to bind each projection to its semantic model field; `active: true` enables the projection. Both are required. Fixed in `_make_projection()`.
+
+**Bug 7 — Hex-hash page/visual folder names** (Stage 7 `render.py`).  
+Page folders used `stable_id("page", dash.id)` and visual folders used `stable_id("visual", page_id, str(z))`, producing opaque hex strings. Changed to `ReportSection{N}` and `visual_{N}` (global counter). See §4.4.
+
+### A.5 Column reference qualification fix (2026-05-02)
+
+**Problem.** Stage 3's aggregate rule translated Tableau `COUNTD([order_id]) - COUNTD([order_id (returns)])` to `DISTINCTCOUNT([order_id]) - DISTINCTCOUNT([order_id (returns)])` — bare bracket references that DAX cannot resolve. DAX requires `'Table'[col]` syntax. Additionally, `[order_id (returns)]` is a Tableau disambiguation artifact: the column in the TMDL model is named `order_id` (the physical DB name) inside the `returns` table, not `order_id (returns)`.
+
+**Root cause.** Two gaps:
+1. The aggregate translation rule was a pure text substitution (function rename only) with no access to the DataModel's column→table mapping.
+2. The AI fallback payload contained no table/column context (`columns_by_table` was absent), so Claude could not qualify references even when the rule fell through to AI.
+
+**Fix.** Added `translate/col_qualifier.py`:
+- `build_col_context(DataModel)` builds `(col_ref_map, columns_by_table)` from the DataModel. For each RAW column, `dax_col_name = Column.source_column` (physical DB name = TMDL identifier). Tableau's disambiguation form `"order_id (returns)"` is the col.name for cross-table columns — registered as the key in `col_ref_map` mapping to `("returns", "order_id")`. A `"dax_col (table)"` disambiguation entry is always registered for every column, giving double coverage.
+- `qualify_bracket_refs(expr, col_ref_map)` rewrites `[col_ref]` → `'table'[dax_col]` for all known column refs, using a negative lookbehind `(?<!')` to leave already-qualified `'Table'[col]` forms untouched.
+
+Stage 3 calls `build_col_context` once per workbook and passes `col_ref_map` to `dispatch_rule` (which threads it to `translate_aggregate`) and `columns_by_table` to `translate_via_ai`. The `translate_calc` system prompt documents the `columns_by_table` field and instructs Claude to use it for column qualification. §5.1 updated to document the `source_column` / `name` duality for federated-join columns.

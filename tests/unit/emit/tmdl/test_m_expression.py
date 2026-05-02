@@ -41,6 +41,19 @@ def test_snowflake_tier2_omits_credentials():
     assert "password" not in m.lower()
 
 
+def test_postgres_with_schema_and_table_uses_schema_nav():
+    ds = _ds(
+        tableau_kind="postgres", connector_tier=ConnectorTier.TIER_2,
+        pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "db.example.com", "dbname": "mydb"},
+        user_action_required=("enter credentials",),
+    )
+    m = render_m_expression(ds, table_name="orders",
+                            physical_schema="superstore", physical_table="orders")
+    assert 'PostgreSQL.Database("db.example.com", "mydb")' in m
+    assert '[Schema="superstore", Item="orders"]' in m
+
+
 def test_tier4_emits_error_placeholder():
     ds = _ds(
         tableau_kind="webdata", connector_tier=ConnectorTier.TIER_4,

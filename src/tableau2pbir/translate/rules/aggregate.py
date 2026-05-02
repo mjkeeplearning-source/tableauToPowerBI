@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import re
 
+from tableau2pbir.translate.col_qualifier import qualify_bracket_refs
+
 _AGG_RENAMES = {
     "AVG": "AVERAGE",
     "COUNTD": "DISTINCTCOUNT",
@@ -24,9 +26,14 @@ _TERM_RE = re.compile(
 )
 
 
-def _translate_single(fn: str, arg: str) -> str:
+def _translate_single(
+    fn: str, arg: str,
+    col_ref_map: dict[str, tuple[str, str]] | None = None,
+) -> str:
     dax_fn = _AGG_RENAMES.get(fn.upper(), fn.upper())
     arg = arg.strip()
+    if col_ref_map:
+        arg = qualify_bracket_refs(arg, col_ref_map)
     cond = _COND_INNER_RE.match(arg)
     if cond:
         inner = cond.group("then").strip()
@@ -35,7 +42,10 @@ def _translate_single(fn: str, arg: str) -> str:
     return f"{dax_fn}({arg})"
 
 
-def translate_aggregate(tableau_expr: str) -> str | None:
+def translate_aggregate(
+    tableau_expr: str,
+    col_ref_map: dict[str, tuple[str, str]] | None = None,
+) -> str | None:
     expr = tableau_expr.strip()
 
     # Compound path first: arithmetic of multiple single aggregate calls (e.g. SUM(x) - SUM(y)).
@@ -44,13 +54,13 @@ def translate_aggregate(tableau_expr: str) -> str | None:
     check = _TERM_RE.sub("X", expr)
     if re.fullmatch(r"X(\s*[+\-*/]\s*X)+", check.strip()):
         return _TERM_RE.sub(
-            lambda mo: _translate_single(mo.group("fn"), mo.group("arg")),
+            lambda mo: _translate_single(mo.group("fn"), mo.group("arg"), col_ref_map),
             expr,
         )
 
     # Single aggregate call (including conditional: SUM(IF cond THEN x END)).
     m = _OUTER_RE.match(expr)
     if m:
-        return _translate_single(m.group("fn"), m.group("arg"))
+        return _translate_single(m.group("fn"), m.group("arg"), col_ref_map)
 
     return None

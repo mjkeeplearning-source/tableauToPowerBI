@@ -10,7 +10,12 @@ from tableau2pbir.llm.client import LLMClient
 from tableau2pbir.translate.syntax_gate import is_valid_dax
 
 
-def _calc_subset(calc: Calculation, fixture: str | None) -> dict[str, Any]:
+def _calc_subset(
+    calc: Calculation,
+    fixture: str | None,
+    *,
+    columns_by_table: dict[str, list[str]] | None = None,
+) -> dict[str, Any]:
     """Stable, content-hashable subset for cache keying."""
     payload: dict[str, Any] = {
         "id": calc.id,
@@ -27,16 +32,24 @@ def _calc_subset(calc: Calculation, fixture: str | None) -> dict[str, Any]:
                 for d in calc.lod_fixed.dimensions
             ],
         }
+    if columns_by_table:
+        payload["columns_by_table"] = columns_by_table
     if fixture is not None:
         payload["fixture"] = fixture
     return payload
 
 
 def translate_via_ai(
-    calc: Calculation, *, fixture: str | None, client: LLMClient,
+    calc: Calculation,
+    *,
+    fixture: str | None,
+    client: LLMClient,
+    columns_by_table: dict[str, list[str]] | None = None,
 ) -> dict[str, Any] | None:
     """Returns the validated AI response, or None if the gate fails."""
-    response = client.translate_calc(_calc_subset(calc, fixture))
+    response = client.translate_calc(
+        _calc_subset(calc, fixture, columns_by_table=columns_by_table)
+    )
     if not is_valid_dax(response.get("dax_expr", "")):
         return None
     return response

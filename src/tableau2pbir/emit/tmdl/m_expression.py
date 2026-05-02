@@ -4,7 +4,9 @@ from __future__ import annotations
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
 
 
-def render_m_expression(ds: Datasource, table_name: str) -> str:
+def render_m_expression(ds: Datasource, table_name: str,
+                        physical_schema: str | None = None,
+                        physical_table: str | None = None) -> str:
     if ds.connector_tier == ConnectorTier.TIER_4 or not ds.pbi_m_connector:
         msg = "; ".join(ds.user_action_required) or f"connector {ds.tableau_kind} not supported"
         msg_escaped = msg.replace('"', '\\"')
@@ -16,10 +18,14 @@ def render_m_expression(ds: Datasource, table_name: str) -> str:
         )
 
     src_call = _source_call(ds)
+    if physical_schema and physical_table:
+        nav = f"Source{{[Schema={_string(physical_schema)}, Item={_string(physical_table)}]}}[Data]"
+    else:
+        nav = f"Source{{[Item={_string(table_name)}]}}[Data]"
     return (
         "let\n"
         f"    Source = {src_call},\n"
-        f"    Navigation = Source{{[Item={_string(table_name)}]}}[Data]\n"
+        f"    Navigation = {nav}\n"
         "in\n"
         "    Navigation"
     )
