@@ -15,6 +15,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` |
 | 6 | PBIR Schema Fixes — Desktop-Open Unblocking | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-6-pbir-schema-fixes.md` |
 | 7 | TMDL Column Emission Fix | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-7-tmdl-column-emission.md` |
+| 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -23,18 +24,16 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
 
-**Plan 5 now active (Plan 7 complete):** Plan 7 fixed all four TMDL column emission bugs
-(DataModel.columns field, sourceColumn emission, Tableau→TMDL datatype map, internal column
-filter) and bumped compatibilityLevel to 1600. Resume Plan 5 from where it left off.
+**Plan 8 complete (2026-05-02):** Fixed all 7 visual emission bugs: (1) datasource marker pills
+filtered from Stage 2 encoding; (2) catalog channel names capitalized to PBI-required form;
+(3) dispatch fixed — bar chart COLUMNS→Category, ROWS→Y; (4) new `field_lookup.py` bridges
+pill slugs to semantic model names using `slug_id(col.name)` matching; (5) `render_visual`
+uses `Entity` key, resolved names, `queryRef`, `active`, correct `Column`/`Measure` type;
+(6) page/visual naming changed to `ReportSection{N}`/`visual_{N}`; (7) stale integration
+test assertion fixed. All 439 unit tests + 18 real-workbook E2E tests pass.
 
-**Pre-Plan-5 bug fixes (2026-05-01):** Before Plan 5 tasks begin, five bugs were
-found opening `simple_join` in PBI Desktop and fixed: (1) TMDL measure `expression:`
-indentation (1 tab → 2 tabs); (2) Stage 1 now extracts `<relation>` elements and
-`<cols><map>` from federated datasources; (3) `connection_params` for federated
-resolves from `named_connections[0]` not the stub outer connection; (4) `build_tables`
-emits one `Table` per physical relation (not per datasource) with `physical_schema` /
-`physical_table` fields on the IR; (5) M expression uses schema-qualified navigation
-`Source{[Schema=..., Item=...]}[Data]` for those tables. Full details in plan-5 preamble.
+**Plan 5 now active (Plans 6, 7, 8 complete):** Resume Plan 5 from where it left off.
+Plan 5 covers Stage 8 — Package, Validate & Desktop-Open Gate.
 
 ## Design Spec
 
