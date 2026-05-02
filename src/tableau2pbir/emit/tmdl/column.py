@@ -10,7 +10,7 @@ _DATATYPE_MAP: dict[str, str] = {
     "integer":  "int64",
     "real":     "double",
     "datetime": "dateTime",
-    "date":     "date",
+    "date":     "dateTime",
     "boolean":  "boolean",
     "string":   "string",
 }

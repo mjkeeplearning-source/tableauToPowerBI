@@ -87,7 +87,7 @@ def test_real_workbook_full_pipeline(workbook: Path, tmp_path: Path):
         assert "sourceColumn: order_id" in orders_text, "orders.tmdl missing sourceColumn"
         assert "dataType: int64" in orders_text, "orders.tmdl missing int64 column (row_id)"
         assert "dataType: double" in orders_text, "orders.tmdl missing double column (profit/sales)"
-        assert "dataType: date" in orders_text, "orders.tmdl missing date column (order_date)"
+        assert "dataType: dateTime" in orders_text, "orders.tmdl missing dateTime column (order_date/ship_date)"
         assert "__tableau_internal" not in orders_text, "Tableau internal column leaked into TMDL"
 
 

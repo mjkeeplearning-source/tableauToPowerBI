@@ -47,6 +47,11 @@ def test_datatype_datetime_maps_to_dateTime():
     assert "dataType: dateTime" in render_column(col)
 
 
+def test_datatype_date_maps_to_dateTime():
+    col = Column(id="c11", name="ship_date", datatype="date", role=ColumnRole.DIMENSION, kind=ColumnKind.RAW)
+    assert "dataType: dateTime" in render_column(col), "TMDL has no 'date' type; date must map to dateTime"
+
+
 # ── sourceColumn ────────────────────────────────────────────────────────────
 def test_raw_column_emits_source_column():
     col = Column(id="c7", name="order_id", datatype="string", role=ColumnRole.DIMENSION,
