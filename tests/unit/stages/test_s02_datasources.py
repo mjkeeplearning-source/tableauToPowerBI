@@ -139,3 +139,24 @@ def test_calculation_falls_back_to_internal_name_when_no_caption():
     calcs = result[0]["calculations"]
     assert calcs[0].get("caption") is None
     assert calcs[0]["host_column_name"] == "MyCalc"
+
+
+def test_stage2_datamodel_preserves_columns():
+    """DataModel.columns must be non-empty after Stage 2 runs on a datasource with columns."""
+    from tableau2pbir.stages._build_data_model import build_tables
+    from tableau2pbir.ir.workbook import DataModel
+
+    raw_ds = [{
+        "name": "orders",
+        "connection": {"class": "sqlserver", "server": "srv", "dbname": "db"},
+        "named_connections": [], "extract": None, "relations": [], "col_map": {},
+        "columns": [
+            {"name": "order_id", "datatype": "string", "role": "dimension", "type": "nominal"},
+            {"name": "sales",    "datatype": "real",   "role": "measure",   "type": "quantitative"},
+        ],
+        "calculations": [],
+    }]
+    tables, columns = build_tables(raw_ds)
+    dm = DataModel(tables=tables, columns=columns)
+    assert len(dm.columns) == 2
+    assert any(c.name == "order_id" for c in dm.columns)

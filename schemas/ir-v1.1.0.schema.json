@@ -213,6 +213,90 @@
       "title": "CalculationScope",
       "type": "string"
     },
+    "Column": {
+      "additionalProperties": false,
+      "properties": {
+        "datatype": {
+          "title": "Datatype",
+          "type": "string"
+        },
+        "dax_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dax Expr"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ColumnKind"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/ColumnRole"
+        },
+        "source_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Column"
+        },
+        "tableau_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tableau Expr"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "datatype",
+        "role",
+        "kind"
+      ],
+      "title": "Column",
+      "type": "object"
+    },
+    "ColumnKind": {
+      "enum": [
+        "raw",
+        "calculated"
+      ],
+      "title": "ColumnKind",
+      "type": "string"
+    },
+    "ColumnRole": {
+      "enum": [
+        "dim",
+        "measure"
+      ],
+      "title": "ColumnRole",
+      "type": "string"
+    },
     "ConnectorTier": {
       "description": "Connector classification per \u00a75.8.\n\nTier 1: full fidelity (file/DB connectors emitting real M).\nTier 2: credential placeholders (user enters creds on first Desktop open).\nTier 3: degraded fidelity (cross-DB joins, blends, custom SQL).\nTier 4: unsupported (forces workbook status \u2192 failed).",
       "enum": [
@@ -354,6 +438,14 @@
             "$ref": "#/$defs/Calculation"
           },
           "title": "Calculations",
+          "type": "array"
+        },
+        "columns": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Column"
+          },
+          "title": "Columns",
           "type": "array"
         },
         "datasources": {

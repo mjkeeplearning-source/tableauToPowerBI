@@ -5,7 +5,7 @@ from tableau2pbir.ir.calculation import Calculation
 from tableau2pbir.ir.common import IRBase, UnsupportedItem
 from tableau2pbir.ir.dashboard import Dashboard
 from tableau2pbir.ir.datasource import Datasource
-from tableau2pbir.ir.model import Relationship, Table
+from tableau2pbir.ir.model import Column, Relationship, Table
 from tableau2pbir.ir.parameter import Parameter
 from tableau2pbir.ir.sheet import Sheet
 
@@ -26,6 +26,7 @@ class Set(IRBase):
 class DataModel(IRBase):
     datasources: tuple[Datasource, ...] = ()
     tables: tuple[Table, ...] = ()
+    columns: tuple[Column, ...] = ()              # all Column objects across all tables
     relationships: tuple[Relationship, ...] = ()
     calculations: tuple[Calculation, ...] = ()
     parameters: tuple[Parameter, ...] = ()
