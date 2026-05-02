@@ -101,7 +101,8 @@ def _parse_physical(table_attr: str) -> tuple[str, str]:
 
 
 def _build_column(col: dict[str, Any], col_id: str,
-                  calc_by_host: dict[str, Any]) -> Column:
+                  calc_by_host: dict[str, Any],
+                  source_column: str | None = None) -> Column:
     calc = calc_by_host.get(col["name"])
     if calc is not None:
         return Column(
@@ -115,6 +116,7 @@ def _build_column(col: dict[str, Any], col_id: str,
         id=col_id, name=col["name"],
         datatype=col["datatype"], role=_column_role(col["role"]),
         kind=ColumnKind.RAW,
+        source_column=source_column if source_column is not None else col["name"],
     )
 
 
@@ -145,11 +147,13 @@ def build_tables(
                 # Use a shared prefix derived from ds name so col IDs stay stable.
                 col_prefix = stable_id("tbl", raw["name"])
                 col_id = f"{col_prefix}__{stable_id('col', col['name'])}"
-                owner_table = col_map.get(col["name"], (primary_rel_name, col["name"]))[0]
+                owner_entry = col_map.get(col["name"], (primary_rel_name, col["name"]))
+                owner_table = owner_entry[0]
+                phys_col    = owner_entry[1]
                 if owner_table not in cols_by_table:
                     owner_table = primary_rel_name
                 cols_by_table[owner_table].append(col_id)
-                columns.append(_build_column(col, col_id, calc_by_host))
+                columns.append(_build_column(col, col_id, calc_by_host, source_column=phys_col))
 
             for rel in relations:
                 schema, phys_table = _parse_physical(rel["table"])
@@ -169,7 +173,7 @@ def build_tables(
             for col in raw.get("columns", []):
                 col_id = f"{table_id}__{stable_id('col', col['name'])}"
                 col_ids.append(col_id)
-                columns.append(_build_column(col, col_id, calc_by_host))
+                columns.append(_build_column(col, col_id, calc_by_host, source_column=col["name"]))
             tables.append(Table(
                 id=table_id,
                 name=raw["name"],
