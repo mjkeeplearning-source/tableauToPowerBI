@@ -14,7 +14,7 @@ Structure per datasource:
   ],
   "extract": {"connection": {...}} | None,       # the <extract><connection/> if any
   "columns": [ {"name": str, "datatype": str, "role": str, "type": str | None} ],
-  "calculations": [ {"host_column_name", "tableau_expr", "datatype", "role"} ],
+  "calculations": [ {"host_column_name", "caption", "tableau_expr", "datatype", "role"} ],
 }
 """
 from __future__ import annotations
@@ -116,10 +116,12 @@ def _columns_and_calculations(
         role = attr(col, "role", default="dimension")
         type_ = optional_attr(col, "type")
         cols.append({"name": name, "datatype": datatype, "role": role, "type": type_})
+        caption = optional_attr(col, "caption")
         calc = col.find("calculation")
         if calc is not None:
             calcs.append({
                 "host_column_name": name,
+                "caption": caption,
                 "tableau_expr": attr(calc, "formula"),
                 "datatype": datatype,
                 "role": role,

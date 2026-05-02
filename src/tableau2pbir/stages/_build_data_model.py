@@ -299,7 +299,7 @@ def build_calculations(
 
         out.append(Calculation(
             id=calc_id,
-            name=raw_calc["host_column_name"],
+            name=raw_calc.get("caption") or raw_calc["host_column_name"],
             scope=_scope(raw_calc["role"]),
             tableau_expr=expr,
             dax_expr=None,

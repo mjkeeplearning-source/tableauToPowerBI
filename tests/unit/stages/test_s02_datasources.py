@@ -66,6 +66,24 @@ def test_tier_4_published_emits_unsupported():
     assert unsupported[0].code == "unsupported_datasource_tier_4"
 
 
+def test_federated_single_upstream_uses_named_connection_params():
+    raw = [{
+        "name": "federated.abc",
+        "connection": {"class": "federated"},
+        "named_connections": [
+            {"name": "pg.xyz", "caption": "srv",
+             "connection": {"class": "postgres", "server": "srv.example.com", "dbname": "mydb"}},
+        ],
+        "extract": None, "relations": [], "col_map": {}, "columns": [], "calculations": [],
+    }]
+    datasources, _ = build_datasources(raw)
+    ds = datasources[0]
+    assert ds.connector_tier.value == 2
+    assert ds.pbi_m_connector == "PostgreSQL.Database"
+    assert ds.connection_params.get("server") == "srv.example.com"
+    assert ds.connection_params.get("dbname") == "mydb"
+
+
 def test_extract_ignored_flag_when_hyper_with_upstream():
     raw = [{
         "name": "extract_ds",
@@ -78,3 +96,46 @@ def test_extract_ignored_flag_when_hyper_with_upstream():
     }]
     datasources, _ = build_datasources(raw)
     assert datasources[0].extract_ignored is True
+
+
+from lxml import etree
+from tableau2pbir.extract.datasources import extract_datasources
+
+
+def test_calculation_uses_caption_as_name():
+    xml = b"""<workbook>
+      <datasources>
+        <datasource name="DS">
+          <connection class="postgres" server="localhost" dbname="sales" />
+          <column caption="DeltaOrder" datatype="integer"
+                  name="[Calculation_0390937790091264]" role="measure" type="quantitative">
+            <calculation class="tableau" formula="COUNTD([order_id]) - COUNTD([order_id (returns)])" />
+          </column>
+        </datasource>
+      </datasources>
+    </workbook>"""
+    root = etree.fromstring(xml)
+    result = extract_datasources(root)
+    assert len(result) == 1
+    calcs = result[0]["calculations"]
+    assert len(calcs) == 1
+    assert calcs[0]["caption"] == "DeltaOrder", "caption attribute must be captured"
+    assert calcs[0]["host_column_name"] == "Calculation_0390937790091264"
+
+
+def test_calculation_falls_back_to_internal_name_when_no_caption():
+    xml = b"""<workbook>
+      <datasources>
+        <datasource name="DS">
+          <connection class="postgres" server="localhost" dbname="sales" />
+          <column datatype="integer" name="[MyCalc]" role="measure" type="quantitative">
+            <calculation class="tableau" formula="SUM([x])" />
+          </column>
+        </datasource>
+      </datasources>
+    </workbook>"""
+    root = etree.fromstring(xml)
+    result = extract_datasources(root)
+    calcs = result[0]["calculations"]
+    assert calcs[0].get("caption") is None
+    assert calcs[0]["host_column_name"] == "MyCalc"
