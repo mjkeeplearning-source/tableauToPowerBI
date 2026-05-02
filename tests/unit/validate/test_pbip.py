@@ -56,14 +56,18 @@ def test_writes_definition_pbir(tmp_path: Path):
     data = json.loads(definition_pbir.read_text(encoding="utf-8"))
     assert data["version"] == "4.0"
     assert data["datasetReference"]["byPath"]["path"] == "../SemanticModel"
-    assert data["datasetReference"]["byConnection"] is None
 
 
-def test_definition_pbir_schema_key_present(tmp_path: Path):
+def test_definition_pbir_has_no_schema_key(tmp_path: Path):
     (tmp_path / "Report" / "definition").mkdir(parents=True)
-    (tmp_path / "SemanticModel").mkdir()
-
     write_pbip_root(tmp_path, "Superstore")
-
     data = json.loads((tmp_path / "Report" / "definition.pbir").read_text(encoding="utf-8"))
-    assert "$schema" in data
+    assert "$schema" not in data, "definition.pbir must not have $schema — not in working PBIR format"
+
+
+def test_definition_pbir_has_no_by_connection(tmp_path: Path):
+    (tmp_path / "Report" / "definition").mkdir(parents=True)
+    write_pbip_root(tmp_path, "Superstore")
+    data = json.loads((tmp_path / "Report" / "definition.pbir").read_text(encoding="utf-8"))
+    assert "byConnection" not in data.get("datasetReference", {}), \
+        "definition.pbir must not have byConnection — causes Desktop connection resolver confusion"

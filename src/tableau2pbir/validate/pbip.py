@@ -13,11 +13,9 @@ _PBIP_PAYLOAD = {
 }
 
 _DEFINITION_PBIR_PAYLOAD = {
-    "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
     "version": "4.0",
     "datasetReference": {
         "byPath": {"path": "../SemanticModel"},
-        "byConnection": None,
     },
 }
 
