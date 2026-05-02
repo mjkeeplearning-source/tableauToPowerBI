@@ -45,3 +45,29 @@ def test_csv_table_uses_import_mode():
     )
     out = render_table(name="Sales", columns=[], measures=[], datasource=ds)
     assert "mode: import" in out, "File-based tables must use import partition mode"
+
+
+def test_render_table_emits_column_blocks():
+    ds = Datasource(
+        id="ds1", name="orders",
+        tableau_kind="postgres",
+        connector_tier=ConnectorTier.TIER_1,
+        pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "srv", "dbname": "db"},
+        user_action_required=(),
+        table_ids=(),
+        extract_ignored=False,
+    )
+    cols = [
+        Column(id="c1", name="order_id", datatype="string",  role=ColumnRole.DIMENSION,
+               kind=ColumnKind.RAW, source_column="order_id"),
+        Column(id="c2", name="sales",    datatype="real",    role=ColumnRole.MEASURE,
+               kind=ColumnKind.RAW, source_column="sales"),
+    ]
+    out = render_table(name="orders", columns=cols, measures=[], datasource=ds)
+    assert "column order_id" in out
+    assert "dataType: string" in out
+    assert "sourceColumn: order_id" in out
+    assert "column sales" in out
+    assert "dataType: double" in out
+    assert "sourceColumn: sales" in out

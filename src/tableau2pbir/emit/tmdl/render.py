@@ -10,6 +10,7 @@ from tableau2pbir.emit.tmdl.parameters import render_parameter
 from tableau2pbir.emit.tmdl.relationship import render_relationship
 from tableau2pbir.emit.tmdl.table import render_table
 from tableau2pbir.ir.calculation import CalculationScope
+from tableau2pbir.ir.model import Column
 from tableau2pbir.ir.workbook import Workbook
 
 
@@ -32,18 +33,21 @@ def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
     )
 
     db_name = Path(wb.source_path).stem or "Workbook"
-    write_text(sm / "database.tmdl", render_database(name=db_name))
+    write_text(sm / "database.tmdl", render_database(name=db_name, compatibility_level=1600))
     files.append("database.tmdl")
     write_text(sm / "model.tmdl", render_model())
     files.append("model.tmdl")
 
-    # DataModel has no columns field in v1 — Column objects were discarded in
-    # Stage 2. Tables are rendered without column fragments until that gap is filled.
     primary_table_id = wb.data_model.tables[0].id if wb.data_model.tables else None
     measures_for_table: dict[str, list] = {t.id: [] for t in wb.data_model.tables}
     for calc in wb.data_model.calculations:
         if calc.scope == CalculationScope.MEASURE and calc.dax_expr and primary_table_id:
             measures_for_table[primary_table_id].append(calc)
+
+    col_by_id: dict[str, Column] = {c.id: c for c in wb.data_model.columns}
+    cols_for_table: dict[str, list[Column]] = {}
+    for t in wb.data_model.tables:
+        cols_for_table[t.id] = [col_by_id[cid] for cid in t.column_ids if cid in col_by_id]
 
     table_count = 0
     measure_count = 0
@@ -52,7 +56,8 @@ def render_semantic_model(wb: Workbook, out_dir: Path) -> dict:
         if ds is None:
             continue
         body = render_table(
-            name=t.name, columns=[],
+            name=t.name,
+            columns=cols_for_table.get(t.id, []),
             measures=measures_for_table.get(t.id, []), datasource=ds,
             physical_schema=t.physical_schema,
             physical_table=t.physical_table,
