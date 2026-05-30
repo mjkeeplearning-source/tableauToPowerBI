@@ -13,6 +13,7 @@ def render_page(page_id: str, display_name: str, width: int, height: int,
         "displayOption": "FitToPage",
         "width": width,
         "height": height,
-        "filterConfig": {"filters": filters or []},
     }
+    if filters:
+        obj["filterConfig"] = {"filters": filters}
     return json.dumps(obj, indent=2)
