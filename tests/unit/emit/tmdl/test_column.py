@@ -18,8 +18,10 @@ def test_calculated_column():
         dax_expr="UPPER('Sales'[Region])",
     )
     out = render_column(col)
-    assert "column 'Region Upper'" in out
-    assert "expression: UPPER('Sales'[Region])" in out
+    # TMDL calculated column: declaration line carries = DAX, dataType is sub-property
+    assert "\tcolumn 'Region Upper' = UPPER('Sales'[Region])\n" in out
+    assert "\t\tdataType: string" in out
+    assert "expression:" not in out
 
 
 def test_calculated_column_without_dax_emits_nothing():
