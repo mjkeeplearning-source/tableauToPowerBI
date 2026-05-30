@@ -84,8 +84,9 @@ def test_sum_pill_produces_sum_measure():
     result = collect_implicit_measures(wb)
     assert "orders" in result
     entries = dict(result["orders"])
-    assert "profit" in entries
-    assert entries["profit"] == "SUM('orders'[profit])"
+    # Measure name must be prefixed ("Sum profit"), not the raw column name ("profit")
+    assert "Sum profit" in entries, f"Expected 'Sum profit' key, got: {list(entries)}"
+    assert entries["Sum profit"] == "SUM('orders'[profit])"
 
 
 def test_avg_pill_produces_average_measure():
@@ -95,7 +96,7 @@ def test_avg_pill_produces_average_measure():
     )
     result = collect_implicit_measures(wb)
     entries = dict(result["orders"])
-    assert entries["sales"] == "AVERAGE('orders'[sales])"
+    assert entries["Avg sales"] == "AVERAGE('orders'[sales])"
 
 
 def test_min_max_cnt_cntd_pills():
@@ -108,8 +109,8 @@ def test_min_max_cnt_cntd_pills():
     )
     result = collect_implicit_measures(wb)
     entries = dict(result["orders"])
-    assert entries["quantity"] in ("MIN('orders'[quantity])", "MAX('orders'[quantity])")
-    assert entries["order_id"] in ("COUNT('orders'[order_id])", "DISTINCTCOUNT('orders'[order_id])")
+    assert "Min quantity" in entries or "Max quantity" in entries
+    assert "Count order_id" in entries or "Count Distinct order_id" in entries
 
 
 def test_dimension_pill_nk_suffix_is_skipped():
@@ -140,12 +141,13 @@ def test_duplicate_pill_across_bindings_emits_one_measure():
     )
     result = collect_implicit_measures(wb)
     assert len(result["orders"]) == 1
+    assert result["orders"][0][0] == "Sum sales"
 
 
-def test_skips_if_explicit_calc_name_matches():
-    """If a Calculation already exists with the same name, no implicit measure emitted."""
+def test_skips_if_explicit_calc_name_matches_prefixed_name():
+    """If a Calculation named 'Sum profit' already exists, no implicit measure emitted."""
     calc = Calculation(
-        id="calc__profit", name="profit",
+        id="calc__sum_profit", name="Sum profit",
         scope=CalculationScope.MEASURE,
         tableau_expr="SUM([profit])",
         dax_expr="SUM('orders'[profit])",

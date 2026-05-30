@@ -58,14 +58,15 @@ def collect_implicit_measures(wb: Workbook) -> dict[str, list[tuple[str, str]]]:
             if info is None:
                 continue
             table_name: str = info["table_name"]
-            col_name: str = info["col_name"]
-            if col_name in existing_calc_names:
+            col_name: str = info["col_name"]         # physical column for DAX expression
+            measure_name: str = info.get("measure_name") or col_name  # display name for TMDL block
+            if measure_name in existing_calc_names:
                 continue
-            key = (table_name, col_name)
+            key = (table_name, measure_name)
             if key in seen:
                 continue
             seen.add(key)
             dax_expr = f"{dax_func}('{table_name}'[{col_name}])"
-            result.setdefault(table_name, []).append((col_name, dax_expr))
+            result.setdefault(table_name, []).append((measure_name, dax_expr))
 
     return result

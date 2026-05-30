@@ -81,3 +81,61 @@ def test_returns_empty_for_workbook_with_no_sheets():
     wb = _make_wb()
     wb2 = wb.model_copy(update={"sheets": ()})
     assert build_field_lookup(wb2) == {}
+
+
+def _make_wb_with_raw_measure_pill() -> Workbook:
+    """Workbook with a plain numeric column used via SUM aggregation pill."""
+    col_profit = Column(
+        id="tbl__orders__col__profit", name="profit",
+        datatype="double", role=ColumnRole.MEASURE, kind=ColumnKind.RAW,
+        source_column="profit",
+    )
+    table = Table(
+        id="tbl__orders", name="orders", datasource_id="ds1",
+        column_ids=("tbl__orders__col__profit",),
+    )
+    ds = Datasource(
+        id="ds1", name="DS", tableau_kind="postgres",
+        connector_tier=ConnectorTier.TIER_1, pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "srv", "dbname": "db"}, user_action_required=(),
+        table_ids=("tbl__orders",), extract_ignored=False,
+    )
+    sheet = Sheet(
+        id="s1", name="Sheet 1", datasource_refs=("ds1",), mark_type="bar",
+        encoding=Encoding(
+            rows=(FieldRef(table_id="tbl__orders", column_id="sum_profit_qk"),),
+        ),
+        filters=(), sort=(), dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="a",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(
+            datasources=(ds,), tables=(table,),
+            columns=(col_profit,), calculations=(),
+        ),
+        sheets=(sheet,), dashboards=(), unsupported=(),
+    )
+
+
+def test_raw_measure_pill_has_prefixed_measure_name():
+    """sum_profit_qk must resolve measure_name='Sum profit', col_name='profit'."""
+    lookup = build_field_lookup(_make_wb_with_raw_measure_pill())
+    assert "sum_profit_qk" in lookup
+    info = lookup["sum_profit_qk"]
+    assert info["col_name"] == "profit"          # physical column name unchanged
+    assert info["measure_name"] == "Sum profit"  # prefixed display name
+
+
+def test_dimension_pill_measure_name_equals_col_name():
+    """Dimension pills must have measure_name == col_name (no prefix added)."""
+    lookup = build_field_lookup(_make_wb())
+    info = lookup["none_category_nk"]
+    assert info["measure_name"] == info["col_name"] == "category"
+
+
+def test_user_calc_pill_measure_name_equals_display_name():
+    """usr_ prefix (user calc) must not get an agg prefix — measure_name == col_name."""
+    lookup = build_field_lookup(_make_wb())
+    info = lookup["usr_calculation_01_qk"]
+    assert info["measure_name"] == info["col_name"] == "Revenue"

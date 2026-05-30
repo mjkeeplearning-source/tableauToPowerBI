@@ -38,24 +38,25 @@ def _make_projection(field_id: str, field_lookup: dict) -> dict:
     info = field_lookup.get(field_id)
     if info:
         table_name = info["table_name"]
-        col_name = info["col_name"]
         is_measure = info["is_measure"]
+        # measure_name is the PBI display name (e.g. "Sum profit"); fall back to col_name
+        prop_name = info.get("measure_name") or info["col_name"]
     elif "." in field_id:
         # Fallback for dot-qualified test fixtures like "Sales.Region"
-        table_name, col_name = field_id.split(".", 1)
+        table_name, prop_name = field_id.split(".", 1)
         is_measure = False
     else:
         table_name = "Model"
-        col_name = field_id
+        prop_name = field_id
         is_measure = True
     field_type = "Measure" if is_measure else "Column"
     return {
         "field": {
             field_type: {
                 "Expression": {"SourceRef": {"Entity": table_name}},
-                "Property": col_name,
+                "Property": prop_name,
             }
         },
-        "queryRef": f"{table_name}.{col_name}",
+        "queryRef": f"{table_name}.{prop_name}",
         "active": True,
     }

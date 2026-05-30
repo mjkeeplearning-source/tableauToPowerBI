@@ -119,3 +119,39 @@ def test_text_mark_to_table():
 def test_unsupported_mark_returns_none():
     sh = _sheet("polygon", rows=(_fr("x"),))
     assert dispatch_visual(sh) is None
+
+
+def test_column_chart_multi_measure_rows_all_bound_to_y():
+    """Two measures on ROWS shelf must both appear in Y channel — not just the first."""
+    sh = _sheet("automatic", rows=(_fr("sum_profit_qk"), _fr("sum_sales_qk")), cols=(_fr("region_nk"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "columnChart"
+    y_fields = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Y"]
+    assert "sum_profit_qk" in y_fields
+    assert "sum_sales_qk" in y_fields
+    assert len(y_fields) == 2
+
+
+def test_line_chart_multi_measure_rows_all_bound_to_y():
+    """Two measures on ROWS shelf of a line chart must both appear in Y channel."""
+    sh = _sheet("line", rows=(_fr("sum_sales_qk"), _fr("sum_profit_qk")), cols=(_fr("date_nk"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "lineChart"
+    y_fields = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Y"]
+    assert "sum_sales_qk" in y_fields
+    assert "sum_profit_qk" in y_fields
+    assert len(y_fields) == 2
+
+
+def test_horizontal_bar_multi_measure_cols_all_bound_to_y():
+    """Two measures on COLS shelf of a horizontal bar chart must both appear in Y channel."""
+    sh = _sheet("automatic", rows=(_fr("region_nk"),), cols=(_fr("sum_sales_qk"), _fr("sum_profit_qk")))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "barChart"
+    y_fields = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Y"]
+    assert "sum_sales_qk" in y_fields
+    assert "sum_profit_qk" in y_fields
+    assert len(y_fields) == 2

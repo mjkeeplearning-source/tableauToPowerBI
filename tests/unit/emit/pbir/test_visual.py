@@ -63,6 +63,30 @@ def test_projection_has_query_ref_and_active():
     assert proj["field"]["Measure"]["Property"] == "DeltaOrder"
 
 
+def test_projection_uses_measure_name_not_col_name_for_aggregated_field():
+    """When field_lookup contains measure_name, Property and queryRef must use it."""
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Y", source_field_id="sum_profit_qk"),
+        ),
+        format={},
+    )
+    lookup = {
+        "sum_profit_qk": {
+            "table_name": "orders",
+            "col_name": "profit",
+            "measure_name": "Sum profit",
+            "is_measure": True,
+        }
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup=lookup))
+    proj = obj["visual"]["query"]["queryState"]["Y"]["projections"][0]
+    assert proj["field"]["Measure"]["Property"] == "Sum profit"
+    assert proj["queryRef"] == "orders.Sum profit"
+
+
 def test_visual_json_has_position_and_query():
     pos = Position(x=10, y=20, w=400, h=300)
     out = render_visual(visual_id="v1", pbir_visual=_bar_visual(), position=pos, z_order=0)

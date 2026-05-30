@@ -27,18 +27,18 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     if mark in ("bar", "automatic") and rows and cols:
         # Horizontal bar: Tableau places measure on COLUMNS shelf, dimension on ROWS
         if _is_measure(cols[0]) and not _is_measure(rows[0]):
-            bindings = [_bind("Category", rows[0]), _bind("Y", cols[0])]
+            bindings = [_bind("Category", rows[0])] + [_bind("Y", c) for c in cols]
             if color:
                 bindings.append(_bind("Series", color))
             return PbirVisual(visual_type="barChart", encoding_bindings=tuple(bindings), format={})
-        # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure→Y
-        bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]
+        # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure(s)→Y
+        bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
         return PbirVisual(visual_type="columnChart", encoding_bindings=tuple(bindings), format={})
 
     if mark == "line" and rows and cols:
-        bindings = [_bind("Category", cols[0]), _bind("Y", rows[0])]
+        bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
         return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), format={})

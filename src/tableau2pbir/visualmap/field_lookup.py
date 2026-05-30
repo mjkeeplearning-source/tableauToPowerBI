@@ -16,7 +16,21 @@ from tableau2pbir.util.ids import slug_id
 # Matches Tableau pill slugs: {prefix}_{body}_{2_alpha_suffix}
 # e.g. none_category_nk, usr_calculation_01_qk
 # Does NOT match datasource markers like federated_17kv...8 (end in digit, not alpha)
-_PILL_RE = re.compile(r'^[a-z]+_(.+)_[a-z]{2}$')
+_PILL_RE = re.compile(r'^([a-z]+)_(.+)_([a-z]{2})$')
+
+# Aggregation prefixes that denote an implicit measure on a plain column.
+# usr/none/yr/qr/mn/wk/dy/hr are dimension or user-calc prefixes — no display prefix.
+_AGG_PREFIX_DISPLAY: dict[str, str] = {
+    "sum":  "Sum",
+    "avg":  "Avg",
+    "min":  "Min",
+    "max":  "Max",
+    "cnt":  "Count",
+    "cntd": "Count Distinct",
+    "med":  "Median",
+}
+
+_MEASURE_SUFFIX = "qk"
 
 
 def build_field_lookup(wb: Workbook) -> dict[str, dict]:
@@ -58,7 +72,20 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
             if field_id in lookup:
                 continue
             m = _PILL_RE.match(field_id)
-            if m and m.group(1) in by_base:
-                lookup[field_id] = by_base[m.group(1)]
+            if not m:
+                continue
+            prefix, body, suffix = m.group(1), m.group(2), m.group(3)
+            if body not in by_base:
+                continue
+            base = by_base[body]
+            col_name = base["col_name"]
+            # For implicit aggregation pills (e.g. sum_profit_qk), build the
+            # display measure name that PBI uses: "Sum profit", "Avg sales", etc.
+            # User-calc pills (usr_) and dimension pills keep col_name as-is.
+            if suffix == _MEASURE_SUFFIX and prefix in _AGG_PREFIX_DISPLAY:
+                measure_name = f"{_AGG_PREFIX_DISPLAY[prefix]} {col_name}"
+            else:
+                measure_name = col_name
+            lookup[field_id] = {**base, "measure_name": measure_name}
 
     return lookup
