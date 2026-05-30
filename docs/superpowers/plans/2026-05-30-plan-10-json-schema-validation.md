@@ -1,6 +1,6 @@
 # Plan 10 — JSON Schema Validation Against Official Microsoft PBI Schemas
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Execution method:** superpowers:subagent-driven-development — fresh subagent per task, two-stage review (spec compliance then code quality) after each task.
 
 **Goal:** Add a new `run_json_schema` validator to Stage 8 that auto-discovers every PBIR JSON output file, validates it against its declared Microsoft `$schema` URL using bundled schemas, and reports violations as soft warnings without blocking pipeline status.
 

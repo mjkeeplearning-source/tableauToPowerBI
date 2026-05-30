@@ -17,6 +17,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 7 | TMDL Column Emission Fix | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-7-tmdl-column-emission.md` |
 | 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
 | 9 | TMDL Syntax Fixes — PBI Desktop Openability | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-9-tmdl-syntax-fixes.md` |
+| 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -38,6 +39,13 @@ now emits `= DAX` inline syntax; (2) `column.py` now emits `= DAX` inline for ca
 columns with multiline DAX support; (3) `page.py` omits `filterConfig` when no filters;
 (4) `model.py` stripped to minimal properties only. PBI Desktop can now open converted
 output. Plan 5 resumes next.
+
+**Plan 10 active (2026-05-30):** Adding JSON schema validation against official Microsoft PBI
+schemas. New `validate/json_schema.py` auto-discovers all `*.json` output files and validates
+each against its declared `$schema` URL using bundled schemas (two-tier cache: user cache →
+`validate/_schemas/` fallback). Violations reported as soft warnings. New `tableau2pbir
+refresh-schemas` CLI command updates user cache from Microsoft CDN. Execution: subagent-driven
+development.
 
 ## Design Spec
 
