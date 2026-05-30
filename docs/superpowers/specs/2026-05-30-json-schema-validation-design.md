@@ -27,6 +27,7 @@ The current project emits PBIR JSON files with `$schema` fields pointing to the 
 - TMDL file validation (plain text, not JSON — handled by `tmdl_schema.py` via TabularEditor 2)
 - Hard-blocking the pipeline on schema violations (deferred until validator is validated against real workbooks)
 - Validating files outside the converter's output directory
+- Validating `definition.pbir` — the current emitter (`validate/pbip.py`) does not include a `$schema` field in that file, so Approach A skips it. Adding `$schema` to `definition.pbir` is a gap to close in a future plan.
 
 ---
 
@@ -66,7 +67,12 @@ The validator checks the user cache first (freshest), falls back to bundled (off
     {
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
       "file": "report-visualContainer-1.0.0.json",
-      "description": "visual.json — visual container definition"
+      "description": "visual.json — visual container definition (charts, maps)"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+      "file": "report-visualContainer-2.0.0.json",
+      "description": "visual.json — visual container definition (slicers)"
     },
     {
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
@@ -74,8 +80,8 @@ The validator checks the user cache first (freshest), falls back to bundled (off
       "description": "page.json — report page definition"
     },
     {
-      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
-      "file": "report-report-1.0.0.json",
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.2.0/schema.json",
+      "file": "report-report-3.2.0.json",
       "description": "report.json — report-level metadata"
     },
     {
@@ -87,11 +93,6 @@ The validator checks the user cache first (freshest), falls back to bundled (off
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/versionMetadata/1.0.0/schema.json",
       "file": "report-versionMetadata-1.0.0.json",
       "description": "version.json — PBIR format version"
-    },
-    {
-      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
-      "file": "report-definitionProperties-2.0.0.json",
-      "description": "definition.pbir — report definition and dataset reference"
     },
     {
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definitionProperties/1.0.0/schema.json",
@@ -222,6 +223,16 @@ dependencies = [
 
 No other new runtime dependencies. `urllib.request` is stdlib.
 
+The `_schemas/` directory contains non-Python package data and must be declared in `pyproject.toml` so it is included in the installed package. Under hatch this requires adding an `include` entry for the wheel target:
+
+```toml
+[tool.hatch.build.targets.wheel]
+packages = ["src/tableau2pbir"]
+artifacts = ["src/tableau2pbir/validate/_schemas"]
+```
+
+Without this, the bundled fallback schemas will be absent in installed environments and every validation run will produce `schema.not_cached` findings.
+
 ---
 
 ## 10. Tests
@@ -281,11 +292,11 @@ After this plan ships:
 |------|--------|
 | `src/tableau2pbir/validate/json_schema.py` | New — validator module |
 | `src/tableau2pbir/validate/_schemas/manifest.json` | New — schema URL manifest |
-| `src/tableau2pbir/validate/_schemas/*.json` | New — 7 bundled schema files |
+| `src/tableau2pbir/validate/_schemas/*.json` | New — 8 bundled schema files (visualContainer 1.0.0 + 2.0.0, page, report 3.2.0, pagesMetadata, versionMetadata, definition.pbism) |
 | `src/tableau2pbir/validate/results.py` | Add `SchemaFinding`, `SchemaValidationResult` |
 | `src/tableau2pbir/stages/s08_package_validate.py` | Call `run_json_schema`, add to validators dict |
 | `src/tableau2pbir/cli.py` | Add `refresh-schemas` subcommand |
-| `pyproject.toml` | Add `jsonschema>=4.0,<5.0` |
+| `pyproject.toml` | Add `jsonschema>=4.0,<5.0`; add `_schemas/` to wheel artifacts |
 | `tests/unit/validate/test_json_schema.py` | New — 8 unit tests |
 | `tests/unit/validate/test_refresh_schemas.py` | New — 5 unit tests |
 | `tests/unit/validate/test_schema_cache.py` | New — 3 unit tests |
