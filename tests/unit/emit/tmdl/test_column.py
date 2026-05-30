@@ -24,6 +24,21 @@ def test_calculated_column():
     assert "expression:" not in out
 
 
+def test_calculated_column_multiline_dax():
+    col = Column(
+        id="c3", name="Flag", datatype="boolean",
+        role=ColumnRole.DIMENSION, kind=ColumnKind.CALCULATED,
+        tableau_expr="IF [x] > 0 THEN TRUE ELSE FALSE END",
+        dax_expr="IF(\n    'T'[x] > 0,\n    TRUE(),\n    FALSE()\n)",
+    )
+    out = render_column(col)
+    lines = out.splitlines()
+    assert lines[0] == "\tcolumn Flag ="
+    assert lines[1] == "\t\t\tIF("
+    assert "expression:" not in out
+    assert "\t\tdataType: boolean" in out
+
+
 def test_calculated_column_without_dax_emits_nothing():
     col = Column(
         id="c3", name="Skip Me", datatype="string",

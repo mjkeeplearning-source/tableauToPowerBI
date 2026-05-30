@@ -26,8 +26,18 @@ def render_column(col: Column) -> str:
         col_name = col.name
         name_q = tmdl_ident(col_name)
         dax = col.dax_expr.strip()
+        if not dax:
+            return ""
         body = indent(f"dataType: {tmdl_type}", "\t\t")
-        return f"\tcolumn {name_q} = {dax}\n{body}\n"
+        if "\n" not in dax:
+            return f"\tcolumn {name_q} = {dax}\n{body}\n"
+        dax_lines = [f"\tcolumn {name_q} ="]
+        for line in dax.splitlines():
+            if not line.strip():
+                dax_lines.append("")
+            else:
+                dax_lines.append("\t\t\t" + line.lstrip())
+        return "\n".join(dax_lines) + "\n" + body + "\n"
     col_name = col.source_column if col.source_column is not None else col.name
     body_lines = [f"dataType: {tmdl_type}", f"sourceColumn: {col_name}"]
     head = "column " + tmdl_ident(col_name)
