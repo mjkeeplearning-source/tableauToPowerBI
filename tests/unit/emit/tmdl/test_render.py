@@ -130,8 +130,11 @@ def test_implicit_measure_emitted_in_tmdl(tmp_path: Path):
     wb = _wb_with_sum_pill_visual()
     render_semantic_model(wb, tmp_path)
     tmdl = (tmp_path / "SemanticModel" / "definition" / "tables" / "orders.tmdl").read_text()
-    assert "measure profit" in tmdl, "Expected implicit measure 'profit' in orders.tmdl"
-    assert "SUM('orders'[profit])" in tmdl
+    assert "measure 'Sum profit' = SUM('orders'[profit])" in tmdl, (
+        f"Measure must use inline '= DAX' syntax, got:\n{tmdl}"
+    )
+    assert "expression:" not in tmdl, "TMDL must not use 'expression:' sub-property for measures"
+    assert "measure profit\n" not in tmdl, "Raw column name must not be a measure name"
 
 
 def test_implicit_measure_count_in_manifest(tmp_path: Path):

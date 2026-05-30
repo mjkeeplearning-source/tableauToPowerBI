@@ -1,8 +1,6 @@
 """Render a measure block (nested under a table)."""
 from __future__ import annotations
 
-from textwrap import indent
-
 from tableau2pbir.emit.tmdl.escape import tmdl_ident
 from tableau2pbir.ir.calculation import Calculation, CalculationScope
 
@@ -10,6 +8,15 @@ from tableau2pbir.ir.calculation import Calculation, CalculationScope
 def render_measure(calc: Calculation) -> str:
     if calc.scope != CalculationScope.MEASURE or not calc.dax_expr:
         return ""
-    head = "measure " + tmdl_ident(calc.name)
-    body = indent(f"expression: {calc.dax_expr}", "\t\t")
-    return f"\t{head}\n{body}\n"
+    name_q = tmdl_ident(calc.name)
+    dax = calc.dax_expr.strip()
+    if "\n" not in dax:
+        return f"\tmeasure {name_q} = {dax}\n"
+    lines = [f"\tmeasure {name_q} ="]
+    for line in dax.splitlines():
+        if not line.strip():
+            lines.append("")
+        else:
+            leading = len(line) - len(line.lstrip())
+            lines.append("\t\t\t" + " " * leading + line.lstrip())
+    return "\n".join(lines) + "\n"
