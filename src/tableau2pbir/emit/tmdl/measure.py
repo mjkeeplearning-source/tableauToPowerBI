@@ -10,6 +10,8 @@ def render_measure(calc: Calculation) -> str:
         return ""
     name_q = tmdl_ident(calc.name)
     dax = calc.dax_expr.strip()
+    if not dax:
+        return ""
     if "\n" not in dax:
         return f"\tmeasure {name_q} = {dax}\n"
     lines = [f"\tmeasure {name_q} ="]
@@ -17,6 +19,5 @@ def render_measure(calc: Calculation) -> str:
         if not line.strip():
             lines.append("")
         else:
-            leading = len(line) - len(line.lstrip())
-            lines.append("\t\t\t" + " " * leading + line.lstrip())
+            lines.append("\t\t\t" + line.lstrip())
     return "\n".join(lines) + "\n"
