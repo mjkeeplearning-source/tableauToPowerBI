@@ -14,6 +14,6 @@ def render_page(page_id: str, display_name: str, width: int, height: int,
         "width": width,
         "height": height,
     }
-    if filters:
+    if filters:  # omit key for empty or None — PBI schema 2.1.0 rejects empty filterConfig
         obj["filterConfig"] = {"filters": filters}
     return json.dumps(obj, indent=2)

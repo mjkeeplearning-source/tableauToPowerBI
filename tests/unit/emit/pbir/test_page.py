@@ -39,3 +39,9 @@ def test_page_json_filter_config_present_when_filters_given():
     obj = json.loads(out)
     assert "filterConfig" in obj
     assert obj["filterConfig"]["filters"] == filters
+
+
+def test_page_json_no_filter_config_when_filters_empty_list():
+    out = render_page(page_id="p1", display_name="Revenue", width=1280, height=720, filters=[])
+    obj = json.loads(out)
+    assert "filterConfig" not in obj
