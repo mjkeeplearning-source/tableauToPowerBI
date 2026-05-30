@@ -12,10 +12,11 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 2 | Stage 1 & 2 — Extract + Canonicalize → IR | ✅ DONE | `docs/superpowers/plans/2026-04-24-plan-2-extract-canonicalize.md` |
 | 3 | Stage 3 & 4 — Calc Translation + Visual Mapping | ✅ DONE | `docs/superpowers/plans/2026-04-26-plan-3-calc-translation-visual-mapping.md` |
 | 4 | Stage 5, 6 & 7 — Layout, TMDL + PBIR Emission | ✅ DONE | `docs/superpowers/plans/2026-04-29-plan-4-layout-tmdl-pbir-emission.md` |
-| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` |
+| 5 | Stage 8 — Package, Validate & Desktop-Open Gate | ⏸ HALTED | `docs/superpowers/plans/2026-05-01-plan-5-package-validate-desktop-gate.md` |
 | 6 | PBIR Schema Fixes — Desktop-Open Unblocking | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-6-pbir-schema-fixes.md` |
 | 7 | TMDL Column Emission Fix | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-7-tmdl-column-emission.md` |
 | 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
+| 9 | TMDL Syntax Fixes — PBI Desktop Openability | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-9-tmdl-syntax-fixes.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -32,8 +33,11 @@ uses `Entity` key, resolved names, `queryRef`, `active`, correct `Column`/`Measu
 (6) page/visual naming changed to `ReportSection{N}`/`visual_{N}`; (7) stale integration
 test assertion fixed. All 439 unit tests + 18 real-workbook E2E tests pass.
 
-**Plan 5 now active (Plans 6, 7, 8 complete):** Resume Plan 5 from where it left off.
-Plan 5 covers Stage 8 — Package, Validate & Desktop-Open Gate.
+**Plan 9 complete (2026-05-30):** Fixed all four TMDL/PBIR emission bugs: (1) `measure.py`
+now emits `= DAX` inline syntax; (2) `column.py` now emits `= DAX` inline for calculated
+columns with multiline DAX support; (3) `page.py` omits `filterConfig` when no filters;
+(4) `model.py` stripped to minimal properties only. PBI Desktop can now open converted
+output. Plan 5 resumes next.
 
 ## Design Spec
 
