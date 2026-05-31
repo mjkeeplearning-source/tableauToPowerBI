@@ -49,7 +49,7 @@ tableau2pbir regression-add tests/golden/real/simple_join.twb --notes "baseline 
 
 1. Run full 8-stage pipeline into a temp directory. Abort on non-zero exit.
 2. Copy all `.tmdl` and `.json` files from `SemanticModel/` and `Report/definition/` into `tests/regression/snapshots/<name>/`, preserving the relative directory tree.
-3. Append an entry to `tests/regression/corpus.yaml` (name derived from workbook stem, path as given, `added_by` from `git config user.name`, `added_on` = today, notes from `--notes`).
+3. Append an entry to `tests/regression/corpus.yaml` (name derived from workbook stem, path as given, `added_by` from `git config user.name`, `added_on` = today, notes from `--notes` or empty string if omitted).
 4. Print: `Registered <name> — N TMDL files, M PBIR JSON files snapshotted`.
 
 **Guard:** If the workbook name is already in `corpus.yaml`, abort with an error. No silent overwrites.
@@ -62,11 +62,12 @@ tableau2pbir regression-check simple_join  # single workbook by name
 ```
 
 Per workbook:
-1. Run full 8-stage pipeline into a temp directory.
-2. For each file in `tests/regression/snapshots/<name>/`, locate the corresponding file in the temp output.
+1. Run full 8-stage pipeline into a temp directory. If Stage 3 requires an LLM call and `ANTHROPIC_API_KEY` is not set (same condition as `test_real_workbooks_e2e.py`), skip the workbook with a `SKIP (no API key)` notice — do not block the commit.
+2. For each file in `tests/regression/snapshots/<name>/`, locate the corresponding file in the temp output. If a snapshotted file is **absent** from the new output, record it as a `FAIL` (content was deleted). Files present in the new output but absent from the snapshot are ignored — they represent new additions, which are not regressions.
 3. Compare semantically:
    - **PBIR JSON**: load both as dicts, recursively sort all object keys, sort arrays of objects by `name` key then `id` key (if neither exists, preserve original order), deep-compare.
-   - **TMDL**: parse both into a structured dict (`table → {columns[], measures[], partitions[], relationships[]}`) using a lightweight line-by-line regex parser; compare the structured dicts.
+   - **TMDL table files** (`tables/*.tmdl`): parse both into a structured dict (`{columns[], measures[], partitions[]}`) using a lightweight line-by-line regex parser; compare the structured dicts.
+   - **`model.tmdl`**: parsed separately into `{relationships[], cultures[], dataSources[]}` and compared as a structured dict; not treated as a table file.
 4. Collect all differences into a `RegressionResult`.
 
 **Report format:**
