@@ -36,6 +36,25 @@ def _resolve_schema(url: str, cache_dir: Path, bundled_dir: Path) -> dict[str, o
     return None
 
 
+def _build_resolver(
+    manifest: dict[str, str], cache_dir: Path, bundled_dir: Path
+) -> jsonschema.RefResolver:
+    """Build a RefResolver whose store is keyed on manifest URLs.
+
+    Manifest URLs match what $ref links resolve to (the hyphenated form for
+    filterConfiguration schemas). The $id inside those files uses a dot form —
+    these are different strings, so we key on the manifest URL, not $id.
+    """
+    store: dict[str, object] = {}
+    for url, filename in manifest.items():
+        for search_dir in (cache_dir, bundled_dir):
+            candidate = search_dir / filename
+            if candidate.is_file():
+                store[url] = json.loads(candidate.read_text(encoding="utf-8"))
+                break
+    return jsonschema.RefResolver(base_uri="", referrer={}, store=store)
+
+
 def _default_cache_dir() -> Path:
     env = os.environ.get("T2P_SCHEMA_CACHE")
     return Path(env) if env else Path.home() / ".cache" / "tableau2pbir" / "schemas"
@@ -50,6 +69,7 @@ def run_json_schema(
     if cache_dir is None:
         cache_dir = _default_cache_dir()
     manifest = _load_manifest(_bundled_dir)
+    resolver = _build_resolver(manifest, cache_dir, _bundled_dir)
     findings: list[SchemaFinding] = []
 
     for json_file in sorted(out_dir.rglob("*.json")):
@@ -76,7 +96,7 @@ def run_json_schema(
         schema = _resolve_schema(url, cache_dir, _bundled_dir)
         if schema is None:
             continue  # in manifest but files missing — packaging error, skip silently
-        validator = jsonschema.Draft7Validator(schema)
+        validator = jsonschema.Draft7Validator(schema, resolver=resolver)
         for error in validator.iter_errors(data):
             path_str = " > ".join(str(p) for p in error.absolute_path) or "(root)"
             findings.append(SchemaFinding(
