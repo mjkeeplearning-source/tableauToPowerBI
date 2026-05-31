@@ -17,7 +17,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 7 | TMDL Column Emission Fix | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-7-tmdl-column-emission.md` |
 | 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
 | 9 | TMDL Syntax Fixes — PBI Desktop Openability | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-9-tmdl-syntax-fixes.md` |
-| 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
+| 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -40,12 +40,14 @@ columns with multiline DAX support; (3) `page.py` omits `filterConfig` when no f
 (4) `model.py` stripped to minimal properties only. PBI Desktop can now open converted
 output. Plan 5 resumes next.
 
-**Plan 10 active (2026-05-30):** Adding JSON schema validation against official Microsoft PBI
-schemas. New `validate/json_schema.py` auto-discovers all `*.json` output files and validates
-each against its declared `$schema` URL using bundled schemas (two-tier cache: user cache →
-`validate/_schemas/` fallback). Violations reported as soft warnings. New `tableau2pbir
-refresh-schemas` CLI command updates user cache from Microsoft CDN. Execution: subagent-driven
-development.
+**Plan 10 complete (2026-05-31):** Added JSON schema validation against official Microsoft PBI
+schemas. New `validate/json_schema.py` auto-discovers all `*.json` output files, resolves each
+file's `$schema` URL via two-tier cache (user cache → bundled fallback in `_schemas/`), and
+validates with `jsonschema.Draft7Validator`. Schema violations reported as soft warnings in
+Stage 8. New `tableau2pbir refresh-schemas` CLI command updates user cache from Microsoft CDN.
+16 new unit tests across `test_schema_cache.py`, `test_json_schema.py`, `test_refresh_schemas.py`.
+Key finding: all 7 Microsoft PBI schemas declare `$schema` as a required property — instance
+data must be passed to the validator as-is (not stripped).
 
 ## Design Spec
 
