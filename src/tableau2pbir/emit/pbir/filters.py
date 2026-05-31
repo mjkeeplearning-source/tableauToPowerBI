@@ -123,12 +123,105 @@ def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
     }
 
 
+_AGG_PREFIX_TO_FUNC: dict[str, int] = {
+    "sum": 0, "avg": 1, "average": 1, "cntd": 2, "ctd": 2,
+    "min": 3, "max": 4, "cnt": 5, "median": 6,
+}
+
+
+def _emit_range(f: RangeFilter) -> dict | None:
+    table = f.field.table_id
+    col = f.field.column_id
+    alias = "f"
+
+    has_min = f.min_val is not None
+    has_max = f.max_val is not None
+    if not has_min and not has_max:
+        return None
+
+    if f.agg_prefix is not None:
+        func_code = _AGG_PREFIX_TO_FUNC.get(f.agg_prefix.lower())
+        if func_code is None:
+            return None  # unknown prefix — skip
+
+        agg_alias_expr = {
+            "Aggregation": {
+                "Function": func_code,
+                "Expression": _alias_col_expr(alias, col),
+            }
+        }
+        agg_entity_expr = {
+            "Aggregation": {
+                "Function": func_code,
+                "Expression": {
+                    "Column": {
+                        "Expression": {"SourceRef": {"Entity": table}},
+                        "Property": col,
+                    }
+                },
+            }
+        }
+        where_conditions = []
+        if has_min:
+            where_conditions.append({"Condition": {"Comparison": {
+                "ComparisonKind": 2,
+                "Left": agg_alias_expr,
+                "Right": _literal(f.min_val),
+            }}})
+        if has_max:
+            where_conditions.append({"Condition": {"Comparison": {
+                "ComparisonKind": 4,
+                "Left": agg_alias_expr,
+                "Right": _literal(f.max_val),
+            }}})
+        return {
+            "name": f.id,
+            "field": agg_entity_expr,
+            "type": "Advanced",
+            "filter": {
+                "Version": 2,
+                "From": [{"Name": alias, "Entity": table, "Type": 0}],
+                "Where": where_conditions,
+            },
+            "howCreated": "User",
+            "isHiddenInViewMode": False,
+        }
+
+    # Row-level range filter
+    alias_col = _alias_col_expr(alias, col)
+    if has_min and has_max:
+        condition = {
+            "Between": {
+                "Expression": alias_col,
+                "LowerBound": _literal(f.min_val),
+                "UpperBound": _literal(f.max_val),
+            }
+        }
+    elif has_min:
+        condition = {"Comparison": {"ComparisonKind": 2, "Left": alias_col, "Right": _literal(f.min_val)}}
+    else:
+        condition = {"Comparison": {"ComparisonKind": 4, "Left": alias_col, "Right": _literal(f.max_val)}}
+
+    return {
+        "name": f.id,
+        "field": _entity_field(table, col, "Column"),
+        "type": "Range",
+        "filter": {
+            "Version": 2,
+            "From": [{"Name": alias, "Entity": table, "Type": 0}],
+            "Where": [{"Condition": condition}],
+        },
+        "howCreated": "User",
+        "isHiddenInViewMode": False,
+    }
+
+
 def _filter_to_pbir(f: Filter) -> dict | None:
     """Return a FilterContainer dict, or None if this filter kind is deferred."""
     if isinstance(f, (CategoricalFilter, ContextFilter)):
         return _emit_categorical(f)
     if isinstance(f, RangeFilter):
-        return None  # implemented in Task 8
+        return _emit_range(f)
     # TopNFilter, ConditionalFilter — deferred
     return None
 

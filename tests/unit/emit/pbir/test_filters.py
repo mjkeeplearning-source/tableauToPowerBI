@@ -15,6 +15,6 @@ def test_dedupes_filters_across_sheets_of_same_page():
 def test_unique_filters_kept():
     f1 = CategoricalFilter(id="f1", field=FieldRef(table_id="Sales", column_id="Region"),
                            include=("West",))
-    f2 = RangeFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Year"))
+    f2 = RangeFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Year"), min_val="2020")
     out = collect_page_filters([(("s1",), [f1]), (("s2",), [f2])])
-    assert len(out) == 1  # f1 emits, f2 still None until Task 8
+    assert len(out) == 2
