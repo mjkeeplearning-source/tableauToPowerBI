@@ -124,8 +124,11 @@ def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
 
 
 _AGG_PREFIX_TO_FUNC: dict[str, int] = {
-    "sum": 0, "avg": 1, "average": 1, "cntd": 2, "ctd": 2,
-    "min": 3, "max": 4, "cnt": 5, "median": 6,
+    "sum": 0, "avg": 1, "average": 1,
+    "cntd": 2, "ctd": 2, "countd": 2,
+    "min": 3, "max": 4,
+    "cnt": 5, "count": 5,
+    "median": 6,
 }
 
 
@@ -144,12 +147,14 @@ def _emit_range(f: RangeFilter) -> dict | None:
         if func_code is None:
             return None  # unknown prefix — skip
 
-        agg_alias_expr = {
-            "Aggregation": {
-                "Function": func_code,
-                "Expression": _alias_col_expr(alias, col),
+        def _agg_alias() -> dict:
+            return {
+                "Aggregation": {
+                    "Function": func_code,
+                    "Expression": _alias_col_expr(alias, col),
+                }
             }
-        }
+
         agg_entity_expr = {
             "Aggregation": {
                 "Function": func_code,
@@ -165,13 +170,13 @@ def _emit_range(f: RangeFilter) -> dict | None:
         if has_min:
             where_conditions.append({"Condition": {"Comparison": {
                 "ComparisonKind": 2,
-                "Left": agg_alias_expr,
+                "Left": _agg_alias(),
                 "Right": _literal(f.min_val),
             }}})
         if has_max:
             where_conditions.append({"Condition": {"Comparison": {
                 "ComparisonKind": 4,
-                "Left": agg_alias_expr,
+                "Left": _agg_alias(),
                 "Right": _literal(f.max_val),
             }}})
         return {

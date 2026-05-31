@@ -106,6 +106,7 @@ class TestRangeEmit:
         assert "Comparison" in condition
         comp = condition["Comparison"]
         assert comp["ComparisonKind"] == 2  # GreaterThanOrEqual
+        assert comp["Left"]["Column"]["Expression"]["SourceRef"]["Source"] == "f"
 
     def test_max_only_uses_lte_comparison(self):
         f = RangeFilter(id="r3", field=_AMOUNT_FIELD, max_val="999")
@@ -114,6 +115,7 @@ class TestRangeEmit:
         condition = result["filter"]["Where"][0]["Condition"]
         comp = condition["Comparison"]
         assert comp["ComparisonKind"] == 4  # LessThanOrEqual
+        assert comp["Left"]["Column"]["Expression"]["SourceRef"]["Source"] == "f"
 
     def test_no_bounds_returns_none(self):
         f = RangeFilter(id="r4", field=_AMOUNT_FIELD)
@@ -139,6 +141,16 @@ class TestRangeEmit:
     def test_advanced_unknown_agg_prefix_returns_none(self):
         f = RangeFilter(id="r6", field=_AMOUNT_FIELD, min_val="1", agg_prefix="UNKNOWN_AGG")
         assert _filter_to_pbir(f) is None
+
+    def test_advanced_post_agg_both_bounds(self):
+        f = RangeFilter(id="r7", field=_AMOUNT_FIELD, min_val="1000", max_val="9999", agg_prefix="SUM")
+        result = _filter_to_pbir(f)
+        assert result is not None
+        assert result["type"] == "Advanced"
+        assert len(result["filter"]["Where"]) == 2
+        kinds = [w["Condition"]["Comparison"]["ComparisonKind"] for w in result["filter"]["Where"]]
+        assert 2 in kinds  # GTE
+        assert 4 in kinds  # LTE
 
 
 class TestDeferredEmit:
