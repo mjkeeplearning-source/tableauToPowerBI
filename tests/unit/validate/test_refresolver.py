@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from tableau2pbir.validate.json_schema import run_json_schema
 from tableau2pbir.validate.results import ValidatorOutcome
 
