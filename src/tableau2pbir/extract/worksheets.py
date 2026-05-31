@@ -23,11 +23,15 @@ Output per worksheet:
       "angle": str | None,
   },
   "filters": [
-      {"kind": 'categorical'|'range'|'top_n'|'context'|'conditional',
-       "column": str,
-       "include": tuple[str, ...],
-       "exclude": tuple[str, ...],
-       "expr": str | None}
+      # categorical / context / conditional:
+      {"kind": "categorical"|"context"|"conditional", "column": str,
+       "include": tuple, "exclude": tuple, "expr": str | None},
+      # range:
+      {"kind": "range", "column": str, "min_val": str | None,
+       "max_val": str | None, "agg_prefix": None},
+      # top_n:
+      {"kind": "top_n", "column": str, "n": int, "direction": str,
+       "by_column": str | None, "by_agg": str | None},
   ],
   "sort": [ {"column": str, "direction": 'asc'|'desc'} ],
   "dual_axis": bool,
@@ -154,8 +158,8 @@ def _filters(view: etree._Element) -> list[dict[str, Any]]:
                 "column": column,
                 "n": int(f.findtext("top-spec-count") or 10),
                 "direction": f.findtext("top-spec-direction") or "Top",
-                "by_column": _unbracket(attr(spec, "column", default="")) if spec is not None else None,
-                "by_agg": attr(spec, "aggregation", default=None) if spec is not None else None,
+                "by_column": (_unbracket(attr(spec, "column", default="")) or None) if spec is not None else None,
+                "by_agg": optional_attr(spec, "aggregation") if spec is not None else None,
             })
         else:
             include, exclude = _filter_members(f)
