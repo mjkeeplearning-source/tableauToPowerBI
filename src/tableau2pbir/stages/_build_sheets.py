@@ -55,6 +55,7 @@ def _build_filter(raw_f: dict[str, Any], sheet_idx: int, filter_idx: int, table_
             id=fid, field=field,
             min_val=raw_f.get("min_val"),
             max_val=raw_f.get("max_val"),
+            agg_prefix=raw_f.get("agg_prefix"),
         )
     if kind == "top_n":
         by_col = raw_f.get("by_column")
@@ -65,16 +66,22 @@ def _build_filter(raw_f: dict[str, Any], sheet_idx: int, filter_idx: int, table_
             by_field=_ref(by_col, table_id) if by_col else None,
             by_agg=raw_f.get("by_agg"),
         )
+    if kind == "conditional":
+        return ConditionalFilter(
+            id=fid, field=field,
+            expr=raw_f.get("expr"),
+        )
     if kind == "context":
         return ContextFilter(
             id=fid, field=field,
             include=tuple(raw_f.get("include", ())),
             exclude=tuple(raw_f.get("exclude", ())),
         )
-    # fallback: conditional or unknown → ConditionalFilter
-    return ConditionalFilter(
+    # categorical + any unrecognised kind → CategoricalFilter
+    return CategoricalFilter(
         id=fid, field=field,
-        expr=raw_f.get("expr"),
+        include=tuple(raw_f.get("include", ())),
+        exclude=tuple(raw_f.get("exclude", ())),
     )
 
 
