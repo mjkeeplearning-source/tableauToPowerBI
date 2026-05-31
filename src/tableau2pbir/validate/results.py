@@ -63,3 +63,18 @@ class RubricResult:
     reason: str | None
     items: tuple[RubricItemResult, ...] = ()
     log_path: str | None = None
+
+
+@dataclass(frozen=True)
+class SchemaFinding:
+    code: str        # "schema.violation" | "schema.not_cached"
+    severity: str    # "warn" (always, until promoted to hard-blocker)
+    message: str
+    location: str    # path relative to out_dir
+
+
+@dataclass(frozen=True)
+class SchemaValidationResult:
+    outcome: ValidatorOutcome
+    findings: tuple[SchemaFinding, ...]
+    log_path: str | None = None

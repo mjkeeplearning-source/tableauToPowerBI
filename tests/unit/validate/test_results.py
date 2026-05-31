@@ -45,3 +45,43 @@ def test_dataclasses_are_frozen():
     except dataclasses.FrozenInstanceError:
         return
     raise AssertionError("ValidatorResult should be frozen")
+
+
+def test_schema_finding_is_frozen():
+    from tableau2pbir.validate.results import SchemaFinding
+    import dataclasses
+    f = SchemaFinding(
+        code="schema.violation",
+        severity="warn",
+        message="'name' is a required property (at (root))",
+        location="Report/definition/pages/ReportSection1/visuals/visual_1/visual.json",
+    )
+    assert f.code == "schema.violation"
+    assert f.severity == "warn"
+    try:
+        f.code = "other"  # type: ignore[misc]
+    except dataclasses.FrozenInstanceError:
+        return
+    raise AssertionError("SchemaFinding should be frozen")
+
+
+def test_schema_validation_result_passed():
+    from tableau2pbir.validate.results import SchemaValidationResult
+    r = SchemaValidationResult(outcome=ValidatorOutcome.PASSED, findings=())
+    assert r.outcome == ValidatorOutcome.PASSED
+    assert r.findings == ()
+    assert r.log_path is None
+
+
+def test_schema_validation_result_failed_with_findings():
+    from tableau2pbir.validate.results import SchemaFinding, SchemaValidationResult
+    f = SchemaFinding(code="schema.violation", severity="warn",
+                      message="msg", location="loc")
+    r = SchemaValidationResult(
+        outcome=ValidatorOutcome.FAILED,
+        findings=(f,),
+        log_path="validation/json_schema.json",
+    )
+    assert r.outcome == ValidatorOutcome.FAILED
+    assert len(r.findings) == 1
+    assert r.log_path == "validation/json_schema.json"
