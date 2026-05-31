@@ -4,7 +4,7 @@ are bound: ('rows', 'cols', 'color'?, ...)."""
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import Encoding, Sheet
+from tableau2pbir.ir.sheet import Encoding, MarkStyle, Sheet
 from tableau2pbir.visualmap.dispatch import dispatch_visual
 
 
@@ -155,3 +155,76 @@ def test_horizontal_bar_multi_measure_cols_all_bound_to_y():
     assert "sum_sales_qk" in y_fields
     assert "sum_profit_qk" in y_fields
     assert len(y_fields) == 2
+
+
+# --- MarkStyle / format objects ---
+
+def _sheet_with_style(mark: str, *, rows=(), cols=(), color=None,
+                      mark_style: MarkStyle | None = None) -> Sheet:
+    return Sheet(
+        id="s1", name="S", datasource_refs=("ds1",),
+        mark_type=mark,
+        encoding=Encoding(rows=rows, columns=cols, color=color),
+        filters=(), sort=(), dual_axis=False, reference_lines=(),
+        uses_calculations=(), mark_style=mark_style,
+    )
+
+
+def test_dispatch_no_mark_style_produces_empty_format():
+    sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.format == {}
+
+
+def test_dispatch_labels_show_emits_labels_object():
+    ms = MarkStyle(labels_show=True)
+    sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
+                           mark_style=ms)
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert "labels" in pv.format
+    labels = pv.format["labels"]
+    assert len(labels) == 1
+    assert labels[0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
+
+
+def test_dispatch_mark_color_emits_data_point_object():
+    ms = MarkStyle(mark_color="#e15759")
+    sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
+                           mark_style=ms)
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert "dataPoint" in pv.format
+    dp = pv.format["dataPoint"]
+    assert len(dp) == 1
+    color_val = dp[0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"]
+    assert color_val == "'#e15759'"
+
+
+def test_dispatch_both_labels_and_color():
+    ms = MarkStyle(mark_color="#ffaa7f", labels_show=True)
+    sh = _sheet_with_style("automatic", rows=(_fr("sales_qk"),), cols=(_fr("region_nk"),),
+                           mark_style=ms)
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert "labels" in pv.format
+    assert "dataPoint" in pv.format
+
+
+def test_dispatch_labels_false_does_not_emit_labels_object():
+    ms = MarkStyle(labels_show=False, mark_color=None)
+    sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
+                           mark_style=ms)
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert "labels" not in pv.format
+
+
+def test_dispatch_color_none_does_not_emit_data_point():
+    ms = MarkStyle(labels_show=False, mark_color=None)
+    sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
+                           mark_style=ms)
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert "dataPoint" not in pv.format

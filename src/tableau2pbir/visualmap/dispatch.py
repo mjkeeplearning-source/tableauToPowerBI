@@ -5,7 +5,7 @@ back to AI or routes to unsupported[]."""
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual, Sheet
+from tableau2pbir.ir.sheet import EncodingBinding, MarkStyle, PbirVisual, Sheet
 
 
 def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
@@ -17,12 +17,30 @@ def _is_measure(fr: FieldRef) -> bool:
     return fr.column_id.endswith("_qk")
 
 
+def _build_format_objects(mark_style: MarkStyle | None) -> dict[str, list[dict]]:
+    if mark_style is None:
+        return {}
+    objects: dict[str, list[dict]] = {}
+    if mark_style.labels_show:
+        objects["labels"] = [
+            {"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}
+        ]
+    if mark_style.mark_color:
+        objects["dataPoint"] = [
+            {"properties": {"fill": {"solid": {"color": {
+                "expr": {"Literal": {"Value": f"'{mark_style.mark_color}'"}}
+            }}}}}
+        ]
+    return objects
+
+
 def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     mark = sheet.mark_type
     enc = sheet.encoding
     rows = enc.rows
     cols = enc.columns
     color = enc.color
+    fmt = _build_format_objects(sheet.mark_style)
 
     if mark in ("bar", "automatic") and rows and cols:
         # Horizontal bar: Tableau places measure on COLUMNS shelf, dimension on ROWS
@@ -30,24 +48,24 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             bindings = [_bind("Category", rows[0])] + [_bind("Y", c) for c in cols]
             if color:
                 bindings.append(_bind("Series", color))
-            return PbirVisual(visual_type="barChart", encoding_bindings=tuple(bindings), format={})
+            return PbirVisual(visual_type="barChart", encoding_bindings=tuple(bindings), format=fmt)
         # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure(s)→Y
         bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
-        return PbirVisual(visual_type="columnChart", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="columnChart", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark == "line" and rows and cols:
         bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
-        return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark == "area" and rows and cols:
         return PbirVisual(
             visual_type="areaChart",
             encoding_bindings=(_bind("Category", cols[0]), _bind("Y", rows[0])),
-            format={},
+            format=fmt,
         )
 
     if mark in ("circle", "shape", "scatter") and rows and cols:
@@ -56,25 +74,25 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             bindings.append(_bind("Size", enc.size))
         if color:
             bindings.append(_bind("Color", color))
-        return PbirVisual(visual_type="scatterChart", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="scatterChart", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark == "pie" and rows:
         bindings = [_bind("Y", rows[0])]
         if color:
             bindings.insert(0, _bind("Category", color))
-        return PbirVisual(visual_type="pieChart", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="pieChart", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark == "text":
         bindings = [_bind("Values", r) for r in rows] + [_bind("Values", c) for c in cols]
         if not bindings:
             return None
-        return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format={})
+        return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark == "map" and rows and cols:
         return PbirVisual(
             visual_type="filledMap",
             encoding_bindings=(_bind("Location", cols[0]), _bind("Y", rows[0])),
-            format={},
+            format=fmt,
         )
 
     return None

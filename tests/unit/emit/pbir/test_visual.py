@@ -96,3 +96,22 @@ def test_visual_json_has_position_and_query():
     assert obj["position"]["width"] == 400
     assert obj["visual"]["visualType"] == "clusteredBarChart"
     assert any("Region" in str(p) for p in obj["visual"]["query"]["queryState"]["Category"]["projections"])
+
+
+def test_visual_objects_populated_from_format():
+    """When PbirVisual.format is non-empty, render_visual must emit it under 'objects'."""
+    pv = PbirVisual(
+        visual_type="barChart",
+        encoding_bindings=(EncodingBinding(channel="Y", source_field_id="sales"),),
+        format={
+            "labels": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}],
+            "dataPoint": [{"properties": {"fill": {"solid": {"color": {"expr": {"Literal": {"Value": "'#e15759'"}}}}}}}],
+        },
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    objects = obj["visual"]["objects"]
+    assert "labels" in objects
+    assert "dataPoint" in objects
+    assert objects["labels"][0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
+    assert objects["dataPoint"][0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"] == "'#e15759'"
