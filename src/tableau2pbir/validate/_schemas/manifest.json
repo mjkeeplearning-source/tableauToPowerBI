@@ -53,12 +53,12 @@
     {
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/filterConfiguration/1.1.0/schema-embedded.json",
       "file": "filterConfiguration-1.1.0.json",
-      "description": "Filter configuration — referenced by visualContainer 2.0.0"
+      "description": "Filter configuration — referenced by visualContainer 2.0.0 ($id uses dot form schema.embedded.json; manifest URL is authoritative for RefResolver)"
     },
     {
       "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/filterConfiguration/1.3.0/schema-embedded.json",
       "file": "filterConfiguration-1.3.0.json",
-      "description": "Filter configuration — referenced by page 2.1.0"
+      "description": "Filter configuration — referenced by page 2.1.0 ($id uses dot form schema.embedded.json; manifest URL is authoritative for RefResolver)"
     }
   ]
 }
