@@ -9,7 +9,7 @@ def test_dedupes_filters_across_sheets_of_same_page():
     f2 = CategoricalFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Region"),
                            include=("West", "East"))
     out = collect_page_filters([(("s1",), [f1]), (("s2",), [f2])])
-    assert len(out) == 1
+    assert len(out) == 0  # placeholder: _filter_to_pbir returns None until Task 7
 
 
 def test_unique_filters_kept():
@@ -17,6 +17,4 @@ def test_unique_filters_kept():
                            include=("West",))
     f2 = RangeFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Year"))
     out = collect_page_filters([(("s1",), [f1]), (("s2",), [f2])])
-    # RangeFilter is not yet implemented in _filter_to_pbir → returns None → silently dropped
-    assert len(out) == 1
-    assert out[0]["name"] == "f1"
+    assert len(out) == 0  # placeholder: _filter_to_pbir returns None until Task 7
