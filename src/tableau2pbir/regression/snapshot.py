@@ -48,6 +48,10 @@ def register_workbook(
         wb_out = out_dir / name
         snap_dir = snapshots_root / name
         tmdl_count, json_count = _copy_snapshots(wb_out, snap_dir)
+        if tmdl_count + json_count == 0:
+            raise RegistrationError(
+                f"no TMDL or JSON files found in pipeline output for {name!r}"
+            )
 
     entry = CorpusEntry(
         name=name,

@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 import pytest
+import yaml
 from tableau2pbir.regression.corpus import CorpusEntry, load_corpus
 from tableau2pbir.regression.snapshot import register_workbook, RegistrationError
 
@@ -22,6 +23,7 @@ def _make_fake_pipeline_output(out_dir: Path, wb_name: str) -> None:
     (stages / "01_extract.json").write_text("{}", encoding="utf-8")
 
 
+@pytest.mark.regression
 def test_register_copies_tmdl_and_json(tmp_path: Path):
     workbook = tmp_path / "simple.twb"
     workbook.write_text("<workbook/>", encoding="utf-8")
@@ -51,6 +53,7 @@ def test_register_copies_tmdl_and_json(tmp_path: Path):
     assert not (snap_dir / "stages" / "01_extract.json").exists(), "stage JSON must not be snapshotted"
 
 
+@pytest.mark.regression
 def test_register_appends_to_corpus(tmp_path: Path):
     workbook = tmp_path / "simple.twb"
     workbook.write_text("<workbook/>", encoding="utf-8")
@@ -81,11 +84,11 @@ def test_register_appends_to_corpus(tmp_path: Path):
     assert entries[0].added_by == "tester"
 
 
+@pytest.mark.regression
 def test_register_duplicate_raises(tmp_path: Path):
     workbook = tmp_path / "simple.twb"
     workbook.write_text("<workbook/>", encoding="utf-8")
     corpus_path = tmp_path / "corpus.yaml"
-    import yaml
     corpus_path.write_text(
         yaml.dump({"workbooks": [{"name": "simple", "path": "x", "added_by": "me", "added_on": "2026-01-01", "notes": ""}]}),
         encoding="utf-8",
@@ -100,6 +103,7 @@ def test_register_duplicate_raises(tmp_path: Path):
         )
 
 
+@pytest.mark.regression
 def test_register_aborts_on_pipeline_failure(tmp_path: Path):
     workbook = tmp_path / "simple.twb"
     workbook.write_text("<workbook/>", encoding="utf-8")
