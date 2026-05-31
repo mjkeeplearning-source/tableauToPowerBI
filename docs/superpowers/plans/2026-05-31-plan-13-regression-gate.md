@@ -1,6 +1,6 @@
 # Regression Gate — Semantic Snapshot Validation
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use **superpowers:subagent-driven-development** to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a semantic regression gate (`regression-add`, `regression-check`, `regression-install-hook` CLI commands) that snapshots verified PBIR/TMDL output and detects any semantic change to registered workbooks on future pipeline runs.
 
