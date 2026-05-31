@@ -21,6 +21,8 @@ def _format_literal(value: str | None) -> str:
     if not value:
         return "null"
     v = value.strip()
+    if not v:
+        return "null"
     # Tableau date literal: #2023-01-03# or #2023-01-03 12:30:00#
     if v.startswith("#") and v.endswith("#"):
         inner = v[1:-1].strip()

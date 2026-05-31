@@ -17,4 +17,4 @@ def test_unique_filters_kept():
                            include=("West",))
     f2 = RangeFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Year"))
     out = collect_page_filters([(("s1",), [f1]), (("s2",), [f2])])
-    assert len(out) == 0  # placeholder: _filter_to_pbir returns None until Task 7
+    assert len(out) == 0  # placeholder: _filter_to_pbir returns None; updated in Tasks 7 (cat) and 8 (range)

@@ -1,8 +1,6 @@
 """Tests for _format_literal and field-building helpers."""
 from __future__ import annotations
 
-import pytest
-
 from tableau2pbir.emit.pbir.filters import _alias_col_expr, _entity_field, _format_literal
 
 
