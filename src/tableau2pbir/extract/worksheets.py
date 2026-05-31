@@ -123,19 +123,49 @@ def _filter_members(filter_elem: etree._Element) -> tuple[tuple[str, ...], tuple
     return tuple(include), tuple(exclude)
 
 
+_TABLEAU_CLASS_TO_KIND: dict[str, str] = {
+    "categorical": "categorical",
+    "quantitative": "range",
+    "top": "top_n",
+    "context": "context",
+    "condition": "conditional",
+}
+
+
 def _filters(view: etree._Element) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for f in view.findall("filter"):
-        kind = attr(f, "class", default="categorical")
+        tableau_class = attr(f, "class", default="categorical")
+        kind = _TABLEAU_CLASS_TO_KIND.get(tableau_class, "categorical")
         column = _unbracket(attr(f, "column"))
-        include, exclude = _filter_members(f)
-        out.append({
-            "kind": kind,
-            "column": column,
-            "include": include,
-            "exclude": exclude,
-            "expr": optional_attr(f, "formula"),
-        })
+
+        if kind == "range":
+            out.append({
+                "kind": "range",
+                "column": column,
+                "min_val": f.findtext("min"),
+                "max_val": f.findtext("max"),
+                "agg_prefix": None,
+            })
+        elif kind == "top_n":
+            spec = f.find("top-spec-field")
+            out.append({
+                "kind": "top_n",
+                "column": column,
+                "n": int(f.findtext("top-spec-count") or 10),
+                "direction": f.findtext("top-spec-direction") or "Top",
+                "by_column": _unbracket(attr(spec, "column", default="")) if spec is not None else None,
+                "by_agg": attr(spec, "aggregation", default=None) if spec is not None else None,
+            })
+        else:
+            include, exclude = _filter_members(f)
+            out.append({
+                "kind": kind,
+                "column": column,
+                "include": include,
+                "exclude": exclude,
+                "expr": optional_attr(f, "formula"),
+            })
     return out
 
 
