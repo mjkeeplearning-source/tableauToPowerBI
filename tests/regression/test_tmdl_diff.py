@@ -150,6 +150,12 @@ def test_diff_tmdl_table_missing_measure():
     assert any(d.entity_type == "measure" and "Profit Ratio" in d.entity_name for d in diffs)
 
 
+def test_diff_tmdl_table_ignores_new_columns_in_output():
+    modified = _TABLE_SIMPLE + "\tcolumn extra_col\n\t\tdataType: string\n"
+    diffs = diff_tmdl_table(_TABLE_SIMPLE, modified)
+    assert diffs == []
+
+
 def test_diff_model_tmdl_identical():
     diffs = diff_model_tmdl(_MODEL_SIMPLE, _MODEL_SIMPLE)
     assert diffs == []

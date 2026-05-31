@@ -37,8 +37,9 @@ class TmdlModelFile:
 # ── Regex patterns ─────────────────────────────────────────────────────────────
 
 _TABLE_HDR    = re.compile(r"^table\s+(.+)$")
-_COL_HDR      = re.compile(r"^\tcolumn\s+(.+?)(?:\s*=\s*(.+))?$")
-_MEASURE_HDR  = re.compile(r"^\tmeasure\s+(.+?)\s*=\s*(.*)$")
+_COL_HDR      = re.compile(r"^\tcolumn\s+('(?:[^']|'')*'|\S+)(?:\s*=\s*(.+))?$")
+_MEASURE_HDR  = re.compile(r"^\tmeasure\s+('(?:[^']|'')*'|\S+)\s*=\s*(.*)$")
+_PROP_LINE    = re.compile(r"^\t\t\w[\w.]*:\s")
 _PARTITION    = re.compile(r"^\tpartition\s+")
 _DATATYPE     = re.compile(r"^\t\tdataType:\s+(.+)$")
 _SRC_COL      = re.compile(r"^\t\tsourceColumn:\s+(.+)$")
@@ -133,7 +134,7 @@ def parse_table_tmdl(text: str) -> TmdlTableModel:
 
         if state == "measure_ml":
             stripped = line.strip()
-            if stripped:
+            if stripped and not _PROP_LINE.match(line):
                 dax_lines.append(stripped)
 
     _flush()
