@@ -60,6 +60,8 @@ def run_json_schema(
             data: dict[str, object] = json.loads(json_file.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
+        if not isinstance(data, dict):
+            continue
         url = data.get("$schema")
         if not isinstance(url, str):
             continue
