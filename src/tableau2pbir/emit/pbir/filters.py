@@ -75,12 +75,64 @@ def _literal(value: str | None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Per-kind emit (stubbed — completed in subsequent tasks)
+# Per-kind emit
 # ---------------------------------------------------------------------------
+
+def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
+    table = f.field.table_id
+    col = f.field.column_id
+    alias = "f"
+
+    include_vals = list(f.include)
+    exclude_vals = list(f.exclude)
+
+    if not include_vals and not exclude_vals:
+        return None
+
+    alias_col = _alias_col_expr(alias, col)
+
+    def _in_expr(values: list[str]) -> dict:
+        return {
+            "In": {
+                "Expressions": [alias_col],
+                "Values": [[_literal(v)] for v in values],
+            }
+        }
+
+    if include_vals and not exclude_vals:
+        condition = _in_expr(include_vals)
+    elif exclude_vals and not include_vals:
+        condition = {"Not": {"Expression": _in_expr(exclude_vals)}}
+    else:
+        condition = {
+            "And": {
+                "Left": _in_expr(include_vals),
+                "Right": {"Not": {"Expression": _in_expr(exclude_vals)}},
+            }
+        }
+
+    return {
+        "name": f.id,
+        "field": _entity_field(table, col, "Column"),
+        "type": "Categorical",
+        "filter": {
+            "Version": 2,
+            "From": [{"Name": alias, "Entity": table, "Type": 0}],
+            "Where": [{"Condition": condition}],
+        },
+        "howCreated": "User",
+        "isHiddenInViewMode": False,
+    }
+
 
 def _filter_to_pbir(f: Filter) -> dict | None:
     """Return a FilterContainer dict, or None if this filter kind is deferred."""
-    return None  # placeholder — implemented in Tasks 7–9
+    if isinstance(f, (CategoricalFilter, ContextFilter)):
+        return _emit_categorical(f)
+    if isinstance(f, RangeFilter):
+        return None  # implemented in Task 8
+    # TopNFilter, ConditionalFilter — deferred
+    return None
 
 
 # ---------------------------------------------------------------------------
