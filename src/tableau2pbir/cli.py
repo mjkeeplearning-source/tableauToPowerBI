@@ -60,6 +60,13 @@ def _cmd_resume(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_refresh_schemas(args: argparse.Namespace) -> int:
+    from tableau2pbir.validate.refresh_schemas import _get_cache_dir, refresh_schemas
+    cache_dir = _get_cache_dir(cli_override=getattr(args, "cache_dir", None))
+    ok = refresh_schemas(cache_dir=cache_dir)
+    return 0 if ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="tableau2pbir",
@@ -82,6 +89,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_res.add_argument("--gate", choices=_stage_names(), default=None,
                        help="Optional second gate on resume")
     p_res.set_defaults(func=_cmd_resume)
+
+    p_refresh = sub.add_parser(
+        "refresh-schemas",
+        help="Download latest Microsoft PBI schemas to local cache.",
+    )
+    p_refresh.add_argument(
+        "--cache-dir",
+        default=None,
+        help="Override schema cache directory (default: ~/.cache/tableau2pbir/schemas/)",
+    )
+    p_refresh.set_defaults(func=_cmd_refresh_schemas)
 
     return parser
 
