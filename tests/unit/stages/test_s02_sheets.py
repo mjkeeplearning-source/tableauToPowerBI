@@ -93,3 +93,41 @@ def test_quick_table_calc_surfaces_deferred_item():
     assert len(qtc_items) == 1
     assert qtc_items[0].code == "deferred_feature_table_calcs"
     assert "running_sum" in qtc_items[0].source_excerpt
+
+
+def _raw(extra=None):
+    base = {
+        "name": "T", "datasource_refs": ("ds",), "mark_type": "bar",
+        "encodings": {"rows": (), "columns": (), "color": None, "size": None,
+                      "label": None, "tooltip": None, "detail": (),
+                      "shape": None, "angle": None},
+        "filters": [], "sort": [], "dual_axis": False, "reference_lines": [],
+        "quick_table_calcs": [],
+    }
+    if extra:
+        base.update(extra)
+    return base
+
+
+def test_mark_style_none_when_key_absent():
+    """Existing raw dicts without mark_style key must produce Sheet.mark_style=None."""
+    sheets, _ = build_sheets([_raw()], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    assert sheets[0].mark_style is None
+
+
+def test_mark_style_color_and_labels_propagated():
+    raw = _raw({"mark_style": {"mark_color": "#e15759", "labels_show": True}})
+    sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    ms = sheets[0].mark_style
+    assert ms is not None
+    assert ms.mark_color == "#e15759"
+    assert ms.labels_show is True
+
+
+def test_mark_style_color_none_labels_false():
+    raw = _raw({"mark_style": {"mark_color": None, "labels_show": False}})
+    sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    ms = sheets[0].mark_style
+    assert ms is not None
+    assert ms.mark_color is None
+    assert ms.labels_show is False

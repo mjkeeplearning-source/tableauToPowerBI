@@ -8,7 +8,7 @@ from typing import Any
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
 from tableau2pbir.ir.sheet import (
     CategoricalFilter, ConditionalFilter, ContextFilter, Encoding, Filter,
-    RangeFilter, ReferenceLine, Sheet, SortSpec, TopNFilter,
+    MarkStyle, RangeFilter, ReferenceLine, Sheet, SortSpec, TopNFilter,
 )
 from tableau2pbir.util.ids import stable_id
 
@@ -115,6 +115,15 @@ def _build_reference_lines(
     return tuple(out)
 
 
+def _build_mark_style(raw_style: dict[str, Any] | None) -> MarkStyle | None:
+    if raw_style is None:
+        return None
+    return MarkStyle(
+        mark_color=raw_style.get("mark_color"),
+        labels_show=bool(raw_style.get("labels_show", False)),
+    )
+
+
 def build_sheets(
     raw_worksheets: list[dict[str, Any]],
     calc_names: set[str],
@@ -172,6 +181,7 @@ def build_sheets(
             sort=_build_sort(raw["sort"], table_id),
             dual_axis=raw["dual_axis"],
             reference_lines=_build_reference_lines(raw["reference_lines"], idx, table_id),
+            mark_style=_build_mark_style(raw.get("mark_style")),
             format=None,
             uses_calculations=uses_calculations,
         ))
