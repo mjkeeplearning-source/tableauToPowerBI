@@ -3,21 +3,33 @@
     "Action": {
       "additionalProperties": false,
       "properties": {
-        "clearing_behavior": {
-          "default": "keep_filter",
-          "title": "Clearing Behavior",
-          "type": "string"
-        },
         "id": {
           "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
           "type": "string"
         },
         "kind": {
           "$ref": "#/$defs/ActionKind"
         },
-        "name": {
-          "title": "Name",
-          "type": "string"
+        "trigger": {
+          "$ref": "#/$defs/ActionTrigger"
+        },
+        "source_sheet_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Sheet Ids",
+          "type": "array"
+        },
+        "target_sheet_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Target Sheet Ids",
+          "type": "array"
         },
         "source_fields": {
           "default": [],
@@ -25,13 +37,6 @@
             "type": "string"
           },
           "title": "Source Fields",
-          "type": "array"
-        },
-        "source_sheet_ids": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Source Sheet Ids",
           "type": "array"
         },
         "target_fields": {
@@ -42,15 +47,10 @@
           "title": "Target Fields",
           "type": "array"
         },
-        "target_sheet_ids": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Target Sheet Ids",
-          "type": "array"
-        },
-        "trigger": {
-          "$ref": "#/$defs/ActionTrigger"
+        "clearing_behavior": {
+          "default": "keep_filter",
+          "title": "Clearing Behavior",
+          "type": "string"
         }
       },
       "required": [
@@ -86,6 +86,21 @@
     "Calculation": {
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/CalculationScope"
+        },
+        "tableau_expr": {
+          "title": "Tableau Expr",
+          "type": "string"
+        },
         "dax_expr": {
           "anyOf": [
             {
@@ -106,12 +121,22 @@
           "title": "Depends On",
           "type": "array"
         },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
         "kind": {
           "$ref": "#/$defs/CalculationKind"
+        },
+        "phase": {
+          "$ref": "#/$defs/CalculationPhase"
+        },
+        "table_calc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TableCalc"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "lod_fixed": {
           "anyOf": [
@@ -135,10 +160,6 @@
           ],
           "default": null
         },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
         "owner_sheet_id": {
           "anyOf": [
             {
@@ -150,27 +171,6 @@
           ],
           "default": null,
           "title": "Owner Sheet Id"
-        },
-        "phase": {
-          "$ref": "#/$defs/CalculationPhase"
-        },
-        "scope": {
-          "$ref": "#/$defs/CalculationScope"
-        },
-        "table_calc": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TableCalc"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "tableau_expr": {
-          "title": "Tableau Expr",
-          "type": "string"
         }
       },
       "required": [
@@ -213,12 +213,78 @@
       "title": "CalculationScope",
       "type": "string"
     },
+    "CategoricalFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
+        "kind": {
+          "const": "categorical",
+          "default": "categorical",
+          "title": "Kind",
+          "type": "string"
+        },
+        "include": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "field"
+      ],
+      "title": "CategoricalFilter",
+      "type": "object"
+    },
     "Column": {
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
         "datatype": {
           "title": "Datatype",
           "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/ColumnRole"
+        },
+        "kind": {
+          "$ref": "#/$defs/ColumnKind"
+        },
+        "tableau_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tableau Expr"
         },
         "dax_expr": {
           "anyOf": [
@@ -232,20 +298,6 @@
           "default": null,
           "title": "Dax Expr"
         },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "kind": {
-          "$ref": "#/$defs/ColumnKind"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "role": {
-          "$ref": "#/$defs/ColumnRole"
-        },
         "source_column": {
           "anyOf": [
             {
@@ -257,18 +309,6 @@
           ],
           "default": null,
           "title": "Source Column"
-        },
-        "tableau_expr": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Tableau Expr"
         }
       },
       "required": [
@@ -297,6 +337,42 @@
       "title": "ColumnRole",
       "type": "string"
     },
+    "ConditionalFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
+        "kind": {
+          "const": "conditional",
+          "default": "conditional",
+          "title": "Kind",
+          "type": "string"
+        },
+        "expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expr"
+        }
+      },
+      "required": [
+        "id",
+        "field"
+      ],
+      "title": "ConditionalFilter",
+      "type": "object"
+    },
     "ConnectorTier": {
       "description": "Connector classification per \u00a75.8.\n\nTier 1: full fidelity (file/DB connectors emitting real M).\nTier 2: credential placeholders (user enters creds on first Desktop open).\nTier 3: degraded fidelity (cross-DB joins, blends, custom SQL).\nTier 4: unsupported (forces workbook status \u2192 failed).",
       "enum": [
@@ -311,17 +387,8 @@
     "Container": {
       "additionalProperties": false,
       "properties": {
-        "background": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Background"
+        "kind": {
+          "$ref": "#/$defs/ContainerKind"
         },
         "children": {
           "items": {
@@ -337,13 +404,22 @@
           "title": "Children",
           "type": "array"
         },
-        "kind": {
-          "$ref": "#/$defs/ContainerKind"
-        },
         "padding": {
           "default": 0,
           "title": "Padding",
           "type": "integer"
+        },
+        "background": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Background"
         }
       },
       "required": [
@@ -362,20 +438,59 @@
       "title": "ContainerKind",
       "type": "string"
     },
-    "Dashboard": {
+    "ContextFilter": {
       "additionalProperties": false,
       "properties": {
-        "actions": {
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/Action"
-          },
-          "title": "Actions",
-          "type": "array"
-        },
         "id": {
           "title": "Id",
           "type": "string"
+        },
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
+        "kind": {
+          "const": "context",
+          "default": "context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "include": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        },
+        "exclude": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Exclude",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "field"
+      ],
+      "title": "ContextFilter",
+      "type": "object"
+    },
+    "Dashboard": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "size": {
+          "$ref": "#/$defs/DashboardSize"
         },
         "layout_tree": {
           "anyOf": [
@@ -388,12 +503,13 @@
           ],
           "title": "Layout Tree"
         },
-        "name": {
-          "title": "Name",
-          "type": "string"
-        },
-        "size": {
-          "$ref": "#/$defs/DashboardSize"
+        "actions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "title": "Actions",
+          "type": "array"
         }
       },
       "required": [
@@ -408,6 +524,10 @@
     "DashboardSize": {
       "additionalProperties": false,
       "properties": {
+        "w": {
+          "title": "W",
+          "type": "integer"
+        },
         "h": {
           "title": "H",
           "type": "integer"
@@ -415,10 +535,6 @@
         "kind": {
           "title": "Kind",
           "type": "string"
-        },
-        "w": {
-          "title": "W",
-          "type": "integer"
         }
       },
       "required": [
@@ -432,12 +548,20 @@
     "DataModel": {
       "additionalProperties": false,
       "properties": {
-        "calculations": {
+        "datasources": {
           "default": [],
           "items": {
-            "$ref": "#/$defs/Calculation"
+            "$ref": "#/$defs/Datasource"
           },
-          "title": "Calculations",
+          "title": "Datasources",
+          "type": "array"
+        },
+        "tables": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Table"
+          },
+          "title": "Tables",
           "type": "array"
         },
         "columns": {
@@ -448,20 +572,20 @@
           "title": "Columns",
           "type": "array"
         },
-        "datasources": {
+        "relationships": {
           "default": [],
           "items": {
-            "$ref": "#/$defs/Datasource"
+            "$ref": "#/$defs/Relationship"
           },
-          "title": "Datasources",
+          "title": "Relationships",
           "type": "array"
         },
-        "hierarchies": {
+        "calculations": {
           "default": [],
           "items": {
-            "$ref": "#/$defs/Hierarchy"
+            "$ref": "#/$defs/Calculation"
           },
-          "title": "Hierarchies",
+          "title": "Calculations",
           "type": "array"
         },
         "parameters": {
@@ -472,12 +596,12 @@
           "title": "Parameters",
           "type": "array"
         },
-        "relationships": {
+        "hierarchies": {
           "default": [],
           "items": {
-            "$ref": "#/$defs/Relationship"
+            "$ref": "#/$defs/Hierarchy"
           },
-          "title": "Relationships",
+          "title": "Hierarchies",
           "type": "array"
         },
         "sets": {
@@ -486,14 +610,6 @@
             "$ref": "#/$defs/Set"
           },
           "title": "Sets",
-          "type": "array"
-        },
-        "tables": {
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/Table"
-          },
-          "title": "Tables",
           "type": "array"
         }
       },
@@ -504,20 +620,6 @@
       "additionalProperties": false,
       "description": "One `<datasource>` from the Tableau workbook, canonicalized.\n\n`pbi_m_connector` is None iff `connector_tier == TIER_4`. Credentials\nare never persisted here (\u00a75.8 credentials policy).",
       "properties": {
-        "connection_params": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "title": "Connection Params",
-          "type": "object"
-        },
-        "connector_tier": {
-          "$ref": "#/$defs/ConnectorTier"
-        },
-        "extract_ignored": {
-          "title": "Extract Ignored",
-          "type": "boolean"
-        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -525,6 +627,13 @@
         "name": {
           "title": "Name",
           "type": "string"
+        },
+        "tableau_kind": {
+          "title": "Tableau Kind",
+          "type": "string"
+        },
+        "connector_tier": {
+          "$ref": "#/$defs/ConnectorTier"
         },
         "pbi_m_connector": {
           "anyOf": [
@@ -537,16 +646,12 @@
           ],
           "title": "Pbi M Connector"
         },
-        "table_ids": {
-          "items": {
+        "connection_params": {
+          "additionalProperties": {
             "type": "string"
           },
-          "title": "Table Ids",
-          "type": "array"
-        },
-        "tableau_kind": {
-          "title": "Tableau Kind",
-          "type": "string"
+          "title": "Connection Params",
+          "type": "object"
         },
         "user_action_required": {
           "items": {
@@ -554,6 +659,17 @@
           },
           "title": "User Action Required",
           "type": "array"
+        },
+        "table_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Table Ids",
+          "type": "array"
+        },
+        "extract_ignored": {
+          "title": "Extract Ignored",
+          "type": "boolean"
         }
       },
       "required": [
@@ -574,27 +690,13 @@
       "additionalProperties": false,
       "description": "Visual encoding channels. Only channels actually bound are populated.",
       "properties": {
-        "angle": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/FieldRef"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "color": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/FieldRef"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+        "rows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FieldRef"
+          },
+          "title": "Rows",
+          "type": "array"
         },
         "columns": {
           "default": [],
@@ -604,34 +706,7 @@
           "title": "Columns",
           "type": "array"
         },
-        "detail": {
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/FieldRef"
-          },
-          "title": "Detail",
-          "type": "array"
-        },
-        "label": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/FieldRef"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "rows": {
-          "default": [],
-          "items": {
-            "$ref": "#/$defs/FieldRef"
-          },
-          "title": "Rows",
-          "type": "array"
-        },
-        "shape": {
+        "color": {
           "anyOf": [
             {
               "$ref": "#/$defs/FieldRef"
@@ -653,7 +728,48 @@
           ],
           "default": null
         },
+        "label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "tooltip": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "detail": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FieldRef"
+          },
+          "title": "Detail",
+          "type": "array"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "angle": {
           "anyOf": [
             {
               "$ref": "#/$defs/FieldRef"
@@ -692,12 +808,12 @@
       "additionalProperties": false,
       "description": "Reference to a column inside a table. Used by encodings, table_calc\naddressing/partitioning/sort, lod_fixed.dimensions, etc.",
       "properties": {
-        "column_id": {
-          "title": "Column Id",
-          "type": "string"
-        },
         "table_id": {
           "title": "Table Id",
+          "type": "string"
+        },
+        "column_id": {
+          "title": "Column Id",
           "type": "string"
         }
       },
@@ -708,62 +824,15 @@
       "title": "FieldRef",
       "type": "object"
     },
-    "Filter": {
-      "additionalProperties": false,
-      "properties": {
-        "exclude": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "title": "Exclude",
-          "type": "array"
-        },
-        "expr": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Expr"
-        },
-        "field": {
-          "$ref": "#/$defs/FieldRef"
-        },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "include": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "title": "Include",
-          "type": "array"
-        },
-        "kind": {
-          "title": "Kind",
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "field"
-      ],
-      "title": "Filter",
-      "type": "object"
-    },
     "Hierarchy": {
       "additionalProperties": false,
       "properties": {
         "id": {
           "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
           "type": "string"
         },
         "level_column_ids": {
@@ -772,10 +841,6 @@
           },
           "title": "Level Column Ids",
           "type": "array"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
         }
       },
       "required": [
@@ -851,21 +916,6 @@
     "LodRelative": {
       "additionalProperties": false,
       "properties": {
-        "excluded_dims": {
-          "anyOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/FieldRef"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Excluded Dims"
-        },
         "extra_dims": {
           "anyOf": [
             {
@@ -880,6 +930,21 @@
           ],
           "default": null,
           "title": "Extra Dims"
+        },
+        "excluded_dims": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/FieldRef"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Excluded Dims"
         }
       },
       "title": "LodRelative",
@@ -888,12 +953,34 @@
     "Parameter": {
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "datatype": {
+          "title": "Datatype",
+          "type": "string"
+        },
+        "default": {
+          "type": "string",
+          "title": "Default"
+        },
         "allowed_values": {
           "items": {
             "type": "string"
           },
           "title": "Allowed Values",
           "type": "array"
+        },
+        "intent": {
+          "$ref": "#/$defs/ParameterIntent"
+        },
+        "exposure": {
+          "$ref": "#/$defs/ParameterExposure"
         },
         "binding_target": {
           "anyOf": [
@@ -905,28 +992,6 @@
             }
           ],
           "default": null
-        },
-        "datatype": {
-          "title": "Datatype",
-          "type": "string"
-        },
-        "default": {
-          "title": "Default",
-          "type": "string"
-        },
-        "exposure": {
-          "$ref": "#/$defs/ParameterExposure"
-        },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "intent": {
-          "$ref": "#/$defs/ParameterIntent"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
         }
       },
       "required": [
@@ -945,6 +1010,13 @@
       "additionalProperties": false,
       "description": "Present only when intent == FORMATTING_CONTROL.",
       "properties": {
+        "measure_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Measure Ids",
+          "type": "array"
+        },
         "format_pattern": {
           "anyOf": [
             {
@@ -956,13 +1028,6 @@
           ],
           "default": null,
           "title": "Format Pattern"
-        },
-        "measure_ids": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Measure Ids",
-          "type": "array"
         }
       },
       "required": [
@@ -993,8 +1058,12 @@
     },
     "PbirVisual": {
       "additionalProperties": false,
-      "description": "Stage 4 annotation attached to a Sheet. See spec \u00a76 Stage 4 output.",
+      "description": "Stage 4 annotation attached to a Sheet.",
       "properties": {
+        "visual_type": {
+          "title": "Visual Type",
+          "type": "string"
+        },
         "encoding_bindings": {
           "items": {
             "$ref": "#/$defs/EncodingBinding"
@@ -1009,10 +1078,6 @@
           "default": {},
           "title": "Format",
           "type": "object"
-        },
-        "visual_type": {
-          "title": "Visual Type",
-          "type": "string"
         }
       },
       "required": [
@@ -1025,20 +1090,20 @@
     "Position": {
       "additionalProperties": false,
       "properties": {
-        "h": {
-          "title": "H",
-          "type": "integer"
-        },
-        "w": {
-          "title": "W",
-          "type": "integer"
-        },
         "x": {
           "title": "X",
           "type": "integer"
         },
         "y": {
           "title": "Y",
+          "type": "integer"
+        },
+        "w": {
+          "title": "W",
+          "type": "integer"
+        },
+        "h": {
+          "title": "H",
           "type": "integer"
         }
       },
@@ -1051,18 +1116,23 @@
       "title": "Position",
       "type": "object"
     },
-    "ReferenceLine": {
+    "RangeFilter": {
       "additionalProperties": false,
       "properties": {
         "id": {
           "title": "Id",
           "type": "string"
         },
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
         "kind": {
+          "const": "range",
+          "default": "range",
           "title": "Kind",
           "type": "string"
         },
-        "lod_expr": {
+        "min_val": {
           "anyOf": [
             {
               "type": "string"
@@ -1072,10 +1142,53 @@
             }
           ],
           "default": null,
-          "title": "Lod Expr"
+          "title": "Min Val"
+        },
+        "max_val": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Val"
+        },
+        "agg_prefix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agg Prefix"
+        }
+      },
+      "required": [
+        "id",
+        "field"
+      ],
+      "title": "RangeFilter",
+      "type": "object"
+    },
+    "ReferenceLine": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
         },
         "scope_field": {
           "$ref": "#/$defs/FieldRef"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
         },
         "value": {
           "anyOf": [
@@ -1088,6 +1201,18 @@
           ],
           "default": null,
           "title": "Value"
+        },
+        "lod_expr": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lod Expr"
         }
       },
       "required": [
@@ -1101,6 +1226,16 @@
     "Relationship": {
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "from_ref": {
+          "$ref": "#/$defs/FieldRef"
+        },
+        "to_ref": {
+          "$ref": "#/$defs/FieldRef"
+        },
         "cardinality": {
           "title": "Cardinality",
           "type": "string"
@@ -1109,18 +1244,8 @@
           "title": "Cross Filter",
           "type": "string"
         },
-        "from_ref": {
-          "$ref": "#/$defs/FieldRef"
-        },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
         "source": {
           "$ref": "#/$defs/RelationshipSource"
-        },
-        "to_ref": {
-          "$ref": "#/$defs/FieldRef"
         }
       },
       "required": [
@@ -1146,10 +1271,6 @@
     "Set": {
       "additionalProperties": false,
       "properties": {
-        "definition": {
-          "title": "Definition",
-          "type": "string"
-        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -1160,6 +1281,10 @@
         },
         "source_column": {
           "title": "Source Column",
+          "type": "string"
+        },
+        "definition": {
+          "title": "Definition",
           "type": "string"
         }
       },
@@ -1175,6 +1300,14 @@
     "Sheet": {
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
         "datasource_refs": {
           "items": {
             "type": "string"
@@ -1182,18 +1315,62 @@
           "title": "Datasource Refs",
           "type": "array"
         },
-        "dual_axis": {
-          "title": "Dual Axis",
-          "type": "boolean"
+        "mark_type": {
+          "title": "Mark Type",
+          "type": "string"
         },
         "encoding": {
           "$ref": "#/$defs/Encoding"
         },
         "filters": {
           "items": {
-            "$ref": "#/$defs/Filter"
+            "discriminator": {
+              "mapping": {
+                "categorical": "#/$defs/CategoricalFilter",
+                "conditional": "#/$defs/ConditionalFilter",
+                "context": "#/$defs/ContextFilter",
+                "range": "#/$defs/RangeFilter",
+                "top_n": "#/$defs/TopNFilter"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/CategoricalFilter"
+              },
+              {
+                "$ref": "#/$defs/RangeFilter"
+              },
+              {
+                "$ref": "#/$defs/TopNFilter"
+              },
+              {
+                "$ref": "#/$defs/ContextFilter"
+              },
+              {
+                "$ref": "#/$defs/ConditionalFilter"
+              }
+            ]
           },
           "title": "Filters",
+          "type": "array"
+        },
+        "sort": {
+          "items": {
+            "$ref": "#/$defs/SortSpec"
+          },
+          "title": "Sort",
+          "type": "array"
+        },
+        "dual_axis": {
+          "title": "Dual Axis",
+          "type": "boolean"
+        },
+        "reference_lines": {
+          "items": {
+            "$ref": "#/$defs/ReferenceLine"
+          },
+          "title": "Reference Lines",
           "type": "array"
         },
         "format": {
@@ -1211,17 +1388,12 @@
           "default": null,
           "title": "Format"
         },
-        "id": {
-          "title": "Id",
-          "type": "string"
-        },
-        "mark_type": {
-          "title": "Mark Type",
-          "type": "string"
-        },
-        "name": {
-          "title": "Name",
-          "type": "string"
+        "uses_calculations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uses Calculations",
+          "type": "array"
         },
         "pbir_visual": {
           "anyOf": [
@@ -1233,27 +1405,6 @@
             }
           ],
           "default": null
-        },
-        "reference_lines": {
-          "items": {
-            "$ref": "#/$defs/ReferenceLine"
-          },
-          "title": "Reference Lines",
-          "type": "array"
-        },
-        "sort": {
-          "items": {
-            "$ref": "#/$defs/SortSpec"
-          },
-          "title": "Sort",
-          "type": "array"
-        },
-        "uses_calculations": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Uses Calculations",
-          "type": "array"
         }
       },
       "required": [
@@ -1274,12 +1425,12 @@
     "SortSpec": {
       "additionalProperties": false,
       "properties": {
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
         "direction": {
           "title": "Direction",
           "type": "string"
-        },
-        "field": {
-          "$ref": "#/$defs/FieldRef"
         }
       },
       "required": [
@@ -1292,17 +1443,6 @@
     "Table": {
       "additionalProperties": false,
       "properties": {
-        "column_ids": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Column Ids",
-          "type": "array"
-        },
-        "datasource_id": {
-          "title": "Datasource Id",
-          "type": "string"
-        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -1310,6 +1450,32 @@
         "name": {
           "title": "Name",
           "type": "string"
+        },
+        "datasource_id": {
+          "title": "Datasource Id",
+          "type": "string"
+        },
+        "column_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Column Ids",
+          "type": "array"
+        },
+        "primary_key": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Primary Key"
         },
         "physical_schema": {
           "anyOf": [
@@ -1334,21 +1500,6 @@
           ],
           "default": null,
           "title": "Physical Table"
-        },
-        "primary_key": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Primary Key"
         }
       },
       "required": [
@@ -1363,6 +1514,13 @@
     "TableCalc": {
       "additionalProperties": false,
       "properties": {
+        "partitioning": {
+          "items": {
+            "$ref": "#/$defs/FieldRef"
+          },
+          "title": "Partitioning",
+          "type": "array"
+        },
         "addressing": {
           "items": {
             "$ref": "#/$defs/FieldRef"
@@ -1370,15 +1528,15 @@
           "title": "Addressing",
           "type": "array"
         },
+        "sort": {
+          "items": {
+            "$ref": "#/$defs/TableCalcSortEntry"
+          },
+          "title": "Sort",
+          "type": "array"
+        },
         "frame": {
           "$ref": "#/$defs/TableCalcFrame"
-        },
-        "partitioning": {
-          "items": {
-            "$ref": "#/$defs/FieldRef"
-          },
-          "title": "Partitioning",
-          "type": "array"
         },
         "restart_every": {
           "anyOf": [
@@ -1390,13 +1548,6 @@
             }
           ],
           "default": null
-        },
-        "sort": {
-          "items": {
-            "$ref": "#/$defs/TableCalcSortEntry"
-          },
-          "title": "Sort",
-          "type": "array"
         }
       },
       "required": [
@@ -1411,6 +1562,9 @@
     "TableCalcFrame": {
       "additionalProperties": false,
       "properties": {
+        "type": {
+          "$ref": "#/$defs/TableCalcFrameType"
+        },
         "offset": {
           "anyOf": [
             {
@@ -1422,9 +1576,6 @@
           ],
           "default": null,
           "title": "Offset"
-        },
-        "type": {
-          "$ref": "#/$defs/TableCalcFrameType"
         },
         "window_size": {
           "anyOf": [
@@ -1458,12 +1609,12 @@
     "TableCalcSortEntry": {
       "additionalProperties": false,
       "properties": {
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
         "direction": {
           "title": "Direction",
           "type": "string"
-        },
-        "field": {
-          "$ref": "#/$defs/FieldRef"
         }
       },
       "required": [
@@ -1473,29 +1624,86 @@
       "title": "TableCalcSortEntry",
       "type": "object"
     },
+    "TopNFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "field": {
+          "$ref": "#/$defs/FieldRef"
+        },
+        "kind": {
+          "const": "top_n",
+          "default": "top_n",
+          "title": "Kind",
+          "type": "string"
+        },
+        "n": {
+          "default": 10,
+          "title": "N",
+          "type": "integer"
+        },
+        "direction": {
+          "default": "Top",
+          "title": "Direction",
+          "type": "string"
+        },
+        "by_field": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FieldRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "by_agg": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "By Agg"
+        }
+      },
+      "required": [
+        "id",
+        "field"
+      ],
+      "title": "TopNFilter",
+      "type": "object"
+    },
     "UnsupportedItem": {
       "additionalProperties": false,
       "description": "One entry in Workbook.unsupported[] (\u00a75.1) or workbook-level\nunsupported.json (\u00a74.4). Must carry enough context for the\nworkbook-report.md renderer to produce a human-readable entry.",
       "properties": {
-        "code": {
-          "description": "Stable identifier, e.g. 'unsupported_mark_polygon', 'deferred_feature_table_calcs', 'datasource_tier_4'.",
-          "title": "Code",
+        "object_kind": {
+          "title": "Object Kind",
           "type": "string"
         },
         "object_id": {
           "title": "Object Id",
           "type": "string"
         },
-        "object_kind": {
-          "title": "Object Kind",
+        "source_excerpt": {
+          "title": "Source Excerpt",
           "type": "string"
         },
         "reason": {
           "title": "Reason",
           "type": "string"
         },
-        "source_excerpt": {
-          "title": "Source Excerpt",
+        "code": {
+          "description": "Stable identifier, e.g. 'unsupported_mark_polygon', 'deferred_feature_table_calcs', 'datasource_tier_4'.",
+          "title": "Code",
           "type": "string"
         }
       },
@@ -1512,6 +1720,22 @@
   },
   "additionalProperties": false,
   "properties": {
+    "ir_schema_version": {
+      "title": "Ir Schema Version",
+      "type": "string"
+    },
+    "source_path": {
+      "title": "Source Path",
+      "type": "string"
+    },
+    "source_hash": {
+      "title": "Source Hash",
+      "type": "string"
+    },
+    "tableau_version": {
+      "title": "Tableau Version",
+      "type": "string"
+    },
     "config": {
       "additionalProperties": {
         "type": "string"
@@ -1519,19 +1743,8 @@
       "title": "Config",
       "type": "object"
     },
-    "dashboards": {
-      "items": {
-        "$ref": "#/$defs/Dashboard"
-      },
-      "title": "Dashboards",
-      "type": "array"
-    },
     "data_model": {
       "$ref": "#/$defs/DataModel"
-    },
-    "ir_schema_version": {
-      "title": "Ir Schema Version",
-      "type": "string"
     },
     "sheets": {
       "items": {
@@ -1540,17 +1753,12 @@
       "title": "Sheets",
       "type": "array"
     },
-    "source_hash": {
-      "title": "Source Hash",
-      "type": "string"
-    },
-    "source_path": {
-      "title": "Source Path",
-      "type": "string"
-    },
-    "tableau_version": {
-      "title": "Tableau Version",
-      "type": "string"
+    "dashboards": {
+      "items": {
+        "$ref": "#/$defs/Dashboard"
+      },
+      "title": "Dashboards",
+      "type": "array"
     },
     "unsupported": {
       "items": {

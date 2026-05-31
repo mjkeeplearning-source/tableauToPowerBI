@@ -1385,7 +1385,7 @@ git commit -m "feat(emit): add _format_literal, _entity_field, _alias_col_expr h
 - Create: `tests/unit/emit/pbir/test_filters_emit.py`
 - Modify: `tests/unit/emit/pbir/test_filters.py` (restore assertions)
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/unit/emit/pbir/test_filters_emit.py`:
 
@@ -1471,7 +1471,7 @@ class TestContextEmit:
         assert _filter_to_pbir(f) is None
 ```
 
-- [ ] **Step 2: Run tests — verify they fail**
+- [x] **Step 2: Run tests — verify they fail**
 
 ```
 pytest tests/unit/emit/pbir/test_filters_emit.py::TestCategoricalEmit -v
@@ -1479,7 +1479,7 @@ pytest tests/unit/emit/pbir/test_filters_emit.py::TestCategoricalEmit -v
 
 Expected: FAILEDs — `_filter_to_pbir` returns `None` for everything.
 
-- [ ] **Step 3: Implement categorical/context emit in filters.py**
+- [x] **Step 3: Implement categorical/context emit in filters.py**
 
 Replace the `_filter_to_pbir` stub with the categorical/context implementation:
 
@@ -1541,7 +1541,7 @@ def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
     }
 ```
 
-- [ ] **Step 4: Restore collect_page_filters assertions in test_filters.py**
+- [x] **Step 4: Restore collect_page_filters assertions in test_filters.py**
 
 Update `tests/unit/emit/pbir/test_filters.py` — restore the two tests back to their correct assertions:
 
@@ -1562,7 +1562,7 @@ def test_unique_filters_kept():
     assert len(out) == 1
 ```
 
-- [ ] **Step 5: Run all emit tests**
+- [x] **Step 5: Run all emit tests**
 
 ```
 pytest tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filter_literal.py tests/unit/emit/pbir/test_filters.py -v
@@ -1570,7 +1570,7 @@ pytest tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filte
 
 Expected: all pass.
 
-- [ ] **Step 6: Run E2E gate**
+- [x] **Step 6: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -1578,7 +1578,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```
 git add src/tableau2pbir/emit/pbir/filters.py tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filters.py
@@ -1594,7 +1594,7 @@ git commit -m "feat(emit): implement Categorical and Context filter emission wit
 - Modify: `tests/unit/emit/pbir/test_filters_emit.py` (add range tests)
 - Modify: `tests/unit/emit/pbir/test_filters.py` (restore range assertion)
 
-- [ ] **Step 1: Write failing range tests**
+- [x] **Step 1: Write failing range tests**
 
 Append to `tests/unit/emit/pbir/test_filters_emit.py`:
 
@@ -1670,7 +1670,7 @@ class TestDeferredEmit:
         assert _filter_to_pbir(f) is None
 ```
 
-- [ ] **Step 2: Run new tests — verify they fail**
+- [x] **Step 2: Run new tests — verify they fail**
 
 ```
 pytest tests/unit/emit/pbir/test_filters_emit.py::TestRangeEmit tests/unit/emit/pbir/test_filters_emit.py::TestDeferredEmit -v
@@ -1678,7 +1678,7 @@ pytest tests/unit/emit/pbir/test_filters_emit.py::TestRangeEmit tests/unit/emit/
 
 Expected: range tests fail (returns `None`); deferred tests pass.
 
-- [ ] **Step 3: Implement range emit in filters.py**
+- [x] **Step 3: Implement range emit in filters.py**
 
 Add the aggregation prefix map and `_emit_range` function. Update `_filter_to_pbir` to call it:
 
@@ -1795,7 +1795,7 @@ def test_unique_filters_kept():
     assert len(out) == 2
 ```
 
-- [ ] **Step 4: Run all emit tests**
+- [x] **Step 4: Run all emit tests**
 
 ```
 pytest tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filter_literal.py tests/unit/emit/pbir/test_filters.py -v
@@ -1803,7 +1803,7 @@ pytest tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filte
 
 Expected: all pass.
 
-- [ ] **Step 5: Run E2E gate**
+- [x] **Step 5: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -1811,7 +1811,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/emit/pbir/filters.py tests/unit/emit/pbir/test_filters_emit.py tests/unit/emit/pbir/test_filters.py
@@ -1825,7 +1825,7 @@ git commit -m "feat(emit): implement Range (row-level) and Advanced (post-agg) f
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Run the full unit test suite**
+- [x] **Step 1: Run the full unit test suite**
 
 ```
 pytest tests/unit/ -v --tb=short
@@ -1833,7 +1833,7 @@ pytest tests/unit/ -v --tb=short
 
 Expected: all pass. If any test references the old `Filter(kind=…, …)` constructor pattern and was missed, fix it now using the same approach as Task 3.
 
-- [ ] **Step 2: Run the full integration + E2E suite**
+- [x] **Step 2: Run the full integration + E2E suite**
 
 ```
 pytest tests/ -v --tb=short -x
@@ -1841,7 +1841,7 @@ pytest tests/ -v --tb=short -x
 
 Expected: all pass.
 
-- [ ] **Step 3: Update CLAUDE.md implementation tracking table**
+- [x] **Step 3: Update CLAUDE.md implementation tracking table**
 
 In `CLAUDE.md`, mark Plan 5 as still halted and add Plan 11 row:
 
@@ -1863,7 +1863,7 @@ maps Tableau XML class values to IR kinds; captures <min>/<max> and top-spec chi
 TopN and Conditional filters recorded as UnsupportedItems, deferred to v1.1.
 ```
 
-- [ ] **Step 4: Commit CLAUDE.md**
+- [x] **Step 4: Commit CLAUDE.md**
 
 ```
 git add CLAUDE.md

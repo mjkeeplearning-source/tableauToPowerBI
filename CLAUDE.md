@@ -18,7 +18,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
 | 9 | TMDL Syntax Fixes — PBI Desktop Openability | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-9-tmdl-syntax-fixes.md` |
 | 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
-| 11 | Filter IR Enrichment & Schema-Compliant Emission | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-31-plan-11-filter-ir-enrichment.md` |
+| 11 | Filter IR Enrichment & Schema-Compliant Emission | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-11-filter-ir-enrichment.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -49,6 +49,16 @@ Stage 8. New `tableau2pbir refresh-schemas` CLI command updates user cache from 
 16 new unit tests across `test_schema_cache.py`, `test_json_schema.py`, `test_refresh_schemas.py`.
 Key finding: all 7 Microsoft PBI schemas declare `$schema` as a required property — instance
 data must be passed to the validator as-is (not stripped).
+
+**Plan 11 complete (2026-05-31):** Filter IR enriched to Pydantic v2 discriminated union
+(CategoricalFilter, RangeFilter, TopNFilter, ContextFilter, ConditionalFilter). Fixed all
+three PBIR filter emission bugs: (1) type capitalisation now "Categorical"/"Range"/"Advanced";
+(2) filter body emits valid FilterDefinition with Version/From/Where semantic query expressions;
+(3) top-level field uses Entity (StandaloneSourceRef), Where body uses Source alias
+(QuerySourceRefExpression). Bundled 5 missing schemas (semanticQuery 1.0/1.2/1.4,
+filterConfiguration 1.1/1.3). Wired referencing.Registry so nested $ref chains validate. Extract
+layer maps Tableau XML class values to IR kinds; captures <min>/<max> and top-spec child elements.
+TopN and Conditional filters recorded as UnsupportedItems, deferred to v1.1.
 
 ## Design Spec
 
