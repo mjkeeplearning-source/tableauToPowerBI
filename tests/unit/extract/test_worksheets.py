@@ -110,3 +110,71 @@ def test_quick_table_calc_detection():
 def test_no_worksheets_returns_empty():
     root = parse_workbook_xml(b"<workbook><worksheets/></workbook>")
     assert extract_worksheets(root) == []
+
+
+_XML_WITH_MARK_STYLE = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Sales'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <panes>
+        <pane>
+          <mark class='Bar'/>
+          <style>
+            <style-rule element='mark'>
+              <format attr='mark-color' value='#ffaa7f'/>
+              <format attr='mark-labels-show' value='true'/>
+              <format attr='mark-labels-cull' value='true'/>
+            </style-rule>
+          </style>
+        </pane>
+      </panes>
+      <rows>[amount]</rows>
+      <cols>[month]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+_XML_NO_MARK_STYLE = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Sales'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <panes>
+        <pane><mark class='Bar'/></pane>
+      </panes>
+      <rows>[amount]</rows>
+      <cols>[month]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+
+def test_mark_style_extracted_when_present():
+    root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
+    ws = extract_worksheets(root)
+    ms = ws[0]["mark_style"]
+    assert ms["mark_color"] == "#ffaa7f"
+    assert ms["labels_show"] is True
+
+
+def test_mark_style_defaults_when_absent():
+    root = parse_workbook_xml(_XML_NO_MARK_STYLE)
+    ws = extract_worksheets(root)
+    ms = ws[0]["mark_style"]
+    assert ms["mark_color"] is None
+    assert ms["labels_show"] is False
+
+
+def test_mark_style_labels_cull_not_propagated():
+    """mark-labels-cull has no PBI equivalent — it must not appear in mark_style output."""
+    root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
+    ws = extract_worksheets(root)
+    ms = ws[0]["mark_style"]
+    assert "labels_cull" not in ms

@@ -221,6 +221,21 @@ def _quick_table_calcs(search_root: etree._Element) -> list[dict[str, Any]]:
     return out
 
 
+def _mark_style(pane_parent: etree._Element) -> dict[str, Any]:
+    """Read <style-rule element='mark'>/<format> across all panes; last write wins."""
+    style: dict[str, Any] = {"mark_color": None, "labels_show": False}
+    panes = pane_parent.findall("panes/pane") or pane_parent.findall("pane")
+    for pane in panes:
+        for fmt in pane.findall("style/style-rule[@element='mark']/format"):
+            attr_name = optional_attr(fmt, "attr")
+            value = optional_attr(fmt, "value")
+            if attr_name == "mark-color":
+                style["mark_color"] = value
+            elif attr_name == "mark-labels-show":
+                style["labels_show"] = (value == "true")
+    return style
+
+
 def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for ws in root.findall("worksheets/worksheet"):
@@ -257,5 +272,6 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
             "dual_axis": _dual_axis(search_root),
             "reference_lines": _reference_lines(search_root),
             "quick_table_calcs": _quick_table_calcs(search_root),
+            "mark_style": _mark_style(pane_parent),
         })
     return out
