@@ -89,12 +89,10 @@ def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
     if not include_vals and not exclude_vals:
         return None
 
-    alias_col = _alias_col_expr(alias, col)
-
     def _in_expr(values: list[str]) -> dict:
         return {
             "In": {
-                "Expressions": [alias_col],
+                "Expressions": [_alias_col_expr(alias, col)],
                 "Values": [[_literal(v)] for v in values],
             }
         }
@@ -144,9 +142,7 @@ def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list]]) -> list[
     out: list[dict] = []
     for _sheet_ids, filters in per_sheet:
         for f in filters:
-            if isinstance(f, CategoricalFilter):
-                key = (f.field.table_id, f.field.column_id, f.kind, tuple(f.include), tuple(f.exclude))
-            elif isinstance(f, ContextFilter):
+            if isinstance(f, (CategoricalFilter, ContextFilter)):
                 key = (f.field.table_id, f.field.column_id, f.kind, tuple(f.include), tuple(f.exclude))
             elif isinstance(f, RangeFilter):
                 key = (f.field.table_id, f.field.column_id, f.kind, f.min_val, f.max_val)

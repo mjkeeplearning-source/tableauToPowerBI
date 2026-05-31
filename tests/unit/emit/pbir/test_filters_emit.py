@@ -70,6 +70,7 @@ class TestContextEmit:
         f = ContextFilter(id="f2", field=_FIELD, include=("West",))
         result = _filter_to_pbir(f)
         assert result is not None
+        assert result["name"] == "f2"
         assert result["type"] == "Categorical"
         condition = result["filter"]["Where"][0]["Condition"]
         assert "In" in condition
