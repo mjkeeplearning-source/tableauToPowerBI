@@ -17,6 +17,7 @@ dependencies = [
   "PyYAML>=6.0",
   "sqlglot>=23,<27",
   "python-dotenv>=1.0",
+  "jsonschema>=4.0,<5.0",
 ]
 
 [project.optional-dependencies]
