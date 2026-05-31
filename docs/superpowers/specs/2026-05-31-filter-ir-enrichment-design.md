@@ -86,7 +86,7 @@ Tableau date-only literals (`#2023-01-03#`) map to `datetime'2023-01-03T00:00:00
 
 Five schemas are fetched from the Microsoft CDN and written to `src/tableau2pbir/validate/_schemas/`. Each file is named with the path-encoded URL segments:
 
-| Filename | URL path segment |
+| Filename | CDN URL (relative to base) |
 |---|---|
 | `semanticQuery-1.0.0.json` | `semanticQuery/1.0.0/schema.json` |
 | `semanticQuery-1.2.0.json` | `semanticQuery/1.2.0/schema.json` |
@@ -94,13 +94,29 @@ Five schemas are fetched from the Microsoft CDN and written to `src/tableau2pbir
 | `filterConfiguration-1.1.0.json` | `filterConfiguration/1.1.0/schema-embedded.json` |
 | `filterConfiguration-1.3.0.json` | `filterConfiguration/1.3.0/schema-embedded.json` |
 
-`manifest.json` gains 5 new entries mapping each URL to its local file.
+`manifest.json` gains 5 new entries in the existing `{"url": ..., "file": ..., "description": ...}` format. Each entry uses the CDN URL as the `url` key (the same URL used in `$ref` links pointing to the schema, i.e. the hyphenated `schema-embedded.json` form for filterConfiguration).
 
 `refresh_schemas.py` (the CDN updater) adds these 5 URLs to its fetch list so the user cache also stays current.
 
-### RefResolver wiring
+### RefResolver wiring — dot vs hyphen URL discrepancy
 
-`validate/json_schema.py` currently passes instance data directly to `Draft7Validator(schema).validate(instance)`. With nested `$ref` links, the validator must resolve sibling schemas. The fix: build a `jsonschema.RefResolver` whose `store` is pre-populated with all bundled schema `$id` → parsed schema dict mappings, then pass it to `Draft7Validator(schema, resolver=resolver)`.
+The fetched filterConfiguration schemas have a known Microsoft inconsistency: their `$id` field uses a dot (`schema.embedded.json`) but every `$ref` that points to them uses a hyphen (`schema-embedded.json`). These are two different URL strings.
+
+The `jsonschema.RefResolver` resolves relative `$ref` paths to absolute URLs at validation time, producing the hyphenated form. The RefResolver `store` must therefore be keyed on the **hyphenated** (referencing) URL — not the `$id` value from the file — for filterConfiguration schemas. For all other bundled schemas `$id` and the referencing URL are identical.
+
+Concretely, build the store by iterating `manifest.json` entries and loading each bundled file. Use the manifest `url` as the store key (since that is the `$ref`-resolved URL). Then pass the store to `Draft7Validator(schema, resolver=resolver)`:
+
+```python
+store = {}
+for url, filename in manifest.items():
+    path = bundled_dir / filename
+    if path.is_file():
+        store[url] = json.loads(path.read_text())
+resolver = jsonschema.RefResolver(base_uri="", referrer={}, store=store)
+validator = jsonschema.Draft7Validator(schema, resolver=resolver)
+```
+
+This replaces the current `jsonschema.Draft7Validator(schema).validate(instance)` call.
 
 ---
 
@@ -165,49 +181,69 @@ Nothing else changes — Pydantic handles serialization, `_build_sheets.py` uses
 
 **File:** `src/tableau2pbir/extract/worksheets.py`
 
-`_filters()` currently captures `kind`, `column`, `include`/`exclude`, and `expr`. It needs to also capture range bounds and top-N parameters from child XML elements.
+`_filters()` currently captures `kind`, `column`, `include`/`exclude`, and `expr`. It needs to capture range bounds and top-N parameters from child XML elements, **and normalise Tableau's XML `class` values to IR kind strings**.
+
+### Tableau XML class → IR kind mapping (normalised in extract layer)
+
+| Tableau XML `class=` | IR `kind` |
+|---|---|
+| `"categorical"` | `"categorical"` |
+| `"quantitative"` | `"range"` |
+| `"top"` | `"top_n"` |
+| `"context"` | `"context"` |
+| `"condition"` | `"conditional"` |
+
+The extract layer applies this mapping so downstream code (canonicalize, emit) never sees raw Tableau class strings.
 
 ```python
+_TABLEAU_CLASS_TO_KIND = {
+    "categorical": "categorical",
+    "quantitative": "range",
+    "top": "top_n",
+    "context": "context",
+    "condition": "conditional",
+}
+
 def _filters(view):
+    out = []
     for f in view.findall("filter"):
-        kind = attr(f, "class", default="categorical")
+        tableau_class = attr(f, "class", default="categorical")
+        kind = _TABLEAU_CLASS_TO_KIND.get(tableau_class, "categorical")
         column = _unbracket(attr(f, "column"))
 
         if kind == "range":
-            yield {
+            out.append({
                 "kind": "range",
                 "column": column,
                 "min_val": f.findtext("min"),
                 "max_val": f.findtext("max"),
-                # agg_prefix extracted from column name prefix (e.g. "sum__sales" → "SUM")
-                "agg_prefix": _extract_agg_prefix(column),
-            }
-        elif kind == "top":
+                "agg_prefix": None,   # v1: always None; see note below
+            })
+        elif kind == "top_n":
             spec = f.find("top-spec-field")
-            yield {
+            out.append({
                 "kind": "top_n",
                 "column": column,
                 "n": int(f.findtext("top-spec-count") or 10),
                 "direction": f.findtext("top-spec-direction") or "Top",
                 "by_column": _unbracket(attr(spec, "column", default="")) if spec is not None else None,
                 "by_agg": attr(spec, "aggregation", default=None) if spec is not None else None,
-            }
+            })
         else:
             include, exclude = _filter_members(f)
-            yield {
-                "kind": kind,   # "categorical" | "context" | "conditional"
+            out.append({
+                "kind": kind,
                 "column": column,
                 "include": include,
                 "exclude": exclude,
                 "expr": optional_attr(f, "formula"),
-            }
+            })
+    return out
 ```
 
-`_extract_agg_prefix(column)` checks if the column name starts with a known aggregation prefix pattern (same slug logic already used in encoding channels).
+### `agg_prefix` in v1
 
-### Tableau `class="top"` vs IR `kind="top_n"`
-
-Tableau XML uses `class="top"` for top-N filters. The extract layer normalises this to `kind="top_n"` so the IR is self-describing.
+`agg_prefix` is always `None` from extraction in v1. Tableau encodes post-aggregation range filters with the format `[sum:Sales:qk]` in the column attribute (colon-separated type:field:kind), which requires dedicated parsing. This is deferred to v1.1. The `RangeFilter.agg_prefix` field and the Advanced emit path remain in the IR and emit layer for future use — they can be exercised via direct IR construction in tests — but no extraction logic is wired up yet.
 
 ---
 
@@ -258,12 +294,15 @@ Full rewrite. Key helpers:
 Converts a raw Tableau filter value string to an official PBI Literal.Value string:
 
 ```
+None or ""                    → "null"
 Tableau "#2023-01-03#"        → "datetime'2023-01-03T00:00:00'"
 Tableau "#2023-01-03 12:00#"  → "datetime'2023-01-03T12:00:00'"
 Integer string "42"           → "42L"
-Float string "3.14"           → "3.14D"
+Float "3.14" (has decimal)    → "3.14D"
 String "East"                 → "'East'"
 ```
+
+Detection order: null/empty first, then date literal (`#...#`), then numeric (try `int` → `L`, then `float` → `D`), then string fallback (`'...'`).
 
 ### `_entity_field(table_name, col_name, field_type) -> dict`
 
@@ -324,11 +363,11 @@ Top-level `field` is an `Aggregation` wrapping a `StandaloneSourceRef` column.
 
 **TopNFilter → skipped**
 
-`_filter_to_pbir` returns `None`; `collect_page_filters` silently drops `None` entries. The `UnsupportedItem` with code `deferred_feature_topn_filter` is recorded in `_build_sheets.py` during the factory dispatch (same pattern as quick-table-calc items), not in the emit layer.
+`_filter_to_pbir` returns `None`. `collect_page_filters` must be updated to skip `None` returns — this is **a new behaviour**, not existing: add `result = _filter_to_pbir(f); if result is not None: out.append(result)`. The `UnsupportedItem` with code `deferred_feature_topn_filter` is recorded in `_build_sheets.py` during the factory dispatch (same pattern as quick-table-calc items), not in the emit layer.
 
 **ConditionalFilter → skipped**
 
-Same — `_filter_to_pbir` returns `None`. `UnsupportedItem` with code `deferred_feature_conditional_filter` recorded in `_build_sheets.py`.
+Same — `_filter_to_pbir` returns `None`; `collect_page_filters` skips it. `UnsupportedItem` with code `deferred_feature_conditional_filter` recorded in `_build_sheets.py`.
 
 ---
 
@@ -392,12 +431,20 @@ Unknown prefixes: filter is skipped with a logged warning.
 - TopNFilter: returns `None`
 - ConditionalFilter: returns `None`
 
-**`tests/unit/test_build_sheets_filters.py`** — factory dispatch:
+**`tests/unit/test_build_sheets_filters.py`** — factory dispatch (inputs use IR kind strings, already normalised by extract layer):
 - `kind="categorical"` → `CategoricalFilter`
-- `kind="range"` → `RangeFilter` with min_val/max_val populated
-- `kind="top"` → `TopNFilter` with n/direction/by_field populated
+- `kind="range"` with min_val/max_val → `RangeFilter` fields populated
+- `kind="top_n"` with n/direction/by_column → `TopNFilter` fields populated + `UnsupportedItem` in returned tuple
 - `kind="context"` → `ContextFilter`
-- `kind="conditional"` → `ConditionalFilter`
+- `kind="conditional"` → `ConditionalFilter` + `UnsupportedItem` in returned tuple
+
+**`tests/unit/test_extract_filters.py`** — Tableau class → IR kind normalisation:
+- XML `class="quantitative"` → raw dict `kind="range"`
+- XML `class="top"` → raw dict `kind="top_n"`
+- XML `class="condition"` → raw dict `kind="conditional"`
+- XML `class="context"` → raw dict `kind="context"`
+- Range: `<min>` and `<max>` child elements captured as `min_val`/`max_val`
+- TopN: `<top-spec-count>`, `<top-spec-direction>`, `<top-spec-field>` captured
 
 **`tests/unit/test_schema_cache.py`** — new entries (5 schemas now resolvable via bundled fallback)
 
