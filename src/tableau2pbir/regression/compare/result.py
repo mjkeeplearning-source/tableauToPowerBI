@@ -1,6 +1,7 @@
 """Regression result data models."""
 from __future__ import annotations
 from dataclasses import dataclass, field
+from typing import Literal
 
 
 @dataclass
@@ -26,7 +27,7 @@ class FileDiff:
 @dataclass
 class WorkbookResult:
     name: str
-    status: str        # "PASS", "FAIL", "SKIP"
+    status: Literal["PASS", "FAIL", "SKIP"]
     skip_reason: str = ""
     file_diffs: list[FileDiff] = field(default_factory=list)
 

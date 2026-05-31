@@ -46,7 +46,7 @@ def test_notes_defaults_to_empty_string(tmp_path: Path):
     assert entries[0].notes == ""
 
 
-def test_duplicate_name_detection(tmp_path: Path):
+def test_load_corpus_allows_duplicate_names(tmp_path: Path):
     corpus_path = tmp_path / "corpus.yaml"
     e = CorpusEntry(name="wb", path="wb.twb", added_by="me", added_on="2026-01-01", notes="")
     save_corpus([e], corpus_path)
