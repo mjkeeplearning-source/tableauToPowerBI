@@ -46,7 +46,7 @@
 - Create: `src/tableau2pbir/validate/_schemas/filterConfiguration-1.3.0.json`
 - Modify: `src/tableau2pbir/validate/_schemas/manifest.json`
 
-- [ ] **Step 1: Fetch and save the 5 schemas from Microsoft CDN**
+- [x] **Step 1: Fetch and save the 5 schemas from Microsoft CDN**
 
 Run this Python script from the repo root (requires internet access):
 
@@ -84,7 +84,7 @@ python scripts/fetch_bundled_schemas.py
 
 Expected output: 5 lines each ending `ok`.
 
-- [ ] **Step 2: Verify all 5 files exist and are valid JSON**
+- [x] **Step 2: Verify all 5 files exist and are valid JSON**
 
 ```
 python -c "
@@ -101,7 +101,7 @@ for f in ['semanticQuery-1.0.0.json','semanticQuery-1.2.0.json',
 
 Expected: each file prints its top-level keys (should include `$id`, `$schema`, `definitions` or similar).
 
-- [ ] **Step 3: Update manifest.json — add 5 new entries**
+- [x] **Step 3: Update manifest.json — add 5 new entries**
 
 Open `src/tableau2pbir/validate/_schemas/manifest.json`. The file currently has a `"schemas"` array with 7 entries. Append these 5 entries to the array:
 
@@ -135,7 +135,7 @@ Open `src/tableau2pbir/validate/_schemas/manifest.json`. The file currently has 
 
 The manifest now has 12 entries total.
 
-- [ ] **Step 4: Verify manifest has 12 entries**
+- [x] **Step 4: Verify manifest has 12 entries**
 
 ```
 python -c "
@@ -149,7 +149,7 @@ for e in m['schemas']: print(' ', e['file'])
 
 Expected: `12 entries` followed by 12 filenames.
 
-- [ ] **Step 5: Run existing schema cache tests — they must still pass**
+- [x] **Step 5: Run existing schema cache tests — they must still pass**
 
 ```
 pytest tests/unit/validate/test_schema_cache.py tests/unit/validate/test_refresh_schemas.py -v
@@ -157,7 +157,7 @@ pytest tests/unit/validate/test_schema_cache.py tests/unit/validate/test_refresh
 
 Expected: all pass. No changes to those files were needed — `refresh_schemas.py` already reads from the manifest, so it will pick up the 5 new URLs automatically on next run.
 
-- [ ] **Step 6: Run E2E gate**
+- [x] **Step 6: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -165,7 +165,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass (no production code changed yet).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```
 git add src/tableau2pbir/validate/_schemas/ scripts/fetch_bundled_schemas.py
@@ -182,7 +182,7 @@ git commit -m "feat(schemas): bundle semanticQuery 1.0/1.2/1.4 and filterConfigu
 
 Background: `json_schema.py` currently calls `Draft7Validator(schema).validate(instance)` without a resolver, so `$ref` links inside schemas (e.g. `filterConfig → semanticQuery`) silently resolve to nothing. We need to pre-populate a `RefResolver` store keyed on the manifest URL (which matches what `$ref` resolves to) so cross-schema references validate correctly.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/unit/validate/test_refresolver.py`:
 
@@ -269,7 +269,7 @@ def test_ref_resolved_invalid_fails(tmp_path: Path) -> None:
     assert any("value" in f.message for f in result.findings)
 ```
 
-- [ ] **Step 2: Run the test — verify it fails**
+- [x] **Step 2: Run the test — verify it fails**
 
 ```
 pytest tests/unit/validate/test_refresolver.py -v
@@ -277,7 +277,7 @@ pytest tests/unit/validate/test_refresolver.py -v
 
 Expected: `test_ref_resolved_invalid_fails` FAILS (the invalid value passes because $ref is not resolved).
 
-- [ ] **Step 3: Update json_schema.py to build and use RefResolver**
+- [x] **Step 3: Update json_schema.py to build and use RefResolver**
 
 In `src/tableau2pbir/validate/json_schema.py`, replace the `run_json_schema` function body. The only change is how the validator is constructed — add a `_build_resolver` helper and use it:
 
@@ -398,7 +398,7 @@ def run_json_schema(
     )
 ```
 
-- [ ] **Step 4: Run all json_schema tests — verify they all pass**
+- [x] **Step 4: Run all json_schema tests — verify they all pass**
 
 ```
 pytest tests/unit/validate/test_json_schema.py tests/unit/validate/test_refresolver.py -v
@@ -406,7 +406,7 @@ pytest tests/unit/validate/test_json_schema.py tests/unit/validate/test_refresol
 
 Expected: all pass, including the previously failing `test_ref_resolved_invalid_fails`.
 
-- [ ] **Step 5: Run E2E gate**
+- [x] **Step 5: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -414,7 +414,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/validate/json_schema.py tests/unit/validate/test_refresolver.py
@@ -432,7 +432,7 @@ git commit -m "feat(validate): wire RefResolver so nested schema $ref links reso
 
 The single `Filter` class becomes a type alias for a Pydantic v2 discriminated union of 5 concrete subtypes. Existing code that calls `Filter(id=…, kind="categorical", …)` must be updated to use the concrete subtype directly.
 
-- [ ] **Step 1: Write new IR tests**
+- [x] **Step 1: Write new IR tests**
 
 Add these to `tests/unit/ir/test_sheet.py` (append after existing tests):
 
@@ -518,7 +518,7 @@ def test_sheet_accepts_new_filter_subtypes():
     assert isinstance(s.filters[0], RangeFilter)
 ```
 
-- [ ] **Step 2: Run the new tests — verify they fail**
+- [x] **Step 2: Run the new tests — verify they fail**
 
 ```
 pytest tests/unit/ir/test_sheet.py::test_categorical_filter_roundtrip -v
@@ -526,7 +526,7 @@ pytest tests/unit/ir/test_sheet.py::test_categorical_filter_roundtrip -v
 
 Expected: `ImportError` — `CategoricalFilter` does not exist yet.
 
-- [ ] **Step 3: Rewrite ir/sheet.py**
+- [x] **Step 3: Rewrite ir/sheet.py**
 
 Replace the entire file content:
 
@@ -641,7 +641,7 @@ class PbirVisual(IRBase):
 Sheet.model_rebuild()
 ```
 
-- [ ] **Step 4: Fix existing callers in test_sheet.py**
+- [x] **Step 4: Fix existing callers in test_sheet.py**
 
 In `tests/unit/ir/test_sheet.py`, the two existing tests construct `Filter(id=…, kind="categorical", …)`. Update them to use `CategoricalFilter`:
 
@@ -667,7 +667,7 @@ from tableau2pbir.ir.sheet import (
 )
 ```
 
-- [ ] **Step 5: Fix existing callers in test_filters.py**
+- [x] **Step 5: Fix existing callers in test_filters.py**
 
 In `tests/unit/emit/pbir/test_filters.py`, update all `Filter(…)` constructors and the import:
 
@@ -690,7 +690,7 @@ f1 = CategoricalFilter(id="f1", field=FieldRef(table_id="Sales", column_id="Regi
 f2 = RangeFilter(id="f2", field=FieldRef(table_id="Sales", column_id="Year"))
 ```
 
-- [ ] **Step 6: Run all IR and filter tests**
+- [x] **Step 6: Run all IR and filter tests**
 
 ```
 pytest tests/unit/ir/test_sheet.py tests/unit/emit/pbir/test_filters.py -v
@@ -698,7 +698,7 @@ pytest tests/unit/ir/test_sheet.py tests/unit/emit/pbir/test_filters.py -v
 
 Expected: all pass.
 
-- [ ] **Step 7: Run full unit suite to catch any other callers**
+- [x] **Step 7: Run full unit suite to catch any other callers**
 
 ```
 pytest tests/unit/ -v --tb=short 2>&1 | grep -E "FAILED|ERROR"
@@ -706,7 +706,7 @@ pytest tests/unit/ -v --tb=short 2>&1 | grep -E "FAILED|ERROR"
 
 Expected: no FAILEDs or ERRORs. If any other test imports `Filter` with old-style kwargs, fix them the same way.
 
-- [ ] **Step 8: Run E2E gate**
+- [x] **Step 8: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -714,7 +714,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```
 git add src/tableau2pbir/ir/sheet.py tests/unit/ir/test_sheet.py tests/unit/emit/pbir/test_filters.py
@@ -729,7 +729,7 @@ git commit -m "feat(ir): replace Filter class with Pydantic v2 discriminated uni
 - Modify: `src/tableau2pbir/extract/worksheets.py`
 - Create: `tests/unit/extract/test_extract_filters.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/extract/test_extract_filters.py`:
 
@@ -844,7 +844,7 @@ def test_categorical_members_captured():
     assert "North" in f["exclude"]
 ```
 
-- [ ] **Step 2: Run the tests — verify they fail**
+- [x] **Step 2: Run the tests — verify they fail**
 
 ```
 pytest tests/unit/extract/test_extract_filters.py -v
@@ -852,7 +852,7 @@ pytest tests/unit/extract/test_extract_filters.py -v
 
 Expected: multiple FAILEDs — `kind` values not yet normalised.
 
-- [ ] **Step 3: Update `_filters()` in extract/worksheets.py**
+- [x] **Step 3: Update `_filters()` in extract/worksheets.py**
 
 Replace the existing `_filters` function (lines 126-139) with:
 
@@ -903,7 +903,7 @@ def _filters(view: etree._Element) -> list[dict[str, Any]]:
     return out
 ```
 
-- [ ] **Step 4: Run extract filter tests**
+- [x] **Step 4: Run extract filter tests**
 
 ```
 pytest tests/unit/extract/test_extract_filters.py tests/unit/stages/test_s01_extract.py -v
@@ -911,7 +911,7 @@ pytest tests/unit/extract/test_extract_filters.py tests/unit/stages/test_s01_ext
 
 Expected: all pass.
 
-- [ ] **Step 5: Run E2E gate**
+- [x] **Step 5: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -919,7 +919,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/extract/worksheets.py tests/unit/extract/test_extract_filters.py
@@ -934,7 +934,7 @@ git commit -m "feat(extract): normalise Tableau filter class values to IR kinds;
 - Modify: `src/tableau2pbir/stages/_build_sheets.py`
 - Create: `tests/unit/stages/test_build_sheets_filters.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/unit/stages/test_build_sheets_filters.py`:
 
@@ -1031,7 +1031,7 @@ def test_conditional_filter_adds_unsupported_item():
     assert any(u.code == "deferred_feature_conditional_filter" for u in unsupported)
 ```
 
-- [ ] **Step 2: Run tests — verify they fail**
+- [x] **Step 2: Run tests — verify they fail**
 
 ```
 pytest tests/unit/stages/test_build_sheets_filters.py -v
@@ -1039,7 +1039,7 @@ pytest tests/unit/stages/test_build_sheets_filters.py -v
 
 Expected: `ImportError` for `_build_filter` (it's currently a module-private function but exists; the failure will be on `isinstance` checks since the factory doesn't dispatch yet).
 
-- [ ] **Step 3: Update _build_sheets.py**
+- [x] **Step 3: Update _build_sheets.py**
 
 At the top of `src/tableau2pbir/stages/_build_sheets.py`, update the imports:
 
@@ -1110,7 +1110,7 @@ In the `build_sheets` function, after building `filters`, collect UnsupportedIte
                 ))
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```
 pytest tests/unit/stages/test_build_sheets_filters.py tests/unit/stages/test_s02_calculations.py -v
@@ -1118,7 +1118,7 @@ pytest tests/unit/stages/test_build_sheets_filters.py tests/unit/stages/test_s02
 
 Expected: all pass.
 
-- [ ] **Step 5: Run E2E gate**
+- [x] **Step 5: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -1126,7 +1126,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/stages/_build_sheets.py tests/unit/stages/test_build_sheets_filters.py
@@ -1141,7 +1141,7 @@ git commit -m "feat(canonicalize): replace Filter factory with typed dispatch; r
 - Modify: `src/tableau2pbir/emit/pbir/filters.py` (add helpers only; keep existing collect_page_filters)
 - Create: `tests/unit/emit/pbir/test_filter_literal.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/unit/emit/pbir/test_filter_literal.py`:
 
@@ -1215,7 +1215,7 @@ class TestAliasColExpr:
         }
 ```
 
-- [ ] **Step 2: Run tests — verify they fail**
+- [x] **Step 2: Run tests — verify they fail**
 
 ```
 pytest tests/unit/emit/pbir/test_filter_literal.py -v
@@ -1223,7 +1223,7 @@ pytest tests/unit/emit/pbir/test_filter_literal.py -v
 
 Expected: `ImportError` — helpers don't exist yet.
 
-- [ ] **Step 3: Add helpers to filters.py**
+- [x] **Step 3: Add helpers to filters.py**
 
 Replace the contents of `src/tableau2pbir/emit/pbir/filters.py` with the following. Keep `collect_page_filters` working (it still imports `Filter` but now via the union) — we'll update the None-guard in Task 8.
 
@@ -1337,7 +1337,7 @@ def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list]]) -> list[
 
 Note: `collect_page_filters` now has the None-guard built in from the start. The old per-field dedup key is replaced by kind-aware keys.
 
-- [ ] **Step 4: Run helper tests**
+- [x] **Step 4: Run helper tests**
 
 ```
 pytest tests/unit/emit/pbir/test_filter_literal.py tests/unit/emit/pbir/test_filters.py -v
@@ -1361,7 +1361,7 @@ def test_unique_filters_kept():
     assert len(out) == 0  # placeholder
 ```
 
-- [ ] **Step 5: Run E2E gate**
+- [x] **Step 5: Run E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -1369,7 +1369,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all pass (filter output is now empty lists, not invalid JSON).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/emit/pbir/filters.py tests/unit/emit/pbir/test_filter_literal.py tests/unit/emit/pbir/test_filters.py
