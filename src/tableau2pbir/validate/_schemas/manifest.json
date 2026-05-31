@@ -1,0 +1,39 @@
+{
+  "schemas": [
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+      "file": "report-visualContainer-1.0.0.json",
+      "description": "visual.json — visual container definition (charts, maps)"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+      "file": "report-visualContainer-2.0.0.json",
+      "description": "visual.json — visual container definition (slicers)"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+      "file": "report-page-2.1.0.json",
+      "description": "page.json — report page definition"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.2.0/schema.json",
+      "file": "report-report-3.2.0.json",
+      "description": "report.json — report-level metadata"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+      "file": "report-pagesMetadata-1.0.0.json",
+      "description": "pages.json — page order and active page"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/versionMetadata/1.0.0/schema.json",
+      "file": "report-versionMetadata-1.0.0.json",
+      "description": "version.json — PBIR format version"
+    },
+    {
+      "url": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definitionProperties/1.0.0/schema.json",
+      "file": "semanticModel-definitionProperties-1.0.0.json",
+      "description": "definition.pbism — semantic model definition"
+    }
+  ]
+}
