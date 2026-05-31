@@ -77,6 +77,11 @@ class ReferenceLine(IRBase):
     lod_expr: str | None = None
 
 
+class MarkStyle(IRBase):
+    mark_color: str | None = None
+    labels_show: bool = False
+
+
 class Sheet(IRBase):
     id: str
     name: str
@@ -87,6 +92,7 @@ class Sheet(IRBase):
     sort: tuple[SortSpec, ...]
     dual_axis: bool
     reference_lines: tuple[ReferenceLine, ...]
+    mark_style: MarkStyle | None = None
     format: dict[str, str] | None = None
     uses_calculations: tuple[str, ...]
     pbir_visual: PbirVisual | None = None
@@ -102,7 +108,7 @@ class PbirVisual(IRBase):
     """Stage 4 annotation attached to a Sheet."""
     visual_type: str
     encoding_bindings: tuple[EncodingBinding, ...]
-    format: dict[str, str] = {}
+    format: dict[str, list[dict]] = {}
 
 
 Sheet.model_rebuild()

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
 from tableau2pbir.ir.sheet import (
-    CategoricalFilter, Encoding, Filter, RangeFilter, Sheet,
-    TopNFilter, ContextFilter, ConditionalFilter,
+    CategoricalFilter, Encoding, EncodingBinding, Filter, MarkStyle,
+    PbirVisual, RangeFilter, Sheet, TopNFilter, ContextFilter, ConditionalFilter,
 )
 
 
@@ -119,3 +119,38 @@ def test_sheet_accepts_new_filter_subtypes():
         format=None, uses_calculations=(),
     )
     assert isinstance(s.filters[0], RangeFilter)
+
+
+def test_mark_style_defaults():
+    ms = MarkStyle()
+    assert ms.mark_color is None
+    assert ms.labels_show is False
+
+
+def test_mark_style_with_values():
+    ms = MarkStyle(mark_color="#ffaa7f", labels_show=True)
+    assert ms.mark_color == "#ffaa7f"
+    assert ms.labels_show is True
+
+
+def test_sheet_mark_style_defaults_to_none():
+    s = Sheet(
+        id="s1", name="T", datasource_refs=("ds",), mark_type="bar",
+        encoding=Encoding(), filters=(), sort=(), dual_axis=False,
+        reference_lines=(), uses_calculations=(),
+    )
+    assert s.mark_style is None
+
+
+def test_pbir_visual_format_accepts_objects_structure():
+    """PbirVisual.format must accept the PBIR DataViewObjectDefinitions shape."""
+    pv = PbirVisual(
+        visual_type="barChart",
+        encoding_bindings=(EncodingBinding(channel="Y", source_field_id="sales"),),
+        format={
+            "labels": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}],
+            "dataPoint": [{"properties": {"fill": {"solid": {"color": {"expr": {"Literal": {"Value": "'#ffaa7f'"}}}}}}}],
+        },
+    )
+    assert "labels" in pv.format
+    assert "dataPoint" in pv.format
