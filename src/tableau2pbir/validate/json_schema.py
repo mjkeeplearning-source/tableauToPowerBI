@@ -7,6 +7,7 @@ from pathlib import Path
 
 import jsonschema
 import referencing
+import referencing.exceptions
 import referencing.jsonschema as _ref_jsonschema
 
 from tableau2pbir.validate.results import (
@@ -104,7 +105,17 @@ def run_json_schema(
         if schema is None:
             continue  # in manifest but files missing — packaging error, skip silently
         validator = jsonschema.Draft7Validator(schema, registry=registry)
-        for error in validator.iter_errors(data):
+        try:
+            errors = list(validator.iter_errors(data))
+        except referencing.exceptions.Unresolvable as exc:
+            findings.append(SchemaFinding(
+                code="schema.ref_unresolvable",
+                severity="warn",
+                message=f"Schema $ref could not be resolved: {exc}",
+                location=str(json_file.relative_to(out_dir)),
+            ))
+            continue
+        for error in errors:
             path_str = " > ".join(str(p) for p in error.absolute_path) or "(root)"
             findings.append(SchemaFinding(
                 code="schema.violation",
