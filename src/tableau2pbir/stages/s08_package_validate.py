@@ -7,7 +7,7 @@ from typing import Any
 
 from tableau2pbir.pipeline import StageContext, StageResult
 from tableau2pbir.validate import (
-    desktop_open as _do, pbir_compile as _pbir, pbip as _pbip,
+    desktop_open as _do, json_schema as _schema, pbir_compile as _pbir, pbip as _pbip,
     report as _report, rubric as _rubric, status as _status,
     structural as _struct, tmdl_schema as _tmdl,
 )
@@ -55,6 +55,18 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
                 {"code": f.code, "severity": f.severity,
                  "message": f.message, "location": f.location}
                 for f in struct_res.findings
+            ],
+        }, indent=2), encoding="utf-8")
+
+    # 4.5. JSON schema validation (soft warning — does not affect pipeline status).
+    schema_res = _schema.run_json_schema(out_dir)
+    (out_dir / "validation" / "json_schema.json").write_text(
+        json.dumps({
+            "outcome": schema_res.outcome.value,
+            "findings": [
+                {"code": f.code, "severity": f.severity,
+                 "message": f.message, "location": f.location}
+                for f in schema_res.findings
             ],
         }, indent=2), encoding="utf-8")
 
@@ -146,6 +158,14 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
                              for f in struct_res.findings
                          ],
                          "log_path": "validation/structural.json"},
+        "json_schema":  {"result": schema_res.outcome.value,
+                         "reason": None,
+                         "findings": [
+                             {"code": f.code, "severity": f.severity,
+                              "message": f.message, "location": f.location}
+                             for f in schema_res.findings
+                         ],
+                         "log_path": schema_res.log_path},
         "desktop_open": {"result": desktop_res.outcome.value, "reason": desktop_res.reason,
                          "events": [{"name": e.name, "ts": e.timestamp_ms}
                                     for e in desktop_res.events],

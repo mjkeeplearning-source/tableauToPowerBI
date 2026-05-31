@@ -15,7 +15,10 @@ FAKE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "required": ["name"],
-    "properties": {"name": {"type": "string"}},
+    "properties": {
+        "$schema": {"type": "string"},
+        "name": {"type": "string"},
+    },
     "additionalProperties": False,
 }
 

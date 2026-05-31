@@ -76,11 +76,8 @@ def run_json_schema(
         schema = _resolve_schema(url, cache_dir, _bundled_dir)
         if schema is None:
             continue  # in manifest but files missing — packaging error, skip silently
-        # Strip $schema from instance data before validation — it is a meta-keyword
-        # and should not be treated as a data property (would trigger additionalProperties errors).
-        instance = {k: v for k, v in data.items() if k != "$schema"}
         validator = jsonschema.Draft7Validator(schema)
-        for error in validator.iter_errors(instance):
+        for error in validator.iter_errors(data):
             path_str = " > ".join(str(p) for p in error.absolute_path) or "(root)"
             findings.append(SchemaFinding(
                 code="schema.violation",
