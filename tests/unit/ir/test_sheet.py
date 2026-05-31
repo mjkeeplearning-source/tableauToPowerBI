@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import Encoding, Filter, Sheet
+from tableau2pbir.ir.sheet import (
+    CategoricalFilter, Encoding, Filter, RangeFilter, Sheet,
+    TopNFilter, ContextFilter, ConditionalFilter,
+)
 
 
 def test_sheet_minimal():
@@ -25,9 +28,9 @@ def test_sheet_minimal():
 
 
 def test_sheet_with_categorical_filter():
-    f = Filter(
-        id="f1", kind="categorical", field=FieldRef(table_id="t1", column_id="region"),
-        include=("West", "East"), exclude=(), expr=None,
+    f = CategoricalFilter(
+        id="f1", field=FieldRef(table_id="t1", column_id="region"),
+        include=("West", "East"),
     )
     s = Sheet(
         id="sheet2", name="Regional",
@@ -40,3 +43,79 @@ def test_sheet_with_categorical_filter():
     )
     assert s.filters[0].include == ("West", "East")
     assert s.uses_calculations == ("calc1",)
+
+
+def test_categorical_filter_roundtrip():
+    f = CategoricalFilter(
+        id="f1", field=FieldRef(table_id="Sales", column_id="Region"),
+        include=("East", "West"), exclude=(),
+    )
+    assert f.kind == "categorical"
+    assert f.include == ("East", "West")
+    # Pydantic round-trip: serialize → deserialize via the union
+    import json
+    from pydantic import TypeAdapter
+    ta = TypeAdapter(Filter)
+    restored = ta.validate_python(json.loads(f.model_dump_json()))
+    assert isinstance(restored, CategoricalFilter)
+    assert restored.include == ("East", "West")
+
+
+def test_range_filter_roundtrip():
+    f = RangeFilter(
+        id="f2", field=FieldRef(table_id="Sales", column_id="Amount"),
+        min_val="100", max_val="9999",
+    )
+    assert f.kind == "range"
+    from pydantic import TypeAdapter
+    ta = TypeAdapter(Filter)
+    restored = ta.validate_python(f.model_dump())
+    assert isinstance(restored, RangeFilter)
+    assert restored.min_val == "100"
+
+
+def test_topn_filter_fields():
+    f = TopNFilter(
+        id="f3", field=FieldRef(table_id="Sales", column_id="Customer"),
+        n=10, direction="Top",
+        by_field=FieldRef(table_id="Sales", column_id="Revenue"),
+        by_agg="SUM",
+    )
+    assert f.kind == "top_n"
+    assert f.n == 10
+    assert f.by_agg == "SUM"
+
+
+def test_context_filter_is_categorical_shaped():
+    f = ContextFilter(
+        id="f4", field=FieldRef(table_id="Sales", column_id="Year"),
+        include=("2023",), exclude=(),
+    )
+    assert f.kind == "context"
+
+
+def test_conditional_filter_fields():
+    f = ConditionalFilter(
+        id="f5", field=FieldRef(table_id="Sales", column_id="Profit"),
+        expr="[Profit] > 0",
+    )
+    assert f.kind == "conditional"
+    assert f.expr == "[Profit] > 0"
+
+
+def test_sheet_accepts_new_filter_subtypes():
+    from tableau2pbir.ir.sheet import Sheet, Encoding
+    f = RangeFilter(
+        id="f6", field=FieldRef(table_id="t1", column_id="price"),
+        min_val="10",
+    )
+    s = Sheet(
+        id="sheet3", name="Priced",
+        datasource_refs=("ds1",),
+        mark_type="bar",
+        encoding=Encoding(rows=(), columns=()),
+        filters=(f,),
+        sort=(), dual_axis=False, reference_lines=(),
+        format=None, uses_calculations=(),
+    )
+    assert isinstance(s.filters[0], RangeFilter)

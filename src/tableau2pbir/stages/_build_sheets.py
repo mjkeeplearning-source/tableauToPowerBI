@@ -6,7 +6,10 @@ from __future__ import annotations
 from typing import Any
 
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
-from tableau2pbir.ir.sheet import Encoding, Filter, ReferenceLine, Sheet, SortSpec
+from tableau2pbir.ir.sheet import (
+    CategoricalFilter, ConditionalFilter, ContextFilter, Encoding, Filter,
+    RangeFilter, ReferenceLine, Sheet, SortSpec, TopNFilter,
+)
 from tableau2pbir.util.ids import stable_id
 
 
@@ -38,12 +41,39 @@ def _build_encoding(raw_enc: dict[str, Any], table_id: str) -> Encoding:
 
 
 def _build_filter(raw_f: dict[str, Any], sheet_idx: int, filter_idx: int, table_id: str) -> Filter:
-    return Filter(
-        id=f"filter__s{sheet_idx}_{filter_idx}",
-        kind=raw_f["kind"],
-        field=_ref(raw_f["column"], table_id),
-        include=tuple(raw_f.get("include", ())),
-        exclude=tuple(raw_f.get("exclude", ())),
+    fid = f"filter__s{sheet_idx}_{filter_idx}"
+    field = _ref(raw_f["column"], table_id)
+    kind = raw_f["kind"]
+    if kind == "categorical":
+        return CategoricalFilter(
+            id=fid, field=field,
+            include=tuple(raw_f.get("include", ())),
+            exclude=tuple(raw_f.get("exclude", ())),
+        )
+    if kind == "range":
+        return RangeFilter(
+            id=fid, field=field,
+            min_val=raw_f.get("min_val"),
+            max_val=raw_f.get("max_val"),
+        )
+    if kind == "top_n":
+        by_col = raw_f.get("by_column")
+        return TopNFilter(
+            id=fid, field=field,
+            n=int(raw_f.get("n", 10)),
+            direction=raw_f.get("direction", "Top"),
+            by_field=_ref(by_col, table_id) if by_col else None,
+            by_agg=raw_f.get("by_agg"),
+        )
+    if kind == "context":
+        return ContextFilter(
+            id=fid, field=field,
+            include=tuple(raw_f.get("include", ())),
+            exclude=tuple(raw_f.get("exclude", ())),
+        )
+    # fallback: conditional or unknown → ConditionalFilter
+    return ConditionalFilter(
+        id=fid, field=field,
         expr=raw_f.get("expr"),
     )
 
