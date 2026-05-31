@@ -144,6 +144,23 @@ def build_sheets(
             _build_filter(f, idx, fi, table_id)
             for fi, f in enumerate(raw["filters"])
         )
+        for fi, fobj in enumerate(filters):
+            if isinstance(fobj, TopNFilter):
+                qtc_unsupported.append(UnsupportedItem(
+                    object_kind="filter",
+                    object_id=fobj.id,
+                    source_excerpt=f"sheet={raw['name']!r} column={raw['filters'][fi]['column']!r} kind=top_n",
+                    reason="TopN filter emission deferred to v1.1.",
+                    code="deferred_feature_topn_filter",
+                ))
+            elif isinstance(fobj, ConditionalFilter):
+                qtc_unsupported.append(UnsupportedItem(
+                    object_kind="filter",
+                    object_id=fobj.id,
+                    source_excerpt=f"sheet={raw['name']!r} column={raw['filters'][fi]['column']!r} kind=conditional",
+                    reason="Conditional filter emission deferred to v1.1.",
+                    code="deferred_feature_conditional_filter",
+                ))
         sheet_id = stable_id("sheet", raw["name"])
         sheets.append(Sheet(
             id=sheet_id,

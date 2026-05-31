@@ -14,7 +14,7 @@ def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list[Filter]]]) 
             if isinstance(f, (CategoricalFilter, ContextFilter)):
                 key = (f.field.table_id, f.field.column_id, f.kind, tuple(f.include), tuple(f.exclude))
             elif isinstance(f, RangeFilter):
-                key = (f.field.table_id, f.field.column_id, f.kind, f.min_val, f.max_val)
+                key = (f.field.table_id, f.field.column_id, f.kind, f.min_val, f.max_val, f.agg_prefix)
             else:
                 key = (f.field.table_id, f.field.column_id, f.kind)
             if key in seen_keys:
@@ -27,6 +27,9 @@ def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list[Filter]]]) 
 
 
 def _filter_to_pbir(f: Filter) -> dict | None:
+    # Categorical/context emit is a temporary placeholder (schema-invalid structure).
+    # Full schema-valid emit (correct type casing, FilterDefinition body, Entity SourceRef)
+    # is implemented in Tasks 7-8.
     if isinstance(f, (CategoricalFilter, ContextFilter)):
         obj: dict = {
             "name": f.id,
