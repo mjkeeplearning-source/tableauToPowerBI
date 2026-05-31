@@ -18,6 +18,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 8 | Visual Emission Fix — Markers, Channels, Field Resolution, Naming | ✅ DONE | `docs/superpowers/plans/2026-05-02-plan-8-visual-emission-fix.md` |
 | 9 | TMDL Syntax Fixes — PBI Desktop Openability | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-9-tmdl-syntax-fixes.md` |
 | 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
+| 11 | Filter IR Enrichment & Schema-Compliant Emission | 🔄 ACTIVE | `docs/superpowers/plans/2026-05-31-plan-11-filter-ir-enrichment.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.

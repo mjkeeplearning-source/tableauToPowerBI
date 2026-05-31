@@ -1,6 +1,6 @@
 # Filter IR Enrichment & Schema-Compliant Emission — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use **superpowers:subagent-driven-development** to implement this plan. A fresh subagent is dispatched per task with review between tasks. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix three schema violations in PBIR filter emission, enrich the IR `Filter` model into a Pydantic v2 discriminated union, bundle 5 missing Microsoft semantic-query schemas, and wire `RefResolver` so the JSON schema validator can fully validate `filterConfig` bodies.
 
