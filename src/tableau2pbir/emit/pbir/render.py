@@ -13,7 +13,7 @@ from tableau2pbir.emit.pbir.page import render_page
 from tableau2pbir.emit.pbir.report import render_pages_manifest, render_report as render_report_json
 from tableau2pbir.emit.pbir.slicer import render_filter_slicer, render_parameter_slicer
 from tableau2pbir.emit.pbir.visual import render_visual
-from tableau2pbir.ir.dashboard import Container, Leaf, LeafKind
+from tableau2pbir.ir.dashboard import Container, Leaf, LeafKind, Position
 from tableau2pbir.ir.workbook import Workbook
 from tableau2pbir.layout.leaf_types import PbiObjectKind, map_leaf_kind
 from tableau2pbir.visualmap.field_lookup import build_field_lookup
@@ -32,8 +32,29 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
     visual_count = 0
     slicer_count = 0
 
+    # Emit one full-canvas page per worksheet (mirrors Tableau's per-sheet tab model).
+    _SHEET_PAGE_W, _SHEET_PAGE_H = 1280, 720
+    for sheet in wb.sheets:
+        if sheet.pbir_visual is None:
+            continue
+        page_id = f"ReportSection{len(page_ids) + 1}"
+        page_ids.append(page_id)
+        page_dir = rd / "pages" / page_id
+        visual_count += 1
+        visual_id = f"visual_{visual_count}"
+        full_pos = Position(x=0, y=0, w=_SHEET_PAGE_W, h=_SHEET_PAGE_H)
+        write_text(page_dir / "visuals" / visual_id / "visual.json",
+                   render_visual(visual_id, sheet.pbir_visual, full_pos, 0, field_lookup))
+        rendered_visuals.append({
+            "page_id": page_id, "visual_id": visual_id, "sheet_id": sheet.id,
+            "field_ids": tuple(b.source_field_id for b in sheet.pbir_visual.encoding_bindings),
+        })
+        write_text(page_dir / "page.json",
+                   render_page(page_id, sheet.name,
+                               width=_SHEET_PAGE_W, height=_SHEET_PAGE_H))
+
     for ordinal, dash in enumerate(wb.dashboards):
-        page_id = f"ReportSection{ordinal + 1}"
+        page_id = f"ReportSection{len(page_ids) + 1}"
         page_ids.append(page_id)
         page_dir = rd / "pages" / page_id
 

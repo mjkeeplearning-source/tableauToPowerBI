@@ -80,3 +80,46 @@ def test_leaf_kind_mapping():
 def test_no_dashboards_returns_empty():
     root = parse_workbook_xml(b"<workbook><dashboards/></workbook>")
     assert extract_dashboards(root) == []
+
+
+# Real Tableau workbooks use a 0-100000 coordinate space (tus) for zone positions,
+# where 100000 = 100% of the canvas pixel dimension. Extracted positions must be pixels.
+_XML_REAL_TABLEAU_TUS = b"""<?xml version='1.0'?>
+<workbook><dashboards>
+  <dashboard name='Company Dashboard'>
+    <size maxheight='800' maxwidth='1000' minheight='800' minwidth='1000'/>
+    <zones>
+      <zone h='100000' id='4' type-v2='layout-basic' w='100000' x='0' y='0'>
+        <zone h='49000' id='3' name='Category average orders' w='98400' x='800' y='1000'>
+          <zone-style/>
+        </zone>
+        <zone h='49000' id='5' name='Category by Margin' w='98400' x='800' y='50000'>
+          <zone-style/>
+        </zone>
+        <zone-style/>
+      </zone>
+    </zones>
+  </dashboard>
+</dashboards></workbook>
+"""
+
+
+def test_real_tableau_tus_zones_normalized_to_pixels():
+    """Zone positions in tus (0-100000 = full canvas) must be converted to pixels."""
+    root = parse_workbook_xml(_XML_REAL_TABLEAU_TUS)
+    dbs = extract_dashboards(root)
+    leaves = dbs[0]["leaves"]
+    assert len(leaves) == 2
+    # x=800/100000*1000=8, y=1000/100000*800=8, w=98400/100000*1000=984, h=49000/100000*800=392
+    assert leaves[0]["position"] == {"x": 8, "y": 8, "w": 984, "h": 392}
+    # x=8, y=50000/100000*800=400, w=984, h=392
+    assert leaves[1]["position"] == {"x": 8, "y": 400, "w": 984, "h": 392}
+
+
+def test_small_pixel_coords_not_normalized():
+    """Fixture-style zones already in pixel space must pass through unchanged."""
+    root = parse_workbook_xml(_XML_TILED)
+    dbs = extract_dashboards(root)
+    leaf = dbs[0]["leaves"][0]
+    # fixture: x=0, y=0, w=1200, h=800 — these are pixels; must not be divided by 100000
+    assert leaf["position"] == {"x": 0, "y": 0, "w": 1200, "h": 800}

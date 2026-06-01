@@ -102,6 +102,31 @@ def _payload_for_kind(kind: str, zone: etree._Element) -> dict[str, Any]:
     return {}   # blank, web_page — no structured payload
 
 
+def _normalize_tus(leaves: list[dict[str, Any]], canvas_w: int, canvas_h: int) -> None:
+    """Convert Tableau-unit (tus, 0-100000 = full canvas) coords to pixels in-place.
+
+    Real Tableau workbooks store zone positions in tus; fixture XML in tests uses pixels.
+    Heuristic: if any coordinate pair exceeds 10× the canvas dimension, assume tus.
+    """
+    if not leaves:
+        return
+    max_coord = max(
+        max(lf["position"]["x"] + lf["position"]["w"],
+            lf["position"]["y"] + lf["position"]["h"])
+        for lf in leaves
+    )
+    if max_coord <= max(canvas_w, canvas_h) * 10:
+        return
+    for lf in leaves:
+        pos = lf["position"]
+        lf["position"] = {
+            "x": round(pos["x"] * canvas_w / 100000),
+            "y": round(pos["y"] * canvas_h / 100000),
+            "w": round(pos["w"] * canvas_w / 100000),
+            "h": round(pos["h"] * canvas_h / 100000),
+        }
+
+
 def _leaves(dashboard: etree._Element) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
@@ -155,9 +180,8 @@ def _leaves(dashboard: etree._Element) -> list[dict[str, Any]]:
 def extract_dashboards(root: etree._Element) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for db in root.findall("dashboards/dashboard"):
-        out.append({
-            "name": attr(db, "name"),
-            "size": _size(db),
-            "leaves": _leaves(db),
-        })
+        size = _size(db)
+        leaves = _leaves(db)
+        _normalize_tus(leaves, size["w"], size["h"])
+        out.append({"name": attr(db, "name"), "size": size, "leaves": leaves})
     return out
