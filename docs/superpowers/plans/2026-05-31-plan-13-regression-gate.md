@@ -1623,7 +1623,7 @@ git commit -m "feat(regression): pre-commit hook installer"
 - Modify: `src/tableau2pbir/cli.py`
 - Modify: `tests/unit/test_cli.py`
 
-- [ ] **Step 1: Read the existing test file to know what exists**
+- [x] **Step 1: Read the existing test file to know what exists**
 
 ```
 pytest tests/unit/test_cli.py -v
@@ -1631,7 +1631,7 @@ pytest tests/unit/test_cli.py -v
 
 Verify existing tests still pass before touching anything.
 
-- [ ] **Step 2: Write failing CLI tests**
+- [x] **Step 2: Write failing CLI tests**
 
 Open `tests/unit/test_cli.py` and add at the end:
 
@@ -1666,7 +1666,7 @@ def test_regression_install_hook_subcommand_registered():
     assert "regression-install-hook" in subparsers_action._name_parser_map
 ```
 
-- [ ] **Step 3: Run to confirm FAIL**
+- [x] **Step 3: Run to confirm FAIL**
 
 ```
 pytest tests/unit/test_cli.py::test_regression_check_subcommand_registered -v
@@ -1674,7 +1674,7 @@ pytest tests/unit/test_cli.py::test_regression_check_subcommand_registered -v
 
 Expected: `StopIteration` or `AssertionError: regression-check not in subparsers`
 
-- [ ] **Step 4: Add the three subcommands to `cli.py`**
+- [x] **Step 4: Add the three subcommands to `cli.py`**
 
 Open `src/tableau2pbir/cli.py`. After the `_cmd_refresh_schemas` function and before `build_parser`, add:
 
@@ -1778,7 +1778,7 @@ Then inside `build_parser()`, after the `p_refresh` block and before `return par
     p_reg_hook.set_defaults(func=_cmd_regression_install_hook)
 ```
 
-- [ ] **Step 5: Run CLI tests to confirm PASS**
+- [x] **Step 5: Run CLI tests to confirm PASS**
 
 ```
 pytest tests/unit/test_cli.py -v
@@ -1786,7 +1786,7 @@ pytest tests/unit/test_cli.py -v
 
 Expected: all tests PASS (including the 3 new ones).
 
-- [ ] **Step 6: Run full unit suite to catch any regressions**
+- [x] **Step 6: Run full unit suite to catch any regressions**
 
 ```
 pytest tests/unit/ tests/regression/ -v
@@ -1794,7 +1794,7 @@ pytest tests/unit/ tests/regression/ -v
 
 Expected: all PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/tableau2pbir/cli.py tests/unit/test_cli.py
