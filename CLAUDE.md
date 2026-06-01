@@ -20,7 +20,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 10 | JSON Schema Validation Against Official Microsoft PBI Schemas | ✅ DONE | `docs/superpowers/plans/2026-05-30-plan-10-json-schema-validation.md` |
 | 11 | Filter IR Enrichment & Schema-Compliant Emission | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-11-filter-ir-enrichment.md` |
 | 12 | Mark Style Emission — Data Labels & Static Color | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-12-mark-style-emission.md` |
-| 13 | Regression Gate — Semantic Snapshot Validation | 🟡 ACTIVE | `docs/superpowers/plans/2026-05-31-plan-13-regression-gate.md` |
+| 13 | Regression Gate — Semantic Snapshot Validation | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-13-regression-gate.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -61,6 +61,14 @@ three PBIR filter emission bugs: (1) type capitalisation now "Categorical"/"Rang
 filterConfiguration 1.1/1.3). Wired referencing.Registry so nested $ref chains validate. Extract
 layer maps Tableau XML class values to IR kinds; captures <min>/<max> and top-spec child elements.
 TopN and Conditional filters recorded as UnsupportedItems, deferred to v1.1.
+
+**Plan 13 complete (2026-06-01):** Added semantic regression gate. New `regression` package
+provides `corpus.py` (manifest load/save), `compare/json_diff.py` (PBIR JSON normalise+diff),
+`compare/tmdl_diff.py` (TMDL line-by-line parser + structured diff), `snapshot.py`
+(registration flow), `check.py` (orchestrator), `report.py` (semantic diff formatter), and
+`hook.py` (pre-commit wiring). Three new CLI subcommands: `regression-add`, `regression-check`,
+`regression-install-hook`. All tests run under `pytest -m regression` marker with no API key
+required.
 
 ## Design Spec
 

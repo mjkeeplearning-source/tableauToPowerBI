@@ -58,7 +58,7 @@ def test_daatabricks_counts():
     out = _run_pipeline("daatabricks.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 1
+    assert len(dm["tables"]) == 2  # two physical tables: sales_customers, sales_transactions
     assert len(dm["calculations"]) == 0
     assert len(out["sheets"]) == 2
 
@@ -76,7 +76,7 @@ def test_rds_complex_cal_counts():
     out = _run_pipeline("rds_compllex_cal.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 1
+    assert len(dm["tables"]) == 4  # four physical tables: Customers, Orders, OrderItems, Products
     assert len(dm["calculations"]) == 3
     assert len(out["sheets"]) == 5
 
@@ -85,7 +85,7 @@ def test_snowflake_counts():
     out = _run_pipeline("snowflkake.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 1
+    assert len(dm["tables"]) == 2  # two physical tables: CUSTOMER, ORDERS
     assert len(dm["calculations"]) == 0
     assert len(out["sheets"]) == 3
 
@@ -103,7 +103,7 @@ def test_simple_join_counts():
     out = _run_pipeline("simple_join.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 1
+    assert len(dm["tables"]) == 2  # two physical tables: orders, returns
     assert len(dm["calculations"]) == 2
     assert len(out["sheets"]) == 2
 
@@ -112,7 +112,7 @@ def test_simple_join_calculated_line_counts():
     out = _run_pipeline("simple_join_calculated_line.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 1
+    assert len(dm["tables"]) == 3  # three physical tables: people, orders, returns
     assert len(dm["calculations"]) == 0
     assert len(out["sheets"]) == 2
 
@@ -130,6 +130,6 @@ def test_superstore_counts():
     out = _run_pipeline("Superstore.twbx")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 3
-    assert len(dm["tables"]) == 3
+    assert len(dm["tables"]) == 5  # 5 physical tables across 3 datasources (Orders, People, Returns + 2 raw federated)
     assert len(dm["calculations"]) == 21
     assert len(out["sheets"]) == 21
