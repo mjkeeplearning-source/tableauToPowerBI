@@ -58,3 +58,32 @@ def test_cli_help_lists_subcommands():
     assert result.returncode == 0
     assert "convert" in result.stdout
     assert "resume" in result.stdout
+
+
+# ── Regression subcommands ────────────────────────────────────────────────────
+
+def test_regression_check_subcommand_registered():
+    from tableau2pbir.cli import build_parser
+    p = build_parser()
+    subparsers_action = next(
+        a for a in p._actions if hasattr(a, "_name_parser_map")
+    )
+    assert "regression-check" in subparsers_action._name_parser_map
+
+
+def test_regression_add_subcommand_registered():
+    from tableau2pbir.cli import build_parser
+    p = build_parser()
+    subparsers_action = next(
+        a for a in p._actions if hasattr(a, "_name_parser_map")
+    )
+    assert "regression-add" in subparsers_action._name_parser_map
+
+
+def test_regression_install_hook_subcommand_registered():
+    from tableau2pbir.cli import build_parser
+    p = build_parser()
+    subparsers_action = next(
+        a for a in p._actions if hasattr(a, "_name_parser_map")
+    )
+    assert "regression-install-hook" in subparsers_action._name_parser_map
