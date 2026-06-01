@@ -1808,7 +1808,7 @@ git commit -m "feat(regression): wire regression-add, regression-check, regressi
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Run the complete test suite**
+- [x] **Step 1: Run the complete test suite**
 
 ```
 pytest tests/unit/ tests/regression/ tests/golden/ -v --tb=short
@@ -1816,7 +1816,7 @@ pytest tests/unit/ tests/regression/ tests/golden/ -v --tb=short
 
 Expected: all tests PASS. Fix any failures before proceeding.
 
-- [ ] **Step 2: Update the plan table in CLAUDE.md**
+- [x] **Step 2: Update the plan table in CLAUDE.md**
 
 Open `CLAUDE.md` and add Plan 13 to the implementation tracking table:
 
@@ -1836,7 +1836,7 @@ provides `corpus.py` (manifest load/save), `compare/json_diff.py` (PBIR JSON nor
 required.
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md
