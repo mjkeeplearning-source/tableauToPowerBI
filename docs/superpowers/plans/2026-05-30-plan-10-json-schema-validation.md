@@ -34,7 +34,7 @@
 **Files:**
 - Modify: `pyproject.toml`
 
-- [ ] **Step 1: Add `jsonschema` to dependencies**
+- [x] **Step 1: Add `jsonschema` to dependencies**
 
 Edit `pyproject.toml`. The `dependencies` list becomes:
 
@@ -53,7 +53,7 @@ dependencies = [
 
 Note: hatchling includes all files under `src/tableau2pbir/` by default (not just `.py`), so the `_schemas/*.json` files will be bundled automatically without additional config.
 
-- [ ] **Step 2: Install the new dependency**
+- [x] **Step 2: Install the new dependency**
 
 ```bash
 pip install -e ".[dev]"
@@ -61,7 +61,7 @@ pip install -e ".[dev]"
 
 Expected: installs `jsonschema` and its dependencies (`attrs`, `jsonschema-specifications`, `referencing`, etc.) with no errors.
 
-- [ ] **Step 3: Verify import works**
+- [x] **Step 3: Verify import works**
 
 ```bash
 python -c "import jsonschema; print(jsonschema.__version__)"
@@ -69,7 +69,7 @@ python -c "import jsonschema; print(jsonschema.__version__)"
 
 Expected: prints a version starting with `4.`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add pyproject.toml
@@ -86,13 +86,13 @@ git commit -m "feat(deps): add jsonschema>=4.0,<5.0 for PBI schema validation"
 
 This is a data bootstrap task — no TDD. The result is 8 files committed to the repo.
 
-- [ ] **Step 1: Create the `_schemas/` directory**
+- [x] **Step 1: Create the `_schemas/` directory**
 
 ```bash
 mkdir src/tableau2pbir/validate/_schemas
 ```
 
-- [ ] **Step 2: Write `manifest.json`**
+- [x] **Step 2: Write `manifest.json`**
 
 Create `src/tableau2pbir/validate/_schemas/manifest.json` with this exact content:
 
@@ -138,7 +138,7 @@ Create `src/tableau2pbir/validate/_schemas/manifest.json` with this exact conten
 }
 ```
 
-- [ ] **Step 3: Download the 7 schema files from Microsoft CDN**
+- [x] **Step 3: Download the 7 schema files from Microsoft CDN**
 
 Run this Python script from the repo root (requires internet access):
 
@@ -173,7 +173,7 @@ Downloading report-versionMetadata-1.0.0.json... ok
 Downloading semanticModel-definitionProperties-1.0.0.json... ok
 ```
 
-- [ ] **Step 4: Verify all 8 files exist**
+- [x] **Step 4: Verify all 8 files exist**
 
 ```bash
 python -c "
@@ -189,7 +189,7 @@ print('OK — 8 files present')
 
 Expected: 8 lines (manifest.json + 7 schema files), all > 0 bytes, final line `OK — 8 files present`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/_schemas/
@@ -204,7 +204,7 @@ git commit -m "feat(validate): add bundled Microsoft PBI schema files and manife
 - Modify: `src/tableau2pbir/validate/results.py`
 - Test: `tests/unit/validate/test_results.py` (new or existing — check if file exists first)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Check if `tests/unit/validate/test_results.py` already exists. If not, create it. Append these tests:
 
@@ -249,7 +249,7 @@ def test_schema_validation_result_failed_with_findings():
     assert r.log_path == "validation/json_schema.json"
 ```
 
-- [ ] **Step 2: Run to confirm failure**
+- [x] **Step 2: Run to confirm failure**
 
 ```bash
 pytest tests/unit/validate/test_results.py -v -k "schema"
@@ -257,7 +257,7 @@ pytest tests/unit/validate/test_results.py -v -k "schema"
 
 Expected: `ImportError: cannot import name 'SchemaFinding'`
 
-- [ ] **Step 3: Add the new types to `results.py`**
+- [x] **Step 3: Add the new types to `results.py`**
 
 Append to the end of `src/tableau2pbir/validate/results.py`:
 
@@ -279,7 +279,7 @@ class SchemaValidationResult:
     log_path: str | None = None
 ```
 
-- [ ] **Step 4: Run tests to confirm pass**
+- [x] **Step 4: Run tests to confirm pass**
 
 ```bash
 pytest tests/unit/validate/test_results.py -v -k "schema"
@@ -287,7 +287,7 @@ pytest tests/unit/validate/test_results.py -v -k "schema"
 
 Expected: 3 tests PASSED.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/results.py tests/unit/validate/test_results.py
@@ -305,7 +305,7 @@ git commit -m "feat(validate): add SchemaFinding and SchemaValidationResult type
 
 ### Part A — `_resolve_schema` cache lookup (3 tests)
 
-- [ ] **Step 1: Write failing tests for `_resolve_schema`**
+- [x] **Step 1: Write failing tests for `_resolve_schema`**
 
 Create `tests/unit/validate/test_schema_cache.py`:
 
@@ -362,7 +362,7 @@ def test_resolve_returns_none_when_files_missing(tmp_path):
     assert result is None
 ```
 
-- [ ] **Step 2: Run to confirm failure**
+- [x] **Step 2: Run to confirm failure**
 
 ```bash
 pytest tests/unit/validate/test_schema_cache.py -v
@@ -370,7 +370,7 @@ pytest tests/unit/validate/test_schema_cache.py -v
 
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.validate.json_schema'`
 
-- [ ] **Step 3: Create `json_schema.py` with `_load_manifest` and `_resolve_schema`**
+- [x] **Step 3: Create `json_schema.py` with `_load_manifest` and `_resolve_schema`**
 
 Create `src/tableau2pbir/validate/json_schema.py`:
 
@@ -469,7 +469,7 @@ def run_json_schema(
     )
 ```
 
-- [ ] **Step 4: Run cache tests to confirm pass**
+- [x] **Step 4: Run cache tests to confirm pass**
 
 ```bash
 pytest tests/unit/validate/test_schema_cache.py -v
@@ -479,7 +479,7 @@ Expected: 3 tests PASSED.
 
 ### Part B — `run_json_schema` auto-discovery (8 tests)
 
-- [ ] **Step 5: Write failing tests for `run_json_schema`**
+- [x] **Step 5: Write failing tests for `run_json_schema`**
 
 Create `tests/unit/validate/test_json_schema.py`:
 
@@ -624,7 +624,7 @@ def test_bundled_fallback_used_when_user_cache_empty(tmp_path: Path) -> None:
     assert result.outcome == ValidatorOutcome.PASSED
 ```
 
-- [ ] **Step 6: Run to confirm failure**
+- [x] **Step 6: Run to confirm failure**
 
 ```bash
 pytest tests/unit/validate/test_json_schema.py -v
@@ -632,7 +632,7 @@ pytest tests/unit/validate/test_json_schema.py -v
 
 Expected: all 8 tests FAILED with import errors or assertion errors (module exists now but tests exercise real logic).
 
-- [ ] **Step 7: Run tests to confirm all pass (implementation already done in Step 3)**
+- [x] **Step 7: Run tests to confirm all pass (implementation already done in Step 3)**
 
 ```bash
 pytest tests/unit/validate/test_json_schema.py -v
@@ -640,7 +640,7 @@ pytest tests/unit/validate/test_json_schema.py -v
 
 Expected: 8 tests PASSED.
 
-- [ ] **Step 8: Run the full unit suite to check for regressions**
+- [x] **Step 8: Run the full unit suite to check for regressions**
 
 ```bash
 pytest tests/unit/ -x -q
@@ -648,7 +648,7 @@ pytest tests/unit/ -x -q
 
 Expected: all existing tests still pass + 11 new tests pass.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/json_schema.py \
@@ -665,7 +665,7 @@ git commit -m "feat(validate): add json_schema validator with two-tier schema ca
 - Create: `src/tableau2pbir/validate/refresh_schemas.py`
 - Create: `tests/unit/validate/test_refresh_schemas.py`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `tests/unit/validate/test_refresh_schemas.py`:
 
@@ -774,7 +774,7 @@ def test_get_cache_dir_uses_env_var(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert _get_cache_dir() == env_path
 ```
 
-- [ ] **Step 2: Run to confirm failure**
+- [x] **Step 2: Run to confirm failure**
 
 ```bash
 pytest tests/unit/validate/test_refresh_schemas.py -v
@@ -782,7 +782,7 @@ pytest tests/unit/validate/test_refresh_schemas.py -v
 
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.validate.refresh_schemas'`
 
-- [ ] **Step 3: Implement `refresh_schemas.py`**
+- [x] **Step 3: Implement `refresh_schemas.py`**
 
 Create `src/tableau2pbir/validate/refresh_schemas.py`:
 
@@ -829,7 +829,7 @@ def refresh_schemas(cache_dir: Path, bundled_dir: Path = _BUNDLED_DIR) -> bool:
     return all_ok
 ```
 
-- [ ] **Step 4: Run tests to confirm pass**
+- [x] **Step 4: Run tests to confirm pass**
 
 ```bash
 pytest tests/unit/validate/test_refresh_schemas.py -v
@@ -837,7 +837,7 @@ pytest tests/unit/validate/test_refresh_schemas.py -v
 
 Expected: 5 tests PASSED.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/validate/refresh_schemas.py \
@@ -854,7 +854,7 @@ git commit -m "feat(validate): add refresh_schemas module for user cache update"
 
 No new test file needed — the `test_get_cache_dir_uses_env_var` test in Task 5 already covers the core logic. The CLI wiring is thin glue code.
 
-- [ ] **Step 1: Add `_cmd_refresh_schemas` and register the subcommand**
+- [x] **Step 1: Add `_cmd_refresh_schemas` and register the subcommand**
 
 Edit `src/tableau2pbir/cli.py`. Add the import and handler after the `_cmd_resume` function (before `build_parser`):
 
@@ -881,7 +881,7 @@ Then in `build_parser()`, add the subparser after the `p_res` block (before `ret
     p_refresh.set_defaults(func=_cmd_refresh_schemas)
 ```
 
-- [ ] **Step 2: Verify the CLI shows the new subcommand**
+- [x] **Step 2: Verify the CLI shows the new subcommand**
 
 ```bash
 python -m tableau2pbir.cli --help
@@ -892,7 +892,7 @@ Expected output includes:
   refresh-schemas  Download latest Microsoft PBI schemas to local cache.
 ```
 
-- [ ] **Step 3: Dry-run the command with `--cache-dir` pointing to a temp location**
+- [x] **Step 3: Dry-run the command with `--cache-dir` pointing to a temp location**
 
 ```bash
 python -m tableau2pbir.cli refresh-schemas --cache-dir /tmp/schema_test_cache
@@ -907,7 +907,7 @@ ls /tmp/schema_test_cache/
 
 Expected: 7 `.json` files.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/tableau2pbir/cli.py
@@ -921,7 +921,7 @@ git commit -m "feat(cli): add refresh-schemas subcommand"
 **Files:**
 - Modify: `src/tableau2pbir/stages/s08_package_validate.py`
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 In `s08_package_validate.py`, change the validate import block from:
 
@@ -943,7 +943,7 @@ from tableau2pbir.validate import (
 )
 ```
 
-- [ ] **Step 2: Add the validator call and log write**
+- [x] **Step 2: Add the validator call and log write**
 
 In the `run()` function, after the structural block (after the `(out_dir / "validation" / "structural.json").write_text(...)` call), add:
 
@@ -961,7 +961,7 @@ In the `run()` function, after the structural block (after the `(out_dir / "vali
         }, indent=2), encoding="utf-8")
 ```
 
-- [ ] **Step 3: Add `json_schema` to the validators dict**
+- [x] **Step 3: Add `json_schema` to the validators dict**
 
 In the `validators` dict (around line 137), add the `json_schema` entry after the `structural` entry:
 
@@ -976,7 +976,7 @@ In the `validators` dict (around line 137), add the `json_schema` entry after th
                          "log_path": schema_res.log_path},
 ```
 
-- [ ] **Step 4: Run the full unit suite**
+- [x] **Step 4: Run the full unit suite**
 
 ```bash
 pytest tests/unit/ -x -q
@@ -984,7 +984,7 @@ pytest tests/unit/ -x -q
 
 Expected: all tests pass (no regressions from the import change).
 
-- [ ] **Step 5: Run the full E2E suite**
+- [x] **Step 5: Run the full E2E suite**
 
 ```bash
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -992,7 +992,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: all real-workbook E2E tests pass. Each workbook report now has a `json_schema` section in the validator output. If any test produces `schema.violation` findings, investigate before committing — those indicate genuine output bugs.
 
-- [ ] **Step 6: Spot-check one workbook's validation log**
+- [x] **Step 6: Spot-check one workbook's validation log**
 
 Run a single conversion and inspect the json_schema log:
 
@@ -1003,7 +1003,7 @@ cat "/tmp/plan10_check/simple_join_calculated_line/validation/json_schema.json"
 
 Expected: `"outcome": "passed"` with an empty `"findings": []`. If findings appear, read each one carefully — the `location` and `message` fields identify exactly which file and property failed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/tableau2pbir/stages/s08_package_validate.py
@@ -1017,7 +1017,7 @@ git commit -m "feat(s08): wire run_json_schema into Stage 8 as soft-warning vali
 **Files:**
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Add Plan 10 to the implementation tracking table in `CLAUDE.md`**
+- [x] **Step 1: Add Plan 10 to the implementation tracking table in `CLAUDE.md`**
 
 In the `## Implementation Tracking` table, add a new row:
 
@@ -1036,7 +1036,7 @@ New `tableau2pbir refresh-schemas` CLI command updates user cache from Microsoft
 16 new unit tests across `test_schema_cache.py`, `test_json_schema.py`, `test_refresh_schemas.py`.
 ```
 
-- [ ] **Step 2: Run the complete test suite one final time**
+- [x] **Step 2: Run the complete test suite one final time**
 
 ```bash
 pytest tests/ -x -q
@@ -1044,7 +1044,7 @@ pytest tests/ -x -q
 
 Expected: all tests pass. Count should be previous count + 16 new unit tests.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md
