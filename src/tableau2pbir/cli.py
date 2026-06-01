@@ -13,6 +13,9 @@ from tableau2pbir.pipeline import STAGE_SEQUENCE, run_pipeline
 
 load_dotenv()  # loads .env from cwd or any parent directory
 
+_CORPUS_DEFAULT = "tests/regression/corpus.yaml"
+_SNAPS_DEFAULT = "tests/regression/snapshots"
+
 
 def _stage_names() -> list[str]:
     return [name for name, _ in STAGE_SEQUENCE]
@@ -70,7 +73,6 @@ def _cmd_refresh_schemas(args: argparse.Namespace) -> int:
 def _cmd_regression_add(args: argparse.Namespace) -> int:
     import subprocess
     from datetime import date
-    from pathlib import Path
 
     from tableau2pbir.regression.snapshot import RegistrationError, register_workbook
 
@@ -97,7 +99,7 @@ def _cmd_regression_add(args: argparse.Namespace) -> int:
             added_by=added_by,
             added_on=added_on,
         )
-        print(f"Registered {workbook_path.stem} — {tmdl_count} TMDL files, {json_count} PBIR JSON files snapshotted")
+        print(f"Registered {workbook_path.stem} -- {tmdl_count} TMDL files, {json_count} PBIR JSON files snapshotted")
         return 0
     except RegistrationError as exc:
         print(f"[regression-add] ERROR: {exc}", file=sys.stderr)
@@ -105,27 +107,28 @@ def _cmd_regression_add(args: argparse.Namespace) -> int:
 
 
 def _cmd_regression_check(args: argparse.Namespace) -> int:
-    from pathlib import Path
-
     from tableau2pbir.regression.check import run_regression_check
     from tableau2pbir.regression.report import format_report
 
     corpus_path = Path(args.corpus)
     snapshots_root = Path(args.snapshots_root)
-    name_filter = getattr(args, "name", None) or None
+    name_filter = args.name
 
-    result = run_regression_check(
-        corpus_path=corpus_path,
-        snapshots_root=snapshots_root,
-        name_filter=name_filter,
-    )
+    try:
+        result = run_regression_check(
+            corpus_path=corpus_path,
+            snapshots_root=snapshots_root,
+            name_filter=name_filter,
+        )
+    except FileNotFoundError as exc:
+        print(f"[regression-check] ERROR: {exc}", file=sys.stderr)
+        return 1
+
     print(format_report(result))
     return result.exit_code
 
 
 def _cmd_regression_install_hook(args: argparse.Namespace) -> int:
-    from pathlib import Path
-
     from tableau2pbir.regression.hook import HookInstallError, install_hook
 
     hook_path = Path(args.hook_path)
@@ -134,7 +137,7 @@ def _cmd_regression_install_hook(args: argparse.Namespace) -> int:
         if newly_written:
             print(f"Installed regression-check hook at {hook_path}")
         else:
-            print(f"Hook already installed at {hook_path} — no changes made")
+            print(f"Hook already installed at {hook_path} -- no changes made")
         return 0
     except HookInstallError as exc:
         print(f"[regression-install-hook] ERROR: {exc}", file=sys.stderr)
@@ -174,9 +177,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Override schema cache directory (default: ~/.cache/tableau2pbir/schemas/)",
     )
     p_refresh.set_defaults(func=_cmd_refresh_schemas)
-
-    _CORPUS_DEFAULT = "tests/regression/corpus.yaml"
-    _SNAPS_DEFAULT = "tests/regression/snapshots"
 
     p_reg_add = sub.add_parser("regression-add", help="Register a workbook into the regression corpus.")
     p_reg_add.add_argument("source", help="Path to .twb or .twbx to register")
