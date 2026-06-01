@@ -1,6 +1,6 @@
 # Regression Gate — Semantic Snapshot Validation
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use **superpowers:subagent-driven-development** to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use **superpowers:subagent-driven-development** to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a semantic regression gate (`regression-add`, `regression-check`, `regression-install-hook` CLI commands) that snapshots verified PBIR/TMDL output and detects any semantic change to registered workbooks on future pipeline runs.
 
@@ -51,7 +51,7 @@
 - Create: `tests/regression/test_corpus.py`
 - Modify: `pytest.ini`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_corpus.py`:
 
@@ -118,7 +118,7 @@ def test_duplicate_name_detection(tmp_path: Path):
     assert sum(1 for x in loaded if x.name == "wb") == 2
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_corpus.py -v
@@ -126,7 +126,7 @@ pytest tests/regression/test_corpus.py -v
 
 Expected: `ModuleNotFoundError: No module named 'tableau2pbir.regression'`
 
-- [ ] **Step 3: Create package scaffolding**
+- [x] **Step 3: Create package scaffolding**
 
 Create `src/tableau2pbir/regression/__init__.py` (empty):
 ```python
@@ -256,14 +256,14 @@ workbooks: []
 
 Create `tests/regression/snapshots/.gitkeep` (empty file).
 
-- [ ] **Step 4: Register `regression` marker in `pytest.ini`**
+- [x] **Step 4: Register `regression` marker in `pytest.ini`**
 
 Add to the `markers =` block in `pytest.ini`:
 ```ini
     regression: semantic regression check against stored snapshots (requires prior regression-add run)
 ```
 
-- [ ] **Step 5: Run tests to confirm PASS**
+- [x] **Step 5: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_corpus.py -v
@@ -271,7 +271,7 @@ pytest tests/regression/test_corpus.py -v
 
 Expected: all 5 tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/ tests/regression/ pytest.ini
@@ -286,7 +286,7 @@ git commit -m "feat(regression): scaffold package + corpus data models"
 - Create: `src/tableau2pbir/regression/compare/json_diff.py`
 - Create: `tests/regression/test_json_diff.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_json_diff.py`:
 
@@ -367,7 +367,7 @@ def test_whitespace_in_string_values_ignored():
     assert diff_json(old, new) == []
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_json_diff.py -v
@@ -375,7 +375,7 @@ pytest tests/regression/test_json_diff.py -v
 
 Expected: `ImportError: cannot import name 'diff_json'`
 
-- [ ] **Step 3: Implement `json_diff.py`**
+- [x] **Step 3: Implement `json_diff.py`**
 
 Create `src/tableau2pbir/regression/compare/json_diff.py`:
 
@@ -434,7 +434,7 @@ def diff_json(snapshot_text: str, new_text: str) -> list[tuple[str, str, str]]:
     return diffs
 ```
 
-- [ ] **Step 4: Run tests to confirm PASS**
+- [x] **Step 4: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_json_diff.py -v
@@ -442,7 +442,7 @@ pytest tests/regression/test_json_diff.py -v
 
 Expected: all 9 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/compare/json_diff.py tests/regression/test_json_diff.py
@@ -457,7 +457,7 @@ git commit -m "feat(regression): PBIR JSON semantic normalise and diff"
 - Create: `src/tableau2pbir/regression/compare/tmdl_diff.py`
 - Create: `tests/regression/test_tmdl_diff.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_tmdl_diff.py`:
 
@@ -628,7 +628,7 @@ def test_diff_model_tmdl_culture_change():
     assert diffs[0].new_value == "fr-FR"
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_tmdl_diff.py -v
@@ -636,7 +636,7 @@ pytest tests/regression/test_tmdl_diff.py -v
 
 Expected: `ImportError: cannot import name 'parse_table_tmdl'`
 
-- [ ] **Step 3: Implement `tmdl_diff.py`**
+- [x] **Step 3: Implement `tmdl_diff.py`**
 
 Create `src/tableau2pbir/regression/compare/tmdl_diff.py`:
 
@@ -838,7 +838,7 @@ def diff_model_tmdl(snapshot_text: str, new_text: str) -> list[EntityDiff]:
     return diffs
 ```
 
-- [ ] **Step 4: Run tests to confirm PASS**
+- [x] **Step 4: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_tmdl_diff.py -v
@@ -846,7 +846,7 @@ pytest tests/regression/test_tmdl_diff.py -v
 
 Expected: all 15 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/compare/tmdl_diff.py tests/regression/test_tmdl_diff.py
@@ -861,7 +861,7 @@ git commit -m "feat(regression): TMDL line-by-line parser and semantic diff"
 - Create: `src/tableau2pbir/regression/snapshot.py`
 - Create: `tests/regression/test_snapshot.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_snapshot.py`:
 
@@ -987,7 +987,7 @@ def test_register_aborts_on_pipeline_failure(tmp_path: Path):
     assert load_corpus(corpus_path) == [], "corpus must not be modified on failure"
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_snapshot.py -v
@@ -995,7 +995,7 @@ pytest tests/regression/test_snapshot.py -v
 
 Expected: `ImportError: cannot import name 'register_workbook'`
 
-- [ ] **Step 3: Implement `snapshot.py`**
+- [x] **Step 3: Implement `snapshot.py`**
 
 Create `src/tableau2pbir/regression/snapshot.py`:
 
@@ -1089,7 +1089,7 @@ def _copy_snapshots(wb_out: Path, snap_dir: Path) -> tuple[int, int]:
     return tmdl_count, json_count
 ```
 
-- [ ] **Step 4: Run tests to confirm PASS**
+- [x] **Step 4: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_snapshot.py -v
@@ -1097,7 +1097,7 @@ pytest tests/regression/test_snapshot.py -v
 
 Expected: all 4 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/snapshot.py tests/regression/test_snapshot.py
@@ -1113,7 +1113,7 @@ git commit -m "feat(regression): snapshot registration — run pipeline, copy TM
 - Create: `src/tableau2pbir/regression/report.py`
 - Create: `tests/regression/test_check.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_check.py`:
 
@@ -1315,7 +1315,7 @@ def test_format_report_fail_shows_diffs(tmp_path: Path):
     assert "SUM([Profit])" in output
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_check.py -v
@@ -1323,7 +1323,7 @@ pytest tests/regression/test_check.py -v
 
 Expected: `ImportError: cannot import name 'run_regression_check'`
 
-- [ ] **Step 3: Implement `check.py`**
+- [x] **Step 3: Implement `check.py`**
 
 Create `src/tableau2pbir/regression/check.py`:
 
@@ -1428,7 +1428,7 @@ def _compare_file(snap_file: Path, new_file: Path) -> list[EntityDiff]:
     return []
 ```
 
-- [ ] **Step 4: Implement `report.py`**
+- [x] **Step 4: Implement `report.py`**
 
 Create `src/tableau2pbir/regression/report.py`:
 
@@ -1476,7 +1476,7 @@ def _format_workbook(wb: WorkbookResult) -> str:
     return "\n".join(lines)
 ```
 
-- [ ] **Step 5: Run tests to confirm PASS**
+- [x] **Step 5: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_check.py -v
@@ -1484,7 +1484,7 @@ pytest tests/regression/test_check.py -v
 
 Expected: all 8 tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/check.py src/tableau2pbir/regression/report.py tests/regression/test_check.py
@@ -1499,7 +1499,7 @@ git commit -m "feat(regression): check orchestrator, report formatter"
 - Create: `src/tableau2pbir/regression/hook.py`
 - Create: `tests/regression/test_hook.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/regression/test_hook.py`:
 
@@ -1548,7 +1548,7 @@ def test_raises_when_hooks_dir_missing(tmp_path: Path):
         install_hook(hook_path=hook_path)
 ```
 
-- [ ] **Step 2: Run to confirm FAIL**
+- [x] **Step 2: Run to confirm FAIL**
 
 ```
 pytest tests/regression/test_hook.py -v
@@ -1556,7 +1556,7 @@ pytest tests/regression/test_hook.py -v
 
 Expected: `ImportError: cannot import name 'install_hook'`
 
-- [ ] **Step 3: Implement `hook.py`**
+- [x] **Step 3: Implement `hook.py`**
 
 Create `src/tableau2pbir/regression/hook.py`:
 
@@ -1600,7 +1600,7 @@ def install_hook(hook_path: Path) -> bool:
     return True
 ```
 
-- [ ] **Step 4: Run tests to confirm PASS**
+- [x] **Step 4: Run tests to confirm PASS**
 
 ```
 pytest tests/regression/test_hook.py -v
@@ -1608,7 +1608,7 @@ pytest tests/regression/test_hook.py -v
 
 Expected: all 4 tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/tableau2pbir/regression/hook.py tests/regression/test_hook.py
