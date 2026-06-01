@@ -112,18 +112,38 @@ def _encodings(shelf_elem: etree._Element, pane_parent: etree._Element) -> dict[
     return enc
 
 
+_USER_NS = "http://www.tableausoftware.com/xml/user"
+
+
+def _strip_member_quotes(value: str) -> str:
+    """Strip surrounding double-quotes Tableau embeds in member values (&quot;Value&quot;)."""
+    if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
+        return value[1:-1]
+    return value
+
+
 def _filter_members(filter_elem: etree._Element) -> tuple[tuple[str, ...], tuple[str, ...]]:
     include: list[str] = []
     exclude: list[str] = []
     for gf in filter_elem.findall("groupfilter"):
         func = attr(gf, "function", default="member")
         member = optional_attr(gf, "member")
-        if member is None:
-            continue
-        if func == "except":
-            exclude.append(member)
-        else:
-            include.append(member)
+
+        if func == "union":
+            # Real Tableau XML: members nested inside a <groupfilter function="union"> wrapper.
+            # user:ui-enumeration tells us whether nested members are included or excluded.
+            enumeration = gf.get(f"{{{_USER_NS}}}ui-enumeration") or "inclusive"
+            target = exclude if enumeration == "exclusive" else include
+            for child in gf.findall("groupfilter"):
+                child_member = optional_attr(child, "member")
+                if child_member is not None:
+                    target.append(_strip_member_quotes(child_member))
+        elif member is not None:
+            val = _strip_member_quotes(member)
+            if func == "except":
+                exclude.append(val)
+            else:
+                include.append(val)
     return tuple(include), tuple(exclude)
 
 
@@ -136,12 +156,58 @@ _TABLEAU_CLASS_TO_KIND: dict[str, str] = {
 }
 
 
-def _filters(view: etree._Element) -> list[dict[str, Any]]:
+def _parse_filter_column(column_attr: str) -> str:
+    """Extract the column-instance name from a potentially qualified Tableau column ref.
+
+    Real workbooks use '[datasource].[none:col:nk]' fully-qualified form.
+    _parse_shelf splits this into individual bracket tokens; we drop the
+    datasource-marker token (contains '.' but not ':') and keep the instance token.
+    Simple refs like '[region]' pass through unchanged.
+    """
+    tokens = _parse_shelf(column_attr)
+    non_markers = [t for t in tokens if not ("." in t and ":" not in t)]
+    if non_markers:
+        return non_markers[-1]
+    return _unbracket(column_attr)
+
+
+def _extract_shared_view_filters(root: etree._Element) -> dict[str, dict[str, Any]]:
+    """Parse workbook-level <shared-views>/<shared-view>/<filter> elements.
+
+    Returns a dict keyed by the raw column attribute string (e.g.
+    '[federated.xxx].[none:region:nk]') so worksheet <slices>/<column> text
+    can look them up directly.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for sv in root.findall("shared-views/shared-view"):
+        for f in sv.findall("filter"):
+            col_attr = attr(f, "column")
+            tableau_class = attr(f, "class", default="categorical")
+            kind = _TABLEAU_CLASS_TO_KIND.get(tableau_class, "categorical")
+            col = _parse_filter_column(col_attr)
+            include, exclude = _filter_members(f)
+            out[col_attr] = {
+                "kind": kind,
+                "column": col,
+                "include": include,
+                "exclude": exclude,
+                "expr": optional_attr(f, "formula"),
+            }
+    return out
+
+
+def _filters(
+    view: etree._Element,
+    shared_view_filters: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    inline_col_attrs: set[str] = set()
     for f in view.findall("filter"):
         tableau_class = attr(f, "class", default="categorical")
         kind = _TABLEAU_CLASS_TO_KIND.get(tableau_class, "categorical")
-        column = _unbracket(attr(f, "column"))
+        col_attr = attr(f, "column")
+        column = _parse_filter_column(col_attr)
+        inline_col_attrs.add(col_attr)
 
         if kind == "range":
             out.append({
@@ -170,6 +236,14 @@ def _filters(view: etree._Element) -> list[dict[str, Any]]:
                 "exclude": exclude,
                 "expr": optional_attr(f, "formula"),
             })
+
+    # Merge shared-view filters referenced by this worksheet's <slices>.
+    if shared_view_filters:
+        for slice_col in view.findall("slices/column"):
+            col_ref = (slice_col.text or "").strip()
+            if col_ref in shared_view_filters and col_ref not in inline_col_attrs:
+                out.append(shared_view_filters[col_ref])
+
     return out
 
 
@@ -237,6 +311,7 @@ def _mark_style(pane_parent: etree._Element) -> dict[str, Any]:
 
 
 def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
+    shared_view_filters = _extract_shared_view_filters(root)
     out: list[dict[str, Any]] = []
     for ws in root.findall("worksheets/worksheet"):
         # Real Tableau: <worksheet>/<table>/<view>, rows/cols/panes inside <table>
@@ -267,7 +342,7 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
             "datasource_refs": _datasource_refs(view),
             "mark_type": mark_type,
             "encodings": _encodings(shelf_elem, pane_parent),
-            "filters": _filters(view),
+            "filters": _filters(view, shared_view_filters),
             "sort": _sort(view),
             "dual_axis": _dual_axis(search_root),
             "reference_lines": _reference_lines(search_root),

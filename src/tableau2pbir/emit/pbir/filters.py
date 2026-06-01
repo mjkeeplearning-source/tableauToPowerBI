@@ -78,9 +78,14 @@ def _literal(value: str | None) -> dict:
 # Per-kind emit
 # ---------------------------------------------------------------------------
 
-def _emit_categorical(f: CategoricalFilter | ContextFilter) -> dict | None:
+def _emit_categorical(f: CategoricalFilter | ContextFilter, field_lookup: dict | None = None) -> dict | None:
     table = f.field.table_id
     col = f.field.column_id
+    if field_lookup:
+        info = field_lookup.get(col)
+        if info:
+            table = info["table_name"]
+            col = info["col_name"]
     alias = "f"
 
     include_vals = list(f.include)
@@ -132,9 +137,14 @@ _AGG_PREFIX_TO_FUNC: dict[str, int] = {
 }
 
 
-def _emit_range(f: RangeFilter) -> dict | None:
+def _emit_range(f: RangeFilter, field_lookup: dict | None = None) -> dict | None:
     table = f.field.table_id
     col = f.field.column_id
+    if field_lookup:
+        info = field_lookup.get(col)
+        if info:
+            table = info["table_name"]
+            col = info["col_name"]
     alias = "f"
 
     has_min = f.min_val is not None
@@ -221,12 +231,12 @@ def _emit_range(f: RangeFilter) -> dict | None:
     }
 
 
-def _filter_to_pbir(f: Filter) -> dict | None:
+def _filter_to_pbir(f: Filter, field_lookup: dict | None = None) -> dict | None:
     """Return a FilterContainer dict, or None if this filter kind is deferred."""
     if isinstance(f, (CategoricalFilter, ContextFilter)):
-        return _emit_categorical(f)
+        return _emit_categorical(f, field_lookup)
     if isinstance(f, RangeFilter):
-        return _emit_range(f)
+        return _emit_range(f, field_lookup)
     # TopNFilter, ConditionalFilter — deferred
     return None
 
@@ -235,7 +245,10 @@ def _filter_to_pbir(f: Filter) -> dict | None:
 # Page filter collection
 # ---------------------------------------------------------------------------
 
-def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list]]) -> list[dict]:
+def collect_page_filters(
+    per_sheet: list[tuple[tuple[str, ...], list]],
+    field_lookup: dict | None = None,
+) -> list[dict]:
     seen_keys: set[tuple] = set()
     out: list[dict] = []
     for _sheet_ids, filters in per_sheet:
@@ -249,7 +262,7 @@ def collect_page_filters(per_sheet: list[tuple[tuple[str, ...], list]]) -> list[
             if key in seen_keys:
                 continue
             seen_keys.add(key)
-            result = _filter_to_pbir(f)
+            result = _filter_to_pbir(f, field_lookup)
             if result is not None:
                 out.append(result)
     return out

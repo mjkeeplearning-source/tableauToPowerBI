@@ -1,1 +1,16 @@
-workbooks: []
+workbooks:
+- name: simple_join_dashboard
+  path: C:\Tableau_PBI\tests\golden\real\simple_join_dashboard.twb
+  added_by: Manish Jain
+  added_on: '2026-06-01'
+  notes: 'post-fix: tus normalization + per-worksheet pages'
+- name: simple_join
+  path: C:\Tableau_PBI\tests\golden\real\simple_join.twb
+  added_by: Manish Jain
+  added_on: '2026-06-01'
+  notes: ''
+- name: simple_join_few_filter
+  path: C:\Tableau_PBI\tests\golden\real\simple_join_few_filter.twb
+  added_by: Manish Jain
+  added_on: '2026-06-01'
+  notes: 'filter fixes: qualified col extraction, shared-views, field_lookup resolution'

@@ -95,7 +95,7 @@ def test_filter_categorical():
     f = w["filters"][0]
     assert f["kind"] == "categorical"
     assert f["column"] == "region"
-    assert f["include"] == ('"West"', '"East"')
+    assert f["include"] == ("West", "East")
 
 
 def test_quick_table_calc_detection():
@@ -170,6 +170,90 @@ def test_mark_style_defaults_when_absent():
     ms = ws[0]["mark_style"]
     assert ms["mark_color"] is None
     assert ms["labels_show"] is False
+
+
+_XML_SHARED_VIEW_FILTER = b"""<?xml version='1.0' encoding='utf-8'?>
+<workbook xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <shared-views>
+    <shared-view name='ds1'>
+      <filter class='categorical' column='[ds1].[none:region:nk]'>
+        <groupfilter function='union' user:ui-enumeration='inclusive'>
+          <groupfilter function='member' member='East'/>
+          <groupfilter function='member' member='West'/>
+        </groupfilter>
+      </filter>
+    </shared-view>
+  </shared-views>
+  <worksheets>
+    <worksheet name='Sheet 1'>
+      <table>
+        <view>
+          <datasources><datasource name='ds1'/></datasources>
+          <slices>
+            <column>[ds1].[none:region:nk]</column>
+          </slices>
+        </view>
+        <panes><pane><mark class='Bar'/></pane></panes>
+        <rows>[amount]</rows>
+        <cols>[month]</cols>
+      </table>
+    </worksheet>
+  </worksheets>
+</workbook>"""
+
+
+def test_shared_view_filter_applied_via_slices():
+    """Worksheet with no inline filter but a slice pointing to a shared-view filter
+    must include the shared filter in its extracted filter list."""
+    root = parse_workbook_xml(_XML_SHARED_VIEW_FILTER)
+    ws = extract_worksheets(root)
+    assert len(ws) == 1
+    filters = ws[0]["filters"]
+    assert len(filters) == 1, f"Expected 1 filter from shared-view, got {len(filters)}"
+    f = filters[0]
+    assert f["kind"] == "categorical"
+    assert f["column"] == "none:region:nk"
+    assert "East" in f["include"]
+    assert "West" in f["include"]
+
+
+def test_shared_view_filter_not_duplicated_when_inline_filter_exists():
+    """If a worksheet has both an inline filter and a slice for the same column,
+    the filter must appear exactly once."""
+    root = parse_workbook_xml(b"""<?xml version='1.0' encoding='utf-8'?>
+<workbook xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <shared-views>
+    <shared-view name='ds1'>
+      <filter class='categorical' column='[ds1].[none:region:nk]'>
+        <groupfilter function='union' user:ui-enumeration='inclusive'>
+          <groupfilter function='member' member='East'/>
+        </groupfilter>
+      </filter>
+    </shared-view>
+  </shared-views>
+  <worksheets>
+    <worksheet name='Sheet 2'>
+      <table>
+        <view>
+          <datasources><datasource name='ds1'/></datasources>
+          <filter class='categorical' column='[ds1].[none:region:nk]'>
+            <groupfilter function='union' user:ui-enumeration='inclusive'>
+              <groupfilter function='member' member='East'/>
+            </groupfilter>
+          </filter>
+          <slices>
+            <column>[ds1].[none:region:nk]</column>
+          </slices>
+        </view>
+        <panes><pane><mark class='Bar'/></pane></panes>
+        <rows>[sales]</rows>
+        <cols>[region]</cols>
+      </table>
+    </worksheet>
+  </worksheets>
+</workbook>""")
+    ws = extract_worksheets(root)
+    assert len(ws[0]["filters"]) == 1, "Inline + slice for same column → exactly one filter"
 
 
 def test_mark_style_labels_cull_not_propagated():

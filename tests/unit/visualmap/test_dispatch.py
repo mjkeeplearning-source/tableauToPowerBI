@@ -228,3 +228,21 @@ def test_dispatch_color_none_does_not_emit_data_point():
     pv = dispatch_visual(sh)
     assert pv is not None
     assert "dataPoint" not in pv.format
+
+
+def test_automatic_dims_only_on_rows_emits_table():
+    """Nested-header layout: N dims on rows, no cols → tableEx with Values bindings."""
+    sh = _sheet("automatic", rows=(_fr("category_nk"), _fr("sub_category_nk")))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "tableEx"
+    channels = [b.channel for b in pv.encoding_bindings]
+    assert channels.count("Values") == 2
+
+
+def test_single_dim_on_rows_no_cols_emits_table():
+    """Single dimension with no cols also maps to tableEx."""
+    sh = _sheet("automatic", rows=(_fr("product_name_nk"),))
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "tableEx"

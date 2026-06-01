@@ -34,6 +34,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
 
     # Emit one full-canvas page per worksheet (mirrors Tableau's per-sheet tab model).
     _SHEET_PAGE_W, _SHEET_PAGE_H = 1280, 720
+    sheet_ids_with_page: set[str] = set()
     for sheet in wb.sheets:
         if sheet.pbir_visual is None:
             continue
@@ -49,17 +50,25 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
             "page_id": page_id, "visual_id": visual_id, "sheet_id": sheet.id,
             "field_ids": tuple(b.source_field_id for b in sheet.pbir_visual.encoding_bindings),
         })
+        page_filters = collect_page_filters([((sheet.id,), list(sheet.filters))], field_lookup)
         write_text(page_dir / "page.json",
                    render_page(page_id, sheet.name,
-                               width=_SHEET_PAGE_W, height=_SHEET_PAGE_H))
+                               width=_SHEET_PAGE_W, height=_SHEET_PAGE_H,
+                               filters=page_filters))
+        sheet_ids_with_page.add(sheet.id)
 
     for ordinal, dash in enumerate(wb.dashboards):
+        # Skip synthetic dashboards — they wrap a single standalone sheet that Loop 1
+        # already rendered as a full-canvas page.
+        if dash.is_synthetic and _sheet_already_paged(dash, sheet_ids_with_page):
+            continue
+
         page_id = f"ReportSection{len(page_ids) + 1}"
-        page_ids.append(page_id)
         page_dir = rd / "pages" / page_id
 
         leaves = list(_iter_leaves(dash.layout_tree))
         per_sheet_filters: list[tuple[tuple[str, ...], list]] = []
+        page_content_count = 0
 
         for z, leaf in enumerate(leaves):
             if leaf.position is None or leaf.position.w == 0 or leaf.position.h == 0:
@@ -86,6 +95,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                     "field_ids": field_ids,
                 })
                 per_sheet_filters.append(((sheet.id,), list(sheet.filters)))
+                page_content_count += 1
 
             elif obj_kind == PbiObjectKind.SLICER_FILTER:
                 slicer_count += 1
@@ -94,6 +104,7 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                 source_field_id = leaf.payload.get("field_id", "")
                 write_text(s_dir / "visual.json",
                            render_filter_slicer(slicer_id, source_field_id, leaf.position, z))
+                page_content_count += 1
 
             elif obj_kind == PbiObjectKind.SLICER_PARAMETER:
                 pid = leaf.payload.get("parameter_id", "")
@@ -106,9 +117,14 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                 write_text(s_dir / "visual.json",
                            render_parameter_slicer(slicer_id, p.name, p.intent.value,
                                                    leaf.position, z))
+                page_content_count += 1
             # TEXTBOX / IMAGE / NAV_BUTTON / PLACEHOLDER / LEGEND_SUPPRESS — v1 skips emission
 
-        page_filters = collect_page_filters(per_sheet_filters)
+        if page_content_count == 0:
+            continue  # No renderable content — skip writing page.json and adding to pageOrder
+
+        page_ids.append(page_id)
+        page_filters = collect_page_filters(per_sheet_filters, field_lookup)
         write_text(page_dir / "page.json",
                    render_page(page_id, dash.name,
                                width=dash.size.w or 1280, height=dash.size.h or 720,
@@ -146,6 +162,16 @@ def _iter_leaves(node):
     if isinstance(node, Container):
         for c in node.children:
             yield from _iter_leaves(c)
+
+
+def _sheet_already_paged(dash, sheet_ids_with_page: set[str]) -> bool:
+    """Return True if every sheet leaf in this dashboard already has a full-canvas page."""
+    sheet_leaves = [
+        l for l in _iter_leaves(dash.layout_tree) if l.kind == LeafKind.SHEET
+    ]
+    return bool(sheet_leaves) and all(
+        l.payload.get("sheet_id") in sheet_ids_with_page for l in sheet_leaves
+    )
 
 
 def _column_tier_index(wb: Workbook) -> dict[str, int]:

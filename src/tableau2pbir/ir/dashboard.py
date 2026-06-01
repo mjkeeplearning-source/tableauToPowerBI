@@ -88,3 +88,4 @@ class Dashboard(IRBase):
     size: DashboardSize
     layout_tree: Container | Leaf = Field(discriminator=None)   # root is usually a Container
     actions: tuple[Action, ...] = ()
+    is_synthetic: bool = False  # True for auto-generated single-sheet wrappers from Stage 2

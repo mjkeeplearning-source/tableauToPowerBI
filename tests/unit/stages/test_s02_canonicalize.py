@@ -69,6 +69,7 @@ def test_stage2_synthesises_dashboard_for_standalone_sheets(tmp_path: Path):
     for d in dashboards:
         assert d["size"]["w"] == 1280
         assert d["size"]["h"] == 720
+        assert d.get("is_synthetic") is True, "synthetic dashboards must carry is_synthetic=True"
 
 
 def _iter_leaves(node):

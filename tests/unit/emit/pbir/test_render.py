@@ -7,7 +7,8 @@ from tableau2pbir.ir.dashboard import (
 )
 from tableau2pbir.ir.datasource import ConnectorTier, Datasource
 from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Table
-from tableau2pbir.ir.sheet import EncodingBinding, Encoding, PbirVisual, Sheet
+from tableau2pbir.ir.sheet import CategoricalFilter, EncodingBinding, Encoding, PbirVisual, Sheet
+from tableau2pbir.ir.common import FieldRef
 from tableau2pbir.ir.workbook import DataModel, Workbook
 
 
@@ -225,3 +226,163 @@ def test_render_writes_page_and_visual(tmp_path: Path):
     assert manifest["counts"]["pages"] == 2
     assert manifest["counts"]["visuals"] == 2
     assert manifest["blocked_visuals"] == []
+
+
+# ---------------------------------------------------------------------------
+# Bug fixes: no duplicate pages, filter emission
+# ---------------------------------------------------------------------------
+
+def _wb_standalone_sheets(n: int = 3) -> Workbook:
+    """N standalone sheets with no real dashboards (pure-worksheet workbook)."""
+    sheets = []
+    for i in range(1, n + 1):
+        sheets.append(Sheet(
+            id=f"s{i}", name=f"Sheet {i}", datasource_refs=("d1",), mark_type="bar",
+            encoding=Encoding(), filters=(), sort=(), dual_axis=False, reference_lines=(),
+            uses_calculations=(),
+            pbir_visual=PbirVisual(
+                visual_type="columnChart",
+                encoding_bindings=(
+                    EncodingBinding(channel="Category", source_field_id="t1.region"),
+                    EncodingBinding(channel="Y", source_field_id="t1.sales"),
+                ),
+            ),
+        ))
+    ds = Datasource(
+        id="d1", name="DS", tableau_kind="csv", connector_tier=ConnectorTier.TIER_1,
+        pbi_m_connector="Csv.Document", connection_params={"filename": "C:/x.csv"},
+        user_action_required=(), table_ids=("t1",), extract_ignored=False,
+    )
+    table = Table(id="t1", name="orders", datasource_id="d1", column_ids=("c1",))
+    col = Column(id="c1", name="region", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW)
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="c",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(datasources=(ds,), tables=(table,)),
+        sheets=tuple(sheets), dashboards=(), unsupported=(),
+    )
+
+
+def _wb_with_synth_dash(n: int = 3) -> Workbook:
+    """N standalone sheets each with a matching synthetic dashboard (as Stage 2 emits)."""
+    sheets = []
+    dashes = []
+    for i in range(1, n + 1):
+        sid = f"s{i}"
+        sheets.append(Sheet(
+            id=sid, name=f"Sheet {i}", datasource_refs=("d1",), mark_type="bar",
+            encoding=Encoding(), filters=(), sort=(), dual_axis=False, reference_lines=(),
+            uses_calculations=(),
+            pbir_visual=PbirVisual(
+                visual_type="columnChart",
+                encoding_bindings=(
+                    EncodingBinding(channel="Category", source_field_id="t1.region"),
+                    EncodingBinding(channel="Y", source_field_id="t1.sales"),
+                ),
+            ),
+        ))
+        leaf = Leaf(kind=LeafKind.SHEET, payload={"sheet_id": sid},
+                    position=Position(x=20, y=20, w=560, h=360))
+        dashes.append(Dashboard(
+            id=f"synth_dash__{sid}", name=f"Sheet {i}",
+            size=DashboardSize(w=1280, h=720, kind="auto"),
+            layout_tree=Container(kind=ContainerKind.FLOATING, children=(leaf,)),
+            is_synthetic=True,
+        ))
+    ds = Datasource(
+        id="d1", name="DS", tableau_kind="csv", connector_tier=ConnectorTier.TIER_1,
+        pbi_m_connector="Csv.Document", connection_params={"filename": "C:/x.csv"},
+        user_action_required=(), table_ids=("t1",), extract_ignored=False,
+    )
+    table = Table(id="t1", name="orders", datasource_id="d1", column_ids=("c1",))
+    col = Column(id="c1", name="region", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW)
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="e",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(datasources=(ds,), tables=(table,)),
+        sheets=tuple(sheets), dashboards=tuple(dashes), unsupported=(),
+    )
+
+
+def test_synthetic_dashboard_does_not_duplicate_sheet_page(tmp_path: Path):
+    """Loop 1 emits a full-canvas page per sheet; a synthetic dashboard for the same
+    sheet must NOT produce a second page in Loop 2."""
+    wb = _wb_with_synth_dash(3)
+    manifest = render_report(wb, tmp_path)
+    # 3 sheets → 3 pages; synthetic dashes must be skipped
+    assert manifest["counts"]["pages"] == 3
+
+
+def test_standalone_sheet_workbook_produces_one_page_per_sheet(tmp_path: Path):
+    """Pure-worksheet workbook (no dashboards): exactly 1 page per sheet, no duplicates."""
+    wb = _wb_standalone_sheets(3)
+    manifest = render_report(wb, tmp_path)
+    assert manifest["counts"]["pages"] == 3
+
+
+def test_standalone_sheet_workbook_page_names_match_sheets(tmp_path: Path):
+    """Page displayNames must match the Tableau worksheet names."""
+    wb = _wb_standalone_sheets(3)
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    pages_meta = json.loads((rd / "pages" / "pages.json").read_text(encoding="utf-8"))
+    names = []
+    for pid in pages_meta["pageOrder"]:
+        page = json.loads((rd / "pages" / pid / "page.json").read_text(encoding="utf-8"))
+        names.append(page["displayName"])
+    assert names == ["Sheet 1", "Sheet 2", "Sheet 3"]
+
+
+def _wb_sheet_with_filter() -> Workbook:
+    """One standalone sheet carrying a CategoricalFilter with include members."""
+    filt = CategoricalFilter(
+        id="f1",
+        field=FieldRef(table_id="tbl__orders", column_id="sub_category"),
+        include=("Accessories", "Appliances"),
+        exclude=(),
+    )
+    sheet = Sheet(
+        id="s1", name="Sheet 2", datasource_refs=("d1",), mark_type="bar",
+        encoding=Encoding(), filters=(filt,), sort=(), dual_axis=False, reference_lines=(),
+        uses_calculations=(),
+        pbir_visual=PbirVisual(
+            visual_type="barChart",
+            encoding_bindings=(
+                EncodingBinding(channel="Category", source_field_id="tbl__orders.category"),
+                EncodingBinding(channel="Y", source_field_id="tbl__orders.margin"),
+            ),
+        ),
+    )
+    ds = Datasource(
+        id="d1", name="DS", tableau_kind="csv", connector_tier=ConnectorTier.TIER_1,
+        pbi_m_connector="Csv.Document", connection_params={"filename": "C:/x.csv"},
+        user_action_required=(), table_ids=("t1",), extract_ignored=False,
+    )
+    table = Table(id="t1", name="orders", datasource_id="d1", column_ids=("c1",))
+    col = Column(id="c1", name="category", datatype="string", role=ColumnRole.DIMENSION,
+                 kind=ColumnKind.RAW)
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="d",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(datasources=(ds,), tables=(table,)),
+        sheets=(sheet,), dashboards=(), unsupported=(),
+    )
+
+
+def test_sheet_page_emits_filterconfig_when_sheet_has_filters(tmp_path: Path):
+    """A standalone sheet with IR filters must have filterConfig in its page.json."""
+    wb = _wb_sheet_with_filter()
+    render_report(wb, tmp_path)
+    rd = tmp_path / "Report" / "definition"
+    pages_meta = json.loads((rd / "pages" / "pages.json").read_text(encoding="utf-8"))
+    page = json.loads(
+        (rd / "pages" / pages_meta["pageOrder"][0] / "page.json").read_text(encoding="utf-8")
+    )
+    assert "filterConfig" in page, "page.json must include filterConfig for sheet filters"
+    fc = page["filterConfig"]
+    assert "filters" in fc
+    assert len(fc["filters"]) == 1
+    f = fc["filters"][0]
+    assert f["type"] == "Categorical"

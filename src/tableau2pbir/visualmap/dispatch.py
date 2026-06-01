@@ -42,6 +42,12 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     color = enc.color
     fmt = _build_format_objects(sheet.mark_style)
 
+    if mark in ("bar", "automatic") and rows and not cols:
+        # Dimension-only rows (Tableau nested-header / cross-tab): map to Table visual.
+        if all(not _is_measure(r) for r in rows):
+            bindings = [_bind("Values", r) for r in rows]
+            return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)
+
     if mark in ("bar", "automatic") and rows and cols:
         # Horizontal bar: Tableau places measure on COLUMNS shelf, dimension on ROWS
         if _is_measure(cols[0]) and not _is_measure(rows[0]):

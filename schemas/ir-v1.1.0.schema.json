@@ -510,6 +510,11 @@
           },
           "title": "Actions",
           "type": "array"
+        },
+        "is_synthetic": {
+          "default": false,
+          "title": "Is Synthetic",
+          "type": "boolean"
         }
       },
       "required": [
@@ -950,6 +955,30 @@
       "title": "LodRelative",
       "type": "object"
     },
+    "MarkStyle": {
+      "additionalProperties": false,
+      "properties": {
+        "mark_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mark Color"
+        },
+        "labels_show": {
+          "default": false,
+          "title": "Labels Show",
+          "type": "boolean"
+        }
+      },
+      "title": "MarkStyle",
+      "type": "object"
+    },
     "Parameter": {
       "additionalProperties": false,
       "properties": {
@@ -1073,7 +1102,11 @@
         },
         "format": {
           "additionalProperties": {
-            "type": "string"
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
           },
           "default": {},
           "title": "Format",
@@ -1372,6 +1405,17 @@
           },
           "title": "Reference Lines",
           "type": "array"
+        },
+        "mark_style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MarkStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "format": {
           "anyOf": [

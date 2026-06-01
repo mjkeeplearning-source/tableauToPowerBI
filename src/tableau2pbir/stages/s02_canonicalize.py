@@ -86,6 +86,7 @@ def _synthesise_standalone_sheet_dashboards(sheets, dashboards, sheet_id_for_nam
                 children=(leaf,),
                 padding=0,
             ),
+            is_synthetic=True,
         )
         synthetic.append(dash)
     return tuple(synthetic)

@@ -59,7 +59,7 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
         if internal_slug in by_base:
             by_base[internal_slug] = {**by_base[internal_slug], "col_name": calc.name}
 
-    # Resolve each FieldRef.column_id seen in sheet encodings
+    # Resolve each FieldRef.column_id seen in sheet encodings and filters
     lookup: dict[str, dict] = {}
     for sheet in wb.sheets:
         enc = sheet.encoding
@@ -67,6 +67,9 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
         for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle):
             if opt:
                 refs.append(opt)
+        # Also include filter fields so filter emission can resolve pill slugs.
+        for f in sheet.filters:
+            refs.append(f.field)
         for fr in refs:
             field_id = fr.column_id
             if field_id in lookup:
