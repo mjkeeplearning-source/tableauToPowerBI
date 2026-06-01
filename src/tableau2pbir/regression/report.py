@@ -37,5 +37,5 @@ def _format_workbook(wb: WorkbookResult) -> str:
                 lines.append(f"      - {d.old_value}")
                 lines.append(f"      + {d.new_value}")
             else:
-                lines.append(f"    {d.entity_type} [{d.entity_name}]  {d.attribute}: {d.old_value} → {d.new_value}")
+                lines.append(f"    {d.entity_type} [{d.entity_name}]  {d.attribute}: {d.old_value} -> {d.new_value}")
     return "\n".join(lines)

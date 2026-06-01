@@ -50,12 +50,12 @@ def _check_one(name: str, workbook_path: Path, snap_dir: Path) -> WorkbookResult
         if result.returncode != 0:
             if any(m in result.stderr for m in _LLM_SKIP_MARKERS):
                 return WorkbookResult(name=name, status="SKIP", skip_reason="no API key")
+            diffs = [EntityDiff("pipeline", name, "exit_code", "0", str(result.returncode))]
+            if result.stderr.strip():
+                diffs.append(EntityDiff("pipeline", name, "stderr", "", result.stderr.strip()))
             return WorkbookResult(
                 name=name, status="FAIL",
-                file_diffs=[FileDiff(
-                    relative_path="<pipeline>",
-                    diffs=[EntityDiff("pipeline", name, "exit_code", "0", str(result.returncode))],
-                )],
+                file_diffs=[FileDiff(relative_path="<pipeline>", diffs=diffs)],
             )
 
         wb_out = out_dir / name
