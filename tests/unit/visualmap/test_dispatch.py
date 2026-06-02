@@ -288,3 +288,23 @@ def test_text_mark_computed_sort_wires_sort_into_pbir_visual():
     # profit_qk already in Values via enc.text — must not be duplicated
     values_ids = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Values"]
     assert values_ids.count("profit_qk") == 1
+
+
+def test_text_mark_sort_by_new_measure_added_to_values():
+    """When sort_by_field is not in enc.text/rows/cols, it must be added as a Values binding."""
+    from tableau2pbir.ir.sheet import SortSpec
+    sh = Sheet(
+        id="s1", name="S", datasource_refs=("ds1",),
+        mark_type="text",
+        encoding=Encoding(rows=(_fr("category_nk"),)),  # no enc.text
+        filters=(),
+        sort=(SortSpec(field=_fr("category_nk"), direction="desc",
+                       sort_by_field=_fr("sales_qk")),),
+        dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    values_ids = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Values"]
+    assert "sales_qk" in values_ids, "sort-by measure must be added as Values binding"
+    assert len(pv.sort_by) == 1
+    assert pv.sort_by[0].field_id == "sales_qk"

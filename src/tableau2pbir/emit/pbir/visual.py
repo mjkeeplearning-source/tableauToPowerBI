@@ -40,9 +40,17 @@ def render_visual(
 
 def _make_sort_entry(s, field_lookup: dict) -> dict:
     info = field_lookup.get(s.field_id, {})
-    table_name = info.get("table_name", "Model")
-    prop_name = info.get("measure_name") or info.get("col_name", s.field_id)
-    is_measure = info.get("is_measure", True)
+    if info:
+        table_name = info.get("table_name", "Model")
+        prop_name = info.get("measure_name") or info.get("col_name", s.field_id)
+        is_measure = info.get("is_measure", True)
+    elif "." in s.field_id:
+        table_name, prop_name = s.field_id.split(".", 1)
+        is_measure = False
+    else:
+        table_name = "Model"
+        prop_name = s.field_id
+        is_measure = True
     field_type = "Measure" if is_measure else "Column"
     direction = "Descending" if s.direction.lower() in ("desc", "descending") else "Ascending"
     return {
