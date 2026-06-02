@@ -266,3 +266,25 @@ def test_text_mark_with_text_encoding_includes_text_field_in_values():
     field_ids = {b.source_field_id for b in pv.encoding_bindings}
     assert "profit_qk" in field_ids, "Text encoding field must appear in Values"
     assert "category_nk" in field_ids
+
+
+def test_text_mark_computed_sort_wires_sort_into_pbir_visual():
+    """dispatch_visual must populate sort_by and add sort-by measure as Values binding."""
+    from tableau2pbir.ir.sheet import SortSpec
+    sh = Sheet(
+        id="s1", name="S", datasource_refs=("ds1",),
+        mark_type="text",
+        encoding=Encoding(rows=(_fr("category_nk"),), text=_fr("profit_qk")),
+        filters=(),
+        sort=(SortSpec(field=_fr("category_nk"), direction="desc",
+                       sort_by_field=_fr("profit_qk")),),
+        dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert len(pv.sort_by) == 1
+    assert pv.sort_by[0].field_id == "profit_qk"
+    assert pv.sort_by[0].direction == "desc"
+    # profit_qk already in Values via enc.text — must not be duplicated
+    values_ids = [b.source_field_id for b in pv.encoding_bindings if b.channel == "Values"]
+    assert values_ids.count("profit_qk") == 1
