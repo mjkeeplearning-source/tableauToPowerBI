@@ -33,9 +33,13 @@ def _known_field_ids(wb: Workbook) -> frozenset[str]:
         enc = sheet.encoding
         for fr in (*enc.rows, *enc.columns, *enc.detail):
             fids.add(fr.column_id)
-        for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle):
+        for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle, enc.text):
             if opt:
                 fids.add(opt.column_id)
+        # Include sort-by fields so computed-sort bindings pass validation.
+        for s in sheet.sort:
+            if s.sort_by_field:
+                fids.add(s.sort_by_field.column_id)
     return frozenset(fids)
 
 
