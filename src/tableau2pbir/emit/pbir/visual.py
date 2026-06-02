@@ -22,7 +22,10 @@ def render_visual(
 
     query: dict = {"queryState": query_state}
     if pbir_visual.sort_by:
-        query["sortBy"] = [_make_sort_entry(s, fl) for s in pbir_visual.sort_by]
+        query["sortDefinition"] = {
+            "sort": [_make_sort_entry(s, fl) for s in pbir_visual.sort_by],
+            "isDefaultSort": False,
+        }
 
     obj = {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
