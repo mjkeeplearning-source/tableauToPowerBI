@@ -165,6 +165,33 @@ def test_filter_column_qualified_ref_extracts_instance_part():
     )
 
 
+def test_quantitative_with_max_agg_prefix():
+    """Column-instance '[max:profit:qk]' must set agg_prefix='max'."""
+    v = _view(
+        "<filter class='quantitative'"
+        " column='[federated.17kv7r10vp81pc1g60xgp0re1it8].[max:profit:qk]'>"
+        "<min>1013.13</min><max>6719.98</max>"
+        "</filter>"
+    )
+    f = _filters(v)[0]
+    assert f["kind"] == "range"
+    assert f["agg_prefix"] == "max"
+    assert f["min_val"] == "1013.13"
+    assert f["max_val"] == "6719.98"
+
+
+def test_quantitative_with_none_agg_prefix_returns_none():
+    """Column-instance '[none:category:nk]' has 'none' prefix → agg_prefix=None (row-level)."""
+    v = _view(
+        "<filter class='quantitative'"
+        " column='[federated.17kv7r10vp81pc1g60xgp0re1it8].[none:category:nk]'>"
+        "<min>0</min><max>10</max>"
+        "</filter>"
+    )
+    f = _filters(v)[0]
+    assert f["agg_prefix"] is None
+
+
 def test_categorical_member_double_quotes_stripped():
     """Tableau stores member values as &quot;Value&quot; — surrounding double-quotes stripped."""
     USER_NS = "http://www.tableausoftware.com/xml/user"

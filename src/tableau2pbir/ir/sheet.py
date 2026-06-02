@@ -36,7 +36,7 @@ class RangeFilter(FilterBase):
     kind: Literal["range"] = "range"
     min_val: str | None = None
     max_val: str | None = None
-    agg_prefix: str | None = None  # reserved for v1.1; always None from extraction
+    agg_prefix: str | None = None
 
 
 class TopNFilter(FilterBase):

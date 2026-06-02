@@ -28,7 +28,7 @@ Output per worksheet:
        "include": tuple, "exclude": tuple, "expr": str | None},
       # range:
       {"kind": "range", "column": str, "min_val": str | None,
-       "max_val": str | None, "agg_prefix": None},
+       "max_val": str | None, "agg_prefix": str | None},
       # top_n:
       {"kind": "top_n", "column": str, "n": int, "direction": str,
        "by_column": str | None, "by_agg": str | None},
@@ -171,6 +171,28 @@ def _parse_filter_column(column_attr: str) -> str:
     return _unbracket(column_attr)
 
 
+_KNOWN_AGGS: frozenset[str] = frozenset({
+    "sum", "avg", "average", "min", "max",
+    "cntd", "ctd", "countd", "cnt", "count", "median",
+    "attr", "year", "quarter", "month", "week", "day",
+})
+
+
+def _parse_agg_prefix(column_instance: str) -> str | None:
+    """Extract the aggregation prefix from a Tableau column-instance name.
+
+    Format: 'aggregation:field:type'  e.g. 'max:profit:qk' → 'max'.
+    Returns None for 'none' prefix or unrecognised tokens (treats as row-level).
+    """
+    parts = column_instance.split(":")
+    if len(parts) < 2:
+        return None
+    prefix = parts[0].lower()
+    if prefix == "none":
+        return None
+    return prefix if prefix in _KNOWN_AGGS else None
+
+
 def _extract_shared_view_filters(root: etree._Element) -> dict[str, dict[str, Any]]:
     """Parse workbook-level <shared-views>/<shared-view>/<filter> elements.
 
@@ -215,7 +237,7 @@ def _filters(
                 "column": column,
                 "min_val": f.findtext("min"),
                 "max_val": f.findtext("max"),
-                "agg_prefix": None,
+                "agg_prefix": _parse_agg_prefix(column),
             })
         elif kind == "top_n":
             spec = f.find("top-spec-field")
