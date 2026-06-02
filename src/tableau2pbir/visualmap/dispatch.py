@@ -46,6 +46,8 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         # Dimension-only rows (Tableau nested-header / cross-tab): map to Table visual.
         if all(not _is_measure(r) for r in rows):
             bindings = [_bind("Values", r) for r in rows]
+            if enc.text:
+                bindings.append(_bind("Values", enc.text))
             return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)
 
     if mark in ("bar", "automatic") and rows and cols:
@@ -90,6 +92,8 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
 
     if mark == "text":
         bindings = [_bind("Values", r) for r in rows] + [_bind("Values", c) for c in cols]
+        if enc.text:
+            bindings.append(_bind("Values", enc.text))
         if not bindings:
             return None
         return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)

@@ -21,6 +21,7 @@ Output per worksheet:
       "detail": tuple[str, ...],
       "shape": str | None,
       "angle": str | None,
+      "text": str | None,
   },
   "filters": [
       # categorical / context / conditional:
@@ -96,7 +97,7 @@ def _encodings(shelf_elem: etree._Element, pane_parent: etree._Element) -> dict[
         "rows": _parse_shelf(rows),
         "columns": _parse_shelf(cols),
         "color": None, "size": None, "label": None, "tooltip": None,
-        "detail": (), "shape": None, "angle": None,
+        "detail": (), "shape": None, "angle": None, "text": None,
     }
     panes = pane_parent.findall("panes/pane") or pane_parent.findall("pane")
     for pane in panes:
@@ -107,7 +108,7 @@ def _encodings(shelf_elem: etree._Element, pane_parent: etree._Element) -> dict[
             col = _unbracket(col)
             if ch.tag == "detail":
                 enc["detail"] = (*enc["detail"], col)
-            elif ch.tag in {"color", "size", "label", "tooltip", "shape", "angle"}:
+            elif ch.tag in {"color", "size", "label", "tooltip", "shape", "angle", "text"}:
                 enc[ch.tag] = col
     return enc
 

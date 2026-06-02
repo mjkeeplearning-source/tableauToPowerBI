@@ -19,6 +19,7 @@ class Encoding(IRBase):
     detail: tuple[FieldRef, ...] = ()
     shape: FieldRef | None = None
     angle: FieldRef | None = None
+    text: FieldRef | None = None
 
 
 class FilterBase(IRBase):

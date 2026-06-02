@@ -246,3 +246,23 @@ def test_single_dim_on_rows_no_cols_emits_table():
     pv = dispatch_visual(sh)
     assert pv is not None
     assert pv.visual_type == "tableEx"
+
+
+def test_text_mark_with_text_encoding_includes_text_field_in_values():
+    """Text mark with <text> encoding: the text-encoded field must appear in Values."""
+    sh = Sheet(
+        id="s1", name="S", datasource_refs=("ds1",),
+        mark_type="text",
+        encoding=Encoding(
+            rows=(_fr("category_nk"),),
+            text=_fr("profit_qk"),
+        ),
+        filters=(), sort=(), dual_axis=False, reference_lines=(),
+        uses_calculations=(),
+    )
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "tableEx"
+    field_ids = {b.source_field_id for b in pv.encoding_bindings}
+    assert "profit_qk" in field_ids, "Text encoding field must appear in Values"
+    assert "category_nk" in field_ids

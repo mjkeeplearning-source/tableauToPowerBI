@@ -37,6 +37,7 @@ def _build_encoding(raw_enc: dict[str, Any], table_id: str) -> Encoding:
         detail=tuple(_ref(n, table_id) for n in raw_enc.get("detail", ()) if not _is_datasource_marker(n)),
         shape=r(raw_enc.get("shape")),
         angle=r(raw_enc.get("angle")),
+        text=r(raw_enc.get("text")),
     )
 
 
@@ -143,7 +144,7 @@ def build_sheets(
             for name in raw["encodings"].get(channel, ()):
                 if name in calc_names and name not in used_names:
                     used_names.append(name)
-        for channel in ("color", "size", "label", "tooltip", "shape", "angle"):
+        for channel in ("color", "size", "label", "tooltip", "shape", "angle", "text"):
             name = raw["encodings"].get(channel)
             if name and name in calc_names and name not in used_names:
                 used_names.append(name)

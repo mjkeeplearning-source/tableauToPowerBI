@@ -262,3 +262,32 @@ def test_mark_style_labels_cull_not_propagated():
     ws = extract_worksheets(root)
     ms = ws[0]["mark_style"]
     assert "labels_cull" not in ms
+
+
+_XML_TEXT_ENCODING = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='TextTable'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <panes>
+        <pane>
+          <mark class='Text'/>
+          <encodings>
+            <text column='[profit]'/>
+          </encodings>
+        </pane>
+      </panes>
+      <rows>[category]</rows>
+      <cols />
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+
+def test_text_encoding_extracted():
+    root = parse_workbook_xml(_XML_TEXT_ENCODING)
+    ws = extract_worksheets(root)
+    assert ws[0]["encodings"]["text"] == "profit"
