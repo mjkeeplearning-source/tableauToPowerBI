@@ -21,6 +21,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 11 | Filter IR Enrichment & Schema-Compliant Emission | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-11-filter-ir-enrichment.md` |
 | 12 | Mark Style Emission — Data Labels & Static Color | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-12-mark-style-emission.md` |
 | 13 | Regression Gate — Semantic Snapshot Validation | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-13-regression-gate.md` |
+| 14 | Filter Aggregation, Text Encoding & Computed Sort Fixes | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-14-filter-sort-text-fixes.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -28,6 +29,8 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 - Do not skip or batch tasks.
 - Follow TDD strictly: failing test → red → implement → green → commit.
 - After each plan completes, update the table above and write the next plan.
+
+> **CRITICAL — Regression corpus:** NEVER add any workbook to the regression gate (`regression-add`, editing `tests/regression/corpus.yaml`, or any equivalent) unless the user **explicitly** asks for it in that session. No implicit additions, no "while I'm here" additions, no additions as part of plan tasks.
 
 **Plan 8 complete (2026-05-02):** Fixed all 7 visual emission bugs: (1) datasource marker pills
 filtered from Stage 2 encoding; (2) catalog channel names capitalized to PBI-required form;
@@ -69,6 +72,18 @@ provides `corpus.py` (manifest load/save), `compare/json_diff.py` (PBIR JSON nor
 `hook.py` (pre-commit wiring). Three new CLI subcommands: `regression-add`, `regression-check`,
 `regression-install-hook`. All tests run under `pytest -m regression` marker with no API key
 required.
+
+**Plan 14 complete (2026-06-02):** Fixed three root-cause gaps in `simple_join_sorted_test.twb`
+output: (1) `_parse_agg_prefix()` helper in `extract/worksheets.py` — range filters on aggregated
+columns (e.g. `max:profit:qk`) now set `agg_prefix`, triggering the already-present "Advanced"
+PBIR filter path instead of row-level "Range"; (2) `<text>` marks card encoding channel threaded
+through `_encodings()` → `Encoding` IR → `_build_encoding()` → dispatch, with dedup guard so
+text-encoded measures appear in tableEx Values; (3) `<computed-sort>` extraction added to `_sort()`,
+new `VisualSortEntry` IR type and `PbirVisual.sort_by`, `_build_sort_entries()` dispatch helper,
+and `_make_sort_entry()` in `render_visual()` — PBI `sortBy` now emitted for sort-by-measure.
+Bonus fix: `_known_field_ids()` in `s04_map_visuals.py` extended to include `enc.text` and
+`sort_by_field` so `validate_visual` no longer drops visuals with these new binding types.
+589 unit tests pass, zero regressions.
 
 ## Design Spec
 
