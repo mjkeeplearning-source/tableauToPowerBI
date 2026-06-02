@@ -67,7 +67,8 @@ Filter = Annotated[
 
 class SortSpec(IRBase):
     field: FieldRef
-    direction: str                          # "asc" | "desc"
+    direction: str                            # "asc" | "desc"
+    sort_by_field: FieldRef | None = None     # for <computed-sort>: the measure to sort by
 
 
 class ReferenceLine(IRBase):
@@ -105,11 +106,18 @@ class EncodingBinding(IRBase):
     source_field_id: str
 
 
+class VisualSortEntry(IRBase):
+    """One sort directive to emit into visual.query.sortBy."""
+    field_id: str
+    direction: str   # "asc" | "desc"
+
+
 class PbirVisual(IRBase):
     """Stage 4 annotation attached to a Sheet."""
     visual_type: str
     encoding_bindings: tuple[EncodingBinding, ...]
     format: dict[str, list[dict]] = {}
+    sort_by: tuple[VisualSortEntry, ...] = ()
 
 
 Sheet.model_rebuild()

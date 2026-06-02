@@ -20,6 +20,10 @@ def render_visual(
         query_state.setdefault(b.channel, {"projections": []})
         query_state[b.channel]["projections"].append(_make_projection(b.source_field_id, fl))
 
+    query: dict = {"queryState": query_state}
+    if pbir_visual.sort_by:
+        query["sortBy"] = [_make_sort_entry(s, fl) for s in pbir_visual.sort_by]
+
     obj = {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
         "name": visual_id,
@@ -27,11 +31,29 @@ def render_visual(
                      "width": position.w, "height": position.h, "z": z_order},
         "visual": {
             "visualType": pbir_visual.visual_type,
-            "query": {"queryState": query_state},
+            "query": query,
             "objects": pbir_visual.format or {},
         },
     }
     return json.dumps(obj, indent=2)
+
+
+def _make_sort_entry(s, field_lookup: dict) -> dict:
+    info = field_lookup.get(s.field_id, {})
+    table_name = info.get("table_name", "Model")
+    prop_name = info.get("measure_name") or info.get("col_name", s.field_id)
+    is_measure = info.get("is_measure", True)
+    field_type = "Measure" if is_measure else "Column"
+    direction = "Descending" if s.direction.lower() in ("desc", "descending") else "Ascending"
+    return {
+        "direction": direction,
+        "field": {
+            field_type: {
+                "Expression": {"SourceRef": {"Entity": table_name}},
+                "Property": prop_name,
+            }
+        },
+    }
 
 
 def _make_projection(field_id: str, field_lookup: dict) -> dict:

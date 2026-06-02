@@ -88,7 +88,11 @@ def _build_filter(raw_f: dict[str, Any], sheet_idx: int, filter_idx: int, table_
 
 def _build_sort(raw_sorts: list[dict[str, Any]], table_id: str) -> tuple[SortSpec, ...]:
     return tuple(
-        SortSpec(field=_ref(s["column"], table_id), direction=s["direction"])
+        SortSpec(
+            field=_ref(s["column"], table_id),
+            direction=s["direction"],
+            sort_by_field=_ref(s["sort_by"], table_id) if s.get("sort_by") else None,
+        )
         for s in raw_sorts
     )
 

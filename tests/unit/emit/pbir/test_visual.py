@@ -98,6 +98,58 @@ def test_visual_json_has_position_and_query():
     assert any("Region" in str(p) for p in obj["visual"]["query"]["queryState"]["Category"]["projections"])
 
 
+def test_render_visual_emits_sort_by_when_present():
+    """When PbirVisual.sort_by is set, visual.query.sortBy must be emitted."""
+    import json
+    from tableau2pbir.ir.dashboard import Position
+    from tableau2pbir.emit.pbir.visual import render_visual
+    from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual, VisualSortEntry
+
+    pv = PbirVisual(
+        visual_type="tableEx",
+        encoding_bindings=(
+            EncodingBinding(channel="Values", source_field_id="category_nk"),
+            EncodingBinding(channel="Values", source_field_id="profit_qk"),
+        ),
+        sort_by=(
+            VisualSortEntry(field_id="profit_qk", direction="desc"),
+        ),
+    )
+    pos = Position(x=0, y=0, w=800, h=600)
+    field_lookup = {
+        "category_nk": {"table_name": "orders", "col_name": "category", "is_measure": False},
+        "profit_qk": {"table_name": "orders", "col_name": "profit", "is_measure": True,
+                      "measure_name": "Sum profit"},
+    }
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup))
+    sort_by = obj["visual"]["query"].get("sortBy")
+    assert sort_by is not None, "sortBy must be present in query"
+    assert len(sort_by) == 1
+    entry = sort_by[0]
+    assert entry["direction"] == "Descending"
+    assert entry["field"]["Measure"]["Property"] == "Sum profit"
+    assert entry["field"]["Measure"]["Expression"]["SourceRef"]["Entity"] == "orders"
+
+
+def test_render_visual_no_sort_by_when_empty():
+    """When PbirVisual.sort_by is empty, sortBy must not appear in query."""
+    import json
+    from tableau2pbir.ir.dashboard import Position
+    from tableau2pbir.emit.pbir.visual import render_visual
+    from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual
+
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Category", source_field_id="region_nk"),
+            EncodingBinding(channel="Y", source_field_id="sales_qk"),
+        ),
+    )
+    pos = Position(x=0, y=0, w=800, h=600)
+    obj = json.loads(render_visual("v1", pv, pos, 0, {}))
+    assert "sortBy" not in obj["visual"]["query"]
+
+
 def test_visual_objects_populated_from_format():
     """When PbirVisual.format is non-empty, render_visual must emit it under 'objects'."""
     pv = PbirVisual(

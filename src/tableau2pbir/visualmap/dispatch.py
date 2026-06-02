@@ -5,7 +5,7 @@ back to AI or routes to unsupported[]."""
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import EncodingBinding, MarkStyle, PbirVisual, Sheet
+from tableau2pbir.ir.sheet import EncodingBinding, MarkStyle, PbirVisual, Sheet, VisualSortEntry
 
 
 def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
@@ -34,6 +34,27 @@ def _build_format_objects(mark_style: MarkStyle | None) -> dict[str, list[dict]]
     return objects
 
 
+def _build_sort_entries(
+    sheet: Sheet,
+    existing_bindings: list[EncodingBinding],
+) -> tuple[tuple[EncodingBinding, ...], tuple[VisualSortEntry, ...]]:
+    """Return (extra_bindings, sort_entries) from computed sorts.
+
+    Extra bindings add the sort-by measure to Values if not already present.
+    """
+    extra: list[EncodingBinding] = []
+    entries: list[VisualSortEntry] = []
+    existing_ids = {b.source_field_id for b in existing_bindings}
+    for s in sheet.sort:
+        if s.sort_by_field is None:
+            continue
+        fid = s.sort_by_field.column_id
+        if fid not in existing_ids and not any(b.source_field_id == fid for b in extra):
+            extra.append(_bind("Values", s.sort_by_field))
+        entries.append(VisualSortEntry(field_id=fid, direction=s.direction))
+    return tuple(extra), tuple(entries)
+
+
 def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     mark = sheet.mark_type
     enc = sheet.encoding
@@ -49,7 +70,14 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             existing_ids = {r.column_id for r in rows}
             if enc.text and enc.text.column_id not in existing_ids:
                 bindings.append(_bind("Values", enc.text))
-            return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)
+            extra_sort, sort_entries = _build_sort_entries(sheet, bindings)
+            bindings.extend(extra_sort)
+            return PbirVisual(
+                visual_type="tableEx",
+                encoding_bindings=tuple(bindings),
+                format=fmt,
+                sort_by=sort_entries,
+            )
 
     if mark in ("bar", "automatic") and rows and cols:
         # Horizontal bar: Tableau places measure on COLUMNS shelf, dimension on ROWS
@@ -96,9 +124,16 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         existing_ids = {f.column_id for f in rows} | {f.column_id for f in cols}
         if enc.text and enc.text.column_id not in existing_ids:
             bindings.append(_bind("Values", enc.text))
+        extra_sort, sort_entries = _build_sort_entries(sheet, bindings)
+        bindings.extend(extra_sort)
         if not bindings:
             return None
-        return PbirVisual(visual_type="tableEx", encoding_bindings=tuple(bindings), format=fmt)
+        return PbirVisual(
+            visual_type="tableEx",
+            encoding_bindings=tuple(bindings),
+            format=fmt,
+            sort_by=sort_entries,
+        )
 
     if mark == "map" and rows and cols:
         return PbirVisual(

@@ -291,3 +291,34 @@ def test_text_encoding_extracted():
     root = parse_workbook_xml(_XML_TEXT_ENCODING)
     ws = extract_worksheets(root)
     assert ws[0]["encodings"]["text"] == "profit"
+
+
+_XML_COMPUTED_SORT = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='SortedTable'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+        <computed-sort
+            column='[federated.ds1].[none:category:nk]'
+            direction='DESC'
+            using='[federated.ds1].[sum:profit:qk]' />
+      </view>
+      <panes><pane><mark class='Text'/></pane></panes>
+      <rows>[category]</rows>
+      <cols />
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+
+def test_computed_sort_extracted():
+    root = parse_workbook_xml(_XML_COMPUTED_SORT)
+    ws = extract_worksheets(root)
+    sorts = ws[0]["sort"]
+    assert len(sorts) == 1
+    s = sorts[0]
+    assert s["column"] == "none:category:nk"
+    assert s["direction"] == "desc"
+    assert s["sort_by"] == "sum:profit:qk"

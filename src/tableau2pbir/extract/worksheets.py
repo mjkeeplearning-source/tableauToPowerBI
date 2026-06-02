@@ -34,7 +34,7 @@ Output per worksheet:
       {"kind": "top_n", "column": str, "n": int, "direction": str,
        "by_column": str | None, "by_agg": str | None},
   ],
-  "sort": [ {"column": str, "direction": 'asc'|'desc'} ],
+  "sort": [ {"column": str, "direction": 'asc'|'desc', "sort_by": str | None} ],
   "dual_axis": bool,
   "reference_lines": [ {"kind": str, "scope_column": str, "value": str | None} ],
   "quick_table_calcs": [ {"column": str, "type": str, "compute_using": str | None} ],
@@ -269,15 +269,26 @@ def _filters(
     return out
 
 
-def _sort(view: etree._Element) -> list[dict[str, str]]:
-    out: list[dict[str, str]] = []
+def _sort(view: etree._Element) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
     for s in view.findall("sort"):
         col = optional_attr(s, "column")
         if col is None:
             continue
         out.append({
             "column": _unbracket(col),
-            "direction": attr(s, "direction", default="asc"),
+            "direction": attr(s, "direction", default="asc").lower(),
+            "sort_by": None,
+        })
+    for s in view.findall("computed-sort"):
+        col = optional_attr(s, "column")
+        if col is None:
+            continue
+        using = optional_attr(s, "using")
+        out.append({
+            "column": _parse_filter_column(col),
+            "direction": attr(s, "direction", default="asc").lower(),
+            "sort_by": _parse_filter_column(using) if using else None,
         })
     return out
 
