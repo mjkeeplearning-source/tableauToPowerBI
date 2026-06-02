@@ -181,10 +181,10 @@ def test_quantitative_with_max_agg_prefix():
 
 
 def test_quantitative_with_none_agg_prefix_returns_none():
-    """Column-instance '[none:category:nk]' has 'none' prefix → agg_prefix=None (row-level)."""
+    """Column-instance '[none:profit:qk]' has 'none' prefix → agg_prefix=None (row-level)."""
     v = _view(
         "<filter class='quantitative'"
-        " column='[federated.17kv7r10vp81pc1g60xgp0re1it8].[none:category:nk]'>"
+        " column='[federated.17kv7r10vp81pc1g60xgp0re1it8].[none:profit:qk]'>"
         "<min>0</min><max>10</max>"
         "</filter>"
     )

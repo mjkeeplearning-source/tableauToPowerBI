@@ -174,7 +174,6 @@ def _parse_filter_column(column_attr: str) -> str:
 _KNOWN_AGGS: frozenset[str] = frozenset({
     "sum", "avg", "average", "min", "max",
     "cntd", "ctd", "countd", "cnt", "count", "median",
-    "attr", "year", "quarter", "month", "week", "day",
 })
 
 
