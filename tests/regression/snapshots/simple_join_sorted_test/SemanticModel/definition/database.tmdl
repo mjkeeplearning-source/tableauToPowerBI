@@ -1,0 +1,2 @@
+database 'simple_join_sorted_test'
+	compatibilityLevel: 1600
