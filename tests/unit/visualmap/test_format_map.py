@@ -98,3 +98,9 @@ def test_font_name_with_spaces_triple_quoted():
     vf = VisualFormat(title=TitleFormat(text="T", font_name="Arial Black"))
     _, container = build_format_objects(vf, "columnChart")
     assert container["title"][0]["properties"]["fontFamily"] == _lit("'''Arial Black'''")
+
+
+def test_empty_title_text_not_emitted():
+    vf = VisualFormat(title=TitleFormat(text="", font_name="Verdana"))
+    _, container = build_format_objects(vf, "columnChart")
+    assert "title" not in container

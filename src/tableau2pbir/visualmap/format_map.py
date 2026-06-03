@@ -94,22 +94,21 @@ def build_format_objects(
     if vf.title:
         tit = vf.title
         title_props: dict = {}
-        if tit.text is not None:
+        if tit.text:
             title_props["show"] = _lit("true")
             title_props["text"] = _lit(f"'{tit.text}'")
-        if tit.font_name:
-            title_props["fontFamily"] = _font_name_lit(tit.font_name)
-        if tit.font_size:
-            title_props["fontSize"] = _font_size_lit(tit.font_size)
-        if tit.bold:
-            title_props["bold"] = _lit("true")
-        if tit.italic:
-            title_props["italic"] = _lit("true")
-        if tit.underline:
-            title_props["underline"] = _lit("true")
-        if tit.font_color:
-            title_props["fontColor"] = _color(tit.font_color)
-        if title_props:
+            if tit.font_name:
+                title_props["fontFamily"] = _font_name_lit(tit.font_name)
+            if tit.font_size:
+                title_props["fontSize"] = _font_size_lit(tit.font_size)
+            if tit.bold:
+                title_props["bold"] = _lit("true")
+            if tit.italic:
+                title_props["italic"] = _lit("true")
+            if tit.underline:
+                title_props["underline"] = _lit("true")
+            if tit.font_color:
+                title_props["fontColor"] = _color(tit.font_color)
             container["title"] = [{"properties": title_props}]
 
     return objects, container
