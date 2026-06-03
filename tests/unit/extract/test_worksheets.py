@@ -156,7 +156,7 @@ _XML_NO_MARK_STYLE = b"""<?xml version='1.0'?>
 """
 
 
-def test_mark_style_extracted_when_present():
+def test_sheet_style_extracted_when_present():
     root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
     ws = extract_worksheets(root)
     ms = ws[0]["sheet_style"]
@@ -164,7 +164,7 @@ def test_mark_style_extracted_when_present():
     assert ms["labels_show"] is True
 
 
-def test_mark_style_defaults_when_absent():
+def test_sheet_style_defaults_when_absent():
     root = parse_workbook_xml(_XML_NO_MARK_STYLE)
     ws = extract_worksheets(root)
     ms = ws[0]["sheet_style"]
@@ -256,7 +256,7 @@ def test_shared_view_filter_not_duplicated_when_inline_filter_exists():
     assert len(ws[0]["filters"]) == 1, "Inline + slice for same column → exactly one filter"
 
 
-def test_mark_style_labels_cull_not_propagated():
+def test_sheet_style_labels_cull_not_propagated():
     """mark-labels-cull has no PBI equivalent — it must not appear in sheet_style output."""
     root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
     ws = extract_worksheets(root)
