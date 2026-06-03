@@ -23,7 +23,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 13 | Regression Gate — Semantic Snapshot Validation | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-13-regression-gate.md` |
 | 14 | Filter Aggregation, Text Encoding & Computed Sort Fixes | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-14-filter-sort-text-fixes.md` |
 | 15 | Encoding Extraction & Sort Wiring Fix | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-15-encoding-extraction-sort-wiring-fix.md` |
-| 16 | Visual Formatting Pipeline | 🔄 ACTIVE | `docs/superpowers/plans/2026-06-03-plan-16-visual-formatting-pipeline.md` |
+| 16 | Visual Formatting Pipeline | ✅ DONE | `docs/superpowers/plans/2026-06-03-plan-16-visual-formatting-pipeline.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
