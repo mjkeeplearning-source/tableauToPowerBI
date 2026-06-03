@@ -100,7 +100,12 @@ def test_font_name_with_spaces_triple_quoted():
     assert container["title"][0]["properties"]["fontFamily"] == _lit("'''Arial Black'''")
 
 
-def test_empty_title_text_not_emitted():
-    vf = VisualFormat(title=TitleFormat(text="", font_name="Verdana"))
+def test_empty_title_text_still_emits_font_properties():
+    """text="" suppresses show/text but font properties are still emitted."""
+    vf = VisualFormat(title=TitleFormat(text="", font_name="Verdana", bold=True))
     _, container = build_format_objects(vf, "columnChart")
-    assert "title" not in container
+    title_props = container["title"][0]["properties"]
+    assert "show" not in title_props
+    assert "text" not in title_props
+    assert title_props["fontFamily"]["expr"]["Literal"]["Value"] == "'Verdana'"
+    assert title_props["bold"]["expr"]["Literal"]["Value"] == "true"
