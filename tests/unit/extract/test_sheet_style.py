@@ -158,3 +158,23 @@ def test_no_style_returns_empty_defaults():
     assert result["labels_show"] is False
     assert result["axis_font_name"] is None
     assert result["number_formats"] == {}
+
+
+def test_multi_run_title_text_concatenated():
+    ws, table, pp = _ws("""
+    <worksheet name="S">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run fontname='Verdana' fontsize='14'>Hello</run>
+            <run> World</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table><panes><pane><style></style></pane></panes></table>
+    </worksheet>
+    """)
+    result = _sheet_style(ws, table, pp)
+    assert result["title"]["text"] == "Hello World"
+    assert result["title"]["font_name"] == "Verdana"
+    assert result["title"]["font_size"] == 14

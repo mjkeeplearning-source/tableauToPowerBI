@@ -110,20 +110,20 @@ def _raw(extra=None):
 
 
 def test_visual_format_none_when_key_absent():
-    """Existing raw dicts without mark_style key must produce Sheet.visual_format=None."""
+    """Existing raw dicts without sheet_style key must produce Sheet.visual_format=None."""
     sheets, _ = build_sheets([_raw()], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
     assert sheets[0].visual_format is None
 
 
 def test_visual_format_none_before_extraction_wiring():
-    """mark_style extraction is wired in Task 3; until then visual_format stays None."""
-    raw = _raw({"mark_style": {"mark_color": "#e15759", "labels_show": True}})
+    """sheet_style extraction is wired in Task 3; until then visual_format stays None."""
+    raw = _raw({"sheet_style": {"mark_color": "#e15759", "labels_show": True}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
-    # Task 3 will populate visual_format; for now it remains None
+    # Task 4 will populate visual_format; for now it remains None
     assert sheets[0].visual_format is None
 
 
 def test_visual_format_none_labels_false_before_wiring():
-    raw = _raw({"mark_style": {"mark_color": None, "labels_show": False}})
+    raw = _raw({"sheet_style": {"mark_color": None, "labels_show": False}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
     assert sheets[0].visual_format is None

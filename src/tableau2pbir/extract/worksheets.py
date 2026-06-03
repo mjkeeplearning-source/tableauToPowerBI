@@ -351,9 +351,10 @@ def _sheet_style(
         "number_formats": {},
     }
 
-    # --- Title: <layout-options>/<title>/<formatted-text>/<run> ---
-    run = ws.find("layout-options/title/formatted-text/run")
-    if run is not None:
+    # --- Title ---
+    runs = ws.findall("layout-options/title/formatted-text/run")
+    if runs:
+        run = runs[0]
         fs_str = optional_attr(run, "fontsize")
         fs_int: int | None = None
         if fs_str is not None:
@@ -362,7 +363,7 @@ def _sheet_style(
             except ValueError:
                 pass
         style["title"] = {
-            "text": run.text or "",
+            "text": "".join(r.text or "" for r in runs),
             "font_name": optional_attr(run, "fontname"),
             "font_size": fs_int,
             "bold": optional_attr(run, "bold") == "true",
