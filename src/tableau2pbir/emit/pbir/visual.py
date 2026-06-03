@@ -5,6 +5,7 @@ import json
 
 from tableau2pbir.ir.dashboard import Position
 from tableau2pbir.ir.sheet import PbirVisual
+from tableau2pbir.visualmap.format_map import build_format_objects
 
 
 def render_visual(
@@ -15,10 +16,23 @@ def render_visual(
     field_lookup: dict[str, dict] | None = None,
 ) -> str:
     fl = field_lookup or {}
+
+    if pbir_visual.visual_format is not None:
+        objects, container_objects = build_format_objects(
+            pbir_visual.visual_format, pbir_visual.visual_type
+        )
+        number_formats = pbir_visual.visual_format.number_formats
+    else:
+        objects = pbir_visual.format or {}
+        container_objects = {}
+        number_formats = {}
+
     query_state: dict[str, dict] = {}
     for b in pbir_visual.encoding_bindings:
         query_state.setdefault(b.channel, {"projections": []})
-        query_state[b.channel]["projections"].append(_make_projection(b.source_field_id, fl))
+        query_state[b.channel]["projections"].append(
+            _make_projection(b.source_field_id, fl, number_formats)
+        )
 
     query: dict = {"queryState": query_state}
     if pbir_visual.sort_by:
@@ -27,16 +41,20 @@ def render_visual(
             "isDefaultSort": False,
         }
 
+    visual_block: dict = {
+        "visualType": pbir_visual.visual_type,
+        "query": query,
+        "objects": objects,
+    }
+    if container_objects:
+        visual_block["visualContainerObjects"] = container_objects
+
     obj = {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
         "name": visual_id,
         "position": {"x": position.x, "y": position.y,
                      "width": position.w, "height": position.h, "z": z_order},
-        "visual": {
-            "visualType": pbir_visual.visual_type,
-            "query": query,
-            "objects": pbir_visual.format or {},
-        },
+        "visual": visual_block,
     }
     return json.dumps(obj, indent=2)
 
@@ -67,7 +85,11 @@ def _make_sort_entry(s, field_lookup: dict) -> dict:
     }
 
 
-def _make_projection(field_id: str, field_lookup: dict) -> dict:
+def _make_projection(
+    field_id: str,
+    field_lookup: dict,
+    number_formats: dict[str, str] | None = None,
+) -> dict:
     info = field_lookup.get(field_id)
     if info:
         table_name = info["table_name"]
@@ -83,7 +105,7 @@ def _make_projection(field_id: str, field_lookup: dict) -> dict:
         prop_name = field_id
         is_measure = True
     field_type = "Measure" if is_measure else "Column"
-    return {
+    proj: dict = {
         "field": {
             field_type: {
                 "Expression": {"SourceRef": {"Entity": table_name}},
@@ -93,3 +115,8 @@ def _make_projection(field_id: str, field_lookup: dict) -> dict:
         "queryRef": f"{table_name}.{prop_name}",
         "active": True,
     }
+    if number_formats:
+        dax_fmt = number_formats.get(field_id)
+        if dax_fmt:
+            proj["format"] = dax_fmt
+    return proj

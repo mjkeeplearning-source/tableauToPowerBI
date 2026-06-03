@@ -152,6 +152,110 @@ def test_render_visual_no_sort_definition_when_empty():
     assert "sortDefinition" not in obj["visual"]["query"]
 
 
+def test_visual_container_objects_emitted_when_title_set():
+    from tableau2pbir.ir.sheet import AxisTitleFormat, TableFormat, TitleFormat, VisualFormat
+
+    vf = VisualFormat(title=TitleFormat(
+        text="Category Based  Profit",
+        font_name="Verdana",
+        font_size=20,
+    ))
+    pv = PbirVisual(
+        visual_type="tableEx",
+        encoding_bindings=(EncodingBinding(channel="Values", source_field_id="orders.category"),),
+        visual_format=vf,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    vco = obj["visual"]["visualContainerObjects"]
+    assert vco["title"][0]["properties"]["text"]["expr"]["Literal"]["Value"] == "'Category Based  Profit'"
+    assert vco["title"][0]["properties"]["fontSize"]["expr"]["Literal"]["Value"] == "20D"
+
+
+def test_visual_container_objects_absent_when_no_title():
+    from tableau2pbir.ir.sheet import VisualFormat
+
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(EncodingBinding(channel="Category", source_field_id="orders.category"),),
+        visual_format=None,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    assert "visualContainerObjects" not in obj["visual"]
+
+
+def test_projection_format_added_when_number_format_present():
+    from tableau2pbir.ir.sheet import VisualFormat
+
+    vf = VisualFormat(number_formats={"orders_profit_qk": r"\$#,0.00;(\$#,0.00);\$#,0.00"})
+    pv = PbirVisual(
+        visual_type="tableEx",
+        encoding_bindings=(EncodingBinding(channel="Values", source_field_id="orders_profit_qk"),),
+        visual_format=vf,
+    )
+    lookup = {"orders_profit_qk": {"table_name": "orders", "col_name": "profit", "is_measure": True}}
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup=lookup))
+    proj = obj["visual"]["query"]["queryState"]["Values"]["projections"][0]
+    assert proj["format"] == r"\$#,0.00;(\$#,0.00);\$#,0.00"
+
+
+def test_projection_format_absent_when_no_number_format():
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(EncodingBinding(channel="Y", source_field_id="orders.revenue"),),
+        visual_format=None,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    proj = obj["visual"]["query"]["queryState"]["Y"]["projections"][0]
+    assert "format" not in proj
+
+
+def test_category_axis_objects_emitted_for_chart():
+    from tableau2pbir.ir.sheet import AxisTitleFormat, VisualFormat
+
+    vf = VisualFormat(axis=AxisTitleFormat(font_name="Verdana", font_size=16))
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(EncodingBinding(channel="Category", source_field_id="orders.category"),),
+        visual_format=vf,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    objects = obj["visual"]["objects"]
+    assert "categoryAxis" in objects
+    assert "valueAxis" in objects
+
+
+def test_table_column_headers_emitted_for_tableex():
+    from tableau2pbir.ir.sheet import TableFormat, VisualFormat
+
+    vf = VisualFormat(table=TableFormat(header_font_name="Arial Black", header_font_size=13))
+    pv = PbirVisual(
+        visual_type="tableEx",
+        encoding_bindings=(EncodingBinding(channel="Values", source_field_id="orders.category"),),
+        visual_format=vf,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    assert "columnHeaders" in obj["visual"]["objects"]
+
+
+def test_existing_format_dict_still_works():
+    """Backward compat: PbirVisual.format={...} still emitted when visual_format is None."""
+    pv = PbirVisual(
+        visual_type="clusteredBarChart",
+        encoding_bindings=(EncodingBinding(channel="Category", source_field_id="orders.region"),),
+        format={"labels": [{"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}]},
+        visual_format=None,
+    )
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0))
+    assert obj["visual"]["objects"]["labels"][0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
+
+
 def test_visual_objects_populated_from_format():
     """When PbirVisual.format is non-empty, render_visual must emit it under 'objects'."""
     pv = PbirVisual(
