@@ -46,6 +46,28 @@
         }
       }
     },
-    "objects": {}
+    "objects": {},
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Category and  SubCategory Details'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }
