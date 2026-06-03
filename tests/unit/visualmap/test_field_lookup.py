@@ -139,3 +139,101 @@ def test_user_calc_pill_measure_name_equals_display_name():
     lookup = build_field_lookup(_make_wb())
     info = lookup["usr_calculation_01_qk"]
     assert info["measure_name"] == info["col_name"] == "Revenue"
+
+
+def _make_wb_with_text_encoding(text_field_id: str) -> Workbook:
+    """Minimal Workbook where profit only appears in enc.text."""
+    col = Column(
+        id="tbl__orders__col__profit", name="profit",
+        datatype="double", role=ColumnRole.MEASURE, kind=ColumnKind.RAW,
+        source_column="profit",
+    )
+    table = Table(
+        id="tbl__orders", name="orders", datasource_id="ds1",
+        column_ids=("tbl__orders__col__profit",),
+    )
+    ds = Datasource(
+        id="ds1", name="DS", tableau_kind="postgres",
+        connector_tier=ConnectorTier.TIER_1, pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "srv", "dbname": "db"}, user_action_required=(),
+        table_ids=("tbl__orders",), extract_ignored=False,
+    )
+    sheet = Sheet(
+        id="s1", name="Sheet 1", datasource_refs=("ds1",), mark_type="bar",
+        encoding=Encoding(
+            text=FieldRef(table_id="tbl__orders", column_id=text_field_id),
+        ),
+        filters=(), sort=(), dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="a",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(
+            datasources=(ds,), tables=(table,),
+            columns=(col,), calculations=(),
+        ),
+        sheets=(sheet,), dashboards=(), unsupported=(),
+    )
+
+
+def test_text_encoding_field_resolved_in_lookup():
+    """enc.text field ref must appear in build_field_lookup result."""
+    wb = _make_wb_with_text_encoding("sum_profit_qk")
+    result = build_field_lookup(wb)
+    assert "sum_profit_qk" in result, "text-encoding field must be in lookup"
+    entry = result["sum_profit_qk"]
+    assert entry["table_name"] == "orders"
+    assert entry["is_measure"] is True
+
+
+def _make_wb_with_sort_by_only(sort_by_field_id: str) -> Workbook:
+    """Minimal Workbook where profit only appears as a sort_by_field."""
+    from tableau2pbir.ir.sheet import SortSpec
+
+    col_profit = Column(
+        id="tbl__orders__col__profit", name="profit",
+        datatype="double", role=ColumnRole.MEASURE, kind=ColumnKind.RAW,
+        source_column="profit",
+    )
+    col_category = Column(
+        id="tbl__orders__col__category", name="category",
+        datatype="string", role=ColumnRole.DIMENSION, kind=ColumnKind.RAW,
+        source_column="category",
+    )
+    table = Table(
+        id="tbl__orders", name="orders", datasource_id="ds1",
+        column_ids=("tbl__orders__col__profit", "tbl__orders__col__category"),
+    )
+    ds = Datasource(
+        id="ds1", name="DS", tableau_kind="postgres",
+        connector_tier=ConnectorTier.TIER_1, pbi_m_connector="PostgreSQL.Database",
+        connection_params={"server": "srv", "dbname": "db"}, user_action_required=(),
+        table_ids=("tbl__orders",), extract_ignored=False,
+    )
+    cat_fr = FieldRef(table_id="tbl__orders", column_id="none_category_nk")
+    profit_fr = FieldRef(table_id="tbl__orders", column_id=sort_by_field_id)
+    sort = SortSpec(field=cat_fr, direction="desc", sort_by_field=profit_fr)
+    sheet = Sheet(
+        id="s1", name="Sheet 1", datasource_refs=("ds1",), mark_type="bar",
+        encoding=Encoding(
+            rows=(cat_fr,),
+        ),
+        filters=(), sort=(sort,), dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    return Workbook(
+        ir_schema_version="1.1.0", source_path="x.twb", source_hash="a",
+        tableau_version="2024.1", config={},
+        data_model=DataModel(
+            datasources=(ds,), tables=(table,),
+            columns=(col_profit, col_category), calculations=(),
+        ),
+        sheets=(sheet,), dashboards=(), unsupported=(),
+    )
+
+
+def test_sort_by_field_resolved_in_lookup():
+    """sort_by_field ref must appear in build_field_lookup result even if not
+    bound to any encoding channel directly."""
+    wb = _make_wb_with_sort_by_only("sum_profit_qk")
+    result = build_field_lookup(wb)
+    assert "sum_profit_qk" in result, "sort_by_field must be in lookup"

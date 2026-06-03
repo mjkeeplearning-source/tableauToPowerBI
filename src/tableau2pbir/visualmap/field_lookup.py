@@ -64,12 +64,16 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
     for sheet in wb.sheets:
         enc = sheet.encoding
         refs = list(enc.rows) + list(enc.columns) + list(enc.detail)
-        for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle):
+        for opt in (enc.color, enc.size, enc.label, enc.tooltip, enc.shape, enc.angle, enc.text):
             if opt:
                 refs.append(opt)
         # Also include filter fields so filter emission can resolve pill slugs.
         for f in sheet.filters:
             refs.append(f.field)
+        # Include sort-by measure refs so computed-sort emission resolves correctly.
+        for s in sheet.sort:
+            if s.sort_by_field:
+                refs.append(s.sort_by_field)
         for fr in refs:
             field_id = fr.column_id
             if field_id in lookup:
