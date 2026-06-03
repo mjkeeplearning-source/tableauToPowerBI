@@ -125,8 +125,8 @@ def test_visual_format_populated_from_sheet_style():
     assert vf.labels_show is True
 
 
-def test_visual_format_present_when_sheet_style_present():
-    """Task 4: even an empty-ish sheet_style dict produces a VisualFormat (not None)."""
+def test_visual_format_none_when_all_defaults():
+    """Fix: empty-ish sheet_style dict with all defaults returns None (not a no-op VisualFormat)."""
     raw = _raw({"sheet_style": {"mark_color": None, "labels_show": False}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
-    assert sheets[0].visual_format is not None
+    assert sheets[0].visual_format is None

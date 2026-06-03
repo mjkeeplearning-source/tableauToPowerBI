@@ -72,7 +72,8 @@ def test_number_formats_translated_to_stable_id():
     assert vf.number_formats["sum_profit_qk"] == r"\$#,0.00;(\$#,0.00);\$#,0.00"
 
 
-def test_unknown_format_code_not_stored():
+def test_unknown_format_code_returns_none():
+    """Unknown format codes translate to empty number_formats dict, so return None."""
     raw = {
         "mark_color": None, "labels_show": False, "title": None,
         "axis_font_name": None, "axis_font_size": None,
@@ -81,4 +82,15 @@ def test_unknown_format_code_not_stored():
         "number_formats": {"some:field:qk": "UNKNOWN"},
     }
     vf = _build_visual_format(raw)
-    assert vf.number_formats == {}
+    assert vf is None
+
+
+def test_all_defaults_returns_none():
+    raw = {
+        "mark_color": None, "labels_show": False, "title": None,
+        "axis_font_name": None, "axis_font_size": None,
+        "cell_font_name": None, "cell_font_size": None,
+        "header_font_name": None, "header_font_size": None,
+        "number_formats": {},
+    }
+    assert _build_visual_format(raw) is None

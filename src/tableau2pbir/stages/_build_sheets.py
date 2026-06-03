@@ -165,6 +165,12 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
             col_id = stable_id("", raw_field).lstrip("_")
             number_formats[col_id] = dax
 
+    if (title is None and not raw_style.get("mark_color")
+            and not raw_style.get("labels_show")
+            and axis is None and table_fmt is None
+            and not number_formats):
+        return None
+
     return VisualFormat(
         title=title,
         mark_color=raw_style.get("mark_color"),
