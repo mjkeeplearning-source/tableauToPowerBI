@@ -105,7 +105,7 @@ def _encodings(shelf_elem: etree._Element, pane_parent: etree._Element) -> dict[
             col = optional_attr(ch, "column")
             if col is None:
                 continue
-            col = _unbracket(col)
+            col = _parse_filter_column(col)
             if ch.tag == "detail":
                 enc["detail"] = (*enc["detail"], col)
             elif ch.tag in {"color", "size", "label", "tooltip", "shape", "angle", "text"}:

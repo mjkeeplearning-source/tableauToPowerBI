@@ -322,3 +322,34 @@ def test_computed_sort_extracted():
     assert s["column"] == "none:category:nk"
     assert s["direction"] == "desc"
     assert s["sort_by"] == "sum:profit:qk"
+
+
+_XML_TEXT_ENCODING_QUALIFIED = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='QualifiedText'>
+    <table>
+      <view>
+        <datasources><datasource name='federated.17kv7r10vp81pc1g60xgp0re1it8'/></datasources>
+      </view>
+      <panes>
+        <pane>
+          <mark class='Automatic'/>
+          <encodings>
+            <text column='[federated.17kv7r10vp81pc1g60xgp0re1it8].[sum:profit:qk]'/>
+          </encodings>
+        </pane>
+      </panes>
+      <rows>[federated.17kv7r10vp81pc1g60xgp0re1it8].[none:category:nk]</rows>
+      <cols />
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+
+def test_qualified_text_encoding_extracts_instance_only():
+    """Real Tableau XML uses qualified refs for pane encodings.
+    _encodings must strip the datasource prefix and return only the column-instance name."""
+    root = parse_workbook_xml(_XML_TEXT_ENCODING_QUALIFIED)
+    ws = extract_worksheets(root)
+    assert ws[0]["encodings"]["text"] == "sum:profit:qk"
