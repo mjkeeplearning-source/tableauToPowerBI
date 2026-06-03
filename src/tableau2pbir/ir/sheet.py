@@ -79,9 +79,35 @@ class ReferenceLine(IRBase):
     lod_expr: str | None = None
 
 
-class MarkStyle(IRBase):
+class TitleFormat(IRBase):
+    text: str | None = None
+    font_name: str | None = None
+    font_size: int | None = None
+    bold: bool = False
+    italic: bool = False
+    underline: bool = False
+    font_color: str | None = None      # hex, e.g. "#e15759"
+
+
+class AxisTitleFormat(IRBase):
+    font_name: str | None = None
+    font_size: int | None = None
+
+
+class TableFormat(IRBase):
+    cell_font_name: str | None = None
+    cell_font_size: int | None = None
+    header_font_name: str | None = None
+    header_font_size: int | None = None
+
+
+class VisualFormat(IRBase):
+    title: TitleFormat | None = None
     mark_color: str | None = None
     labels_show: bool = False
+    axis: AxisTitleFormat | None = None        # chart axis title font (both axes same)
+    table: TableFormat | None = None           # table cell and header font
+    number_formats: dict[str, str] = {}        # column_id → DAX format string
 
 
 class Sheet(IRBase):
@@ -94,8 +120,7 @@ class Sheet(IRBase):
     sort: tuple[SortSpec, ...]
     dual_axis: bool
     reference_lines: tuple[ReferenceLine, ...]
-    mark_style: MarkStyle | None = None
-    format: dict[str, str] | None = None
+    visual_format: VisualFormat | None = None
     uses_calculations: tuple[str, ...]
     pbir_visual: PbirVisual | None = None
 
@@ -118,6 +143,7 @@ class PbirVisual(IRBase):
     encoding_bindings: tuple[EncodingBinding, ...]
     format: dict[str, list[dict]] = {}
     sort_by: tuple[VisualSortEntry, ...] = ()
+    visual_format: VisualFormat | None = None   # passed through from Sheet for render-time translation
 
 
 Sheet.model_rebuild()

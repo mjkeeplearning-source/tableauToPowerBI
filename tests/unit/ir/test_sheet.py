@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
 from tableau2pbir.ir.sheet import (
-    CategoricalFilter, Encoding, EncodingBinding, Filter, MarkStyle,
+    CategoricalFilter, Encoding, EncodingBinding, Filter,
     PbirVisual, RangeFilter, Sheet, TopNFilter, ContextFilter, ConditionalFilter,
+    VisualFormat,
 )
 
 
@@ -20,7 +21,6 @@ def test_sheet_minimal():
         sort=(),
         dual_axis=False,
         reference_lines=(),
-        format=None,
         uses_calculations=(),
     )
     assert s.mark_type == "bar"
@@ -39,7 +39,7 @@ def test_sheet_with_categorical_filter():
         encoding=Encoding(rows=(), columns=()),
         filters=(f,),
         sort=(), dual_axis=False, reference_lines=(),
-        format=None, uses_calculations=("calc1",),
+        uses_calculations=("calc1",),
     )
     assert s.filters[0].include == ("West", "East")
     assert s.uses_calculations == ("calc1",)
@@ -116,30 +116,30 @@ def test_sheet_accepts_new_filter_subtypes():
         encoding=Encoding(rows=(), columns=()),
         filters=(f,),
         sort=(), dual_axis=False, reference_lines=(),
-        format=None, uses_calculations=(),
+        uses_calculations=(),
     )
     assert isinstance(s.filters[0], RangeFilter)
 
 
-def test_mark_style_defaults():
-    ms = MarkStyle()
-    assert ms.mark_color is None
-    assert ms.labels_show is False
+def test_visual_format_defaults():
+    vf = VisualFormat()
+    assert vf.mark_color is None
+    assert vf.labels_show is False
 
 
-def test_mark_style_with_values():
-    ms = MarkStyle(mark_color="#ffaa7f", labels_show=True)
-    assert ms.mark_color == "#ffaa7f"
-    assert ms.labels_show is True
+def test_visual_format_with_values():
+    vf = VisualFormat(mark_color="#ffaa7f", labels_show=True)
+    assert vf.mark_color == "#ffaa7f"
+    assert vf.labels_show is True
 
 
-def test_sheet_mark_style_defaults_to_none():
+def test_sheet_visual_format_defaults_to_none():
     s = Sheet(
         id="s1", name="T", datasource_refs=("ds",), mark_type="bar",
         encoding=Encoding(), filters=(), sort=(), dual_axis=False,
         reference_lines=(), uses_calculations=(),
     )
-    assert s.mark_style is None
+    assert s.visual_format is None
 
 
 def test_pbir_visual_format_accepts_objects_structure():

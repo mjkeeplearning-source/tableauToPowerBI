@@ -5,7 +5,7 @@ back to AI or routes to unsupported[]."""
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import EncodingBinding, MarkStyle, PbirVisual, Sheet, VisualSortEntry
+from tableau2pbir.ir.sheet import EncodingBinding, VisualFormat, PbirVisual, Sheet, VisualSortEntry
 
 
 def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
@@ -17,7 +17,7 @@ def _is_measure(fr: FieldRef) -> bool:
     return fr.column_id.endswith("_qk")
 
 
-def _build_format_objects(mark_style: MarkStyle | None) -> dict[str, list[dict]]:
+def _build_format_objects(mark_style: VisualFormat | None) -> dict[str, list[dict]]:
     if mark_style is None:
         return {}
     objects: dict[str, list[dict]] = {}
@@ -61,7 +61,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     rows = enc.rows
     cols = enc.columns
     color = enc.color
-    fmt = _build_format_objects(sheet.mark_style)
+    fmt = _build_format_objects(sheet.visual_format)
 
     if mark in ("bar", "automatic") and rows and not cols:
         # Dimension-only rows (Tableau nested-header / cross-tab): map to Table visual.
