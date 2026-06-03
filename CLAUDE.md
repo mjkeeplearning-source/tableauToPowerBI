@@ -22,6 +22,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 12 | Mark Style Emission — Data Labels & Static Color | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-12-mark-style-emission.md` |
 | 13 | Regression Gate — Semantic Snapshot Validation | ✅ DONE | `docs/superpowers/plans/2026-05-31-plan-13-regression-gate.md` |
 | 14 | Filter Aggregation, Text Encoding & Computed Sort Fixes | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-14-filter-sort-text-fixes.md` |
+| 15 | Encoding Extraction & Sort Wiring Fix | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-15-encoding-extraction-sort-wiring-fix.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
