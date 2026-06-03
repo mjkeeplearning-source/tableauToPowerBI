@@ -170,64 +170,62 @@ def _sheet_with_style(mark: str, *, rows=(), cols=(), color=None,
     )
 
 
-def test_dispatch_no_mark_style_produces_empty_format():
+def test_dispatch_no_mark_style_produces_none_visual_format():
     sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),))
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert pv.format == {}
+    assert pv.visual_format is None
 
 
-def test_dispatch_labels_show_emits_labels_object():
+def test_dispatch_labels_show_passes_visual_format_through():
     vf = VisualFormat(labels_show=True)
     sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
                            visual_format=vf)
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert "labels" in pv.format
-    labels = pv.format["labels"]
-    assert len(labels) == 1
-    assert labels[0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
+    assert pv.visual_format is vf
+    assert pv.visual_format.labels_show is True
 
 
-def test_dispatch_mark_color_emits_data_point_object():
+def test_dispatch_mark_color_passes_visual_format_through():
     vf = VisualFormat(mark_color="#e15759")
     sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
                            visual_format=vf)
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert "dataPoint" in pv.format
-    dp = pv.format["dataPoint"]
-    assert len(dp) == 1
-    color_val = dp[0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"]
-    assert color_val == "'#e15759'"
+    assert pv.visual_format is vf
+    assert pv.visual_format.mark_color == "#e15759"
 
 
-def test_dispatch_both_labels_and_color():
+def test_dispatch_both_labels_and_color_passes_visual_format_through():
     vf = VisualFormat(mark_color="#ffaa7f", labels_show=True)
     sh = _sheet_with_style("automatic", rows=(_fr("sales_qk"),), cols=(_fr("region_nk"),),
                            visual_format=vf)
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert "labels" in pv.format
-    assert "dataPoint" in pv.format
+    assert pv.visual_format is vf
+    assert pv.visual_format.labels_show is True
+    assert pv.visual_format.mark_color == "#ffaa7f"
 
 
-def test_dispatch_labels_false_does_not_emit_labels_object():
+def test_dispatch_labels_false_passes_visual_format_through():
     vf = VisualFormat(labels_show=False, mark_color=None)
     sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
                            visual_format=vf)
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert "labels" not in pv.format
+    assert pv.visual_format is vf
+    assert pv.visual_format.labels_show is False
 
 
-def test_dispatch_color_none_does_not_emit_data_point():
+def test_dispatch_color_none_passes_visual_format_through():
     vf = VisualFormat(labels_show=False, mark_color=None)
     sh = _sheet_with_style("bar", rows=(_fr("sales"),), cols=(_fr("region"),),
                            visual_format=vf)
     pv = dispatch_visual(sh)
     assert pv is not None
-    assert "dataPoint" not in pv.format
+    assert pv.visual_format is vf
+    assert pv.visual_format.mark_color is None
 
 
 def test_automatic_dims_only_on_rows_emits_table():

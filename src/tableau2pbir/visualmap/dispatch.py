@@ -5,7 +5,7 @@ back to AI or routes to unsupported[]."""
 from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
-from tableau2pbir.ir.sheet import EncodingBinding, VisualFormat, PbirVisual, Sheet, VisualSortEntry
+from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual, Sheet, VisualSortEntry
 
 
 def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
@@ -15,23 +15,6 @@ def _bind(channel: str, fr: FieldRef) -> EncodingBinding:
 def _is_measure(fr: FieldRef) -> bool:
     """Infer measure role from the _qk suffix embedded by stable_id in the column_id."""
     return fr.column_id.endswith("_qk")
-
-
-def _build_format_objects(mark_style: VisualFormat | None) -> dict[str, list[dict]]:
-    if mark_style is None:
-        return {}
-    objects: dict[str, list[dict]] = {}
-    if mark_style.labels_show:
-        objects["labels"] = [
-            {"properties": {"show": {"expr": {"Literal": {"Value": "true"}}}}}
-        ]
-    if mark_style.mark_color:
-        objects["dataPoint"] = [
-            {"properties": {"fill": {"solid": {"color": {
-                "expr": {"Literal": {"Value": f"'{mark_style.mark_color}'"}}
-            }}}}}
-        ]
-    return objects
 
 
 def _build_sort_entries(
@@ -61,7 +44,6 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
     rows = enc.rows
     cols = enc.columns
     color = enc.color
-    fmt = _build_format_objects(sheet.visual_format)
 
     if mark in ("bar", "automatic") and rows and not cols:
         # Dimension-only rows (Tableau nested-header / cross-tab): map to Table visual.
@@ -75,7 +57,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             return PbirVisual(
                 visual_type="tableEx",
                 encoding_bindings=tuple(bindings),
-                format=fmt,
+                visual_format=sheet.visual_format,
                 sort_by=sort_entries,
             )
 
@@ -90,7 +72,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             return PbirVisual(
                 visual_type="barChart",
                 encoding_bindings=tuple(bindings),
-                format=fmt,
+                visual_format=sheet.visual_format,
                 sort_by=sort_entries,
             )
         # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure(s)→Y
@@ -102,7 +84,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         return PbirVisual(
             visual_type="columnChart",
             encoding_bindings=tuple(bindings),
-            format=fmt,
+            visual_format=sheet.visual_format,
             sort_by=sort_entries,
         )
 
@@ -110,13 +92,13 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
-        return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), format=fmt)
+        return PbirVisual(visual_type="lineChart", encoding_bindings=tuple(bindings), visual_format=sheet.visual_format)
 
     if mark == "area" and rows and cols:
         return PbirVisual(
             visual_type="areaChart",
             encoding_bindings=(_bind("Category", cols[0]), _bind("Y", rows[0])),
-            format=fmt,
+            visual_format=sheet.visual_format,
         )
 
     if mark in ("circle", "shape", "scatter") and rows and cols:
@@ -125,13 +107,13 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             bindings.append(_bind("Size", enc.size))
         if color:
             bindings.append(_bind("Color", color))
-        return PbirVisual(visual_type="scatterChart", encoding_bindings=tuple(bindings), format=fmt)
+        return PbirVisual(visual_type="scatterChart", encoding_bindings=tuple(bindings), visual_format=sheet.visual_format)
 
     if mark == "pie" and rows:
         bindings = [_bind("Y", rows[0])]
         if color:
             bindings.insert(0, _bind("Category", color))
-        return PbirVisual(visual_type="pieChart", encoding_bindings=tuple(bindings), format=fmt)
+        return PbirVisual(visual_type="pieChart", encoding_bindings=tuple(bindings), visual_format=sheet.visual_format)
 
     if mark == "text":
         bindings = [_bind("Values", r) for r in rows] + [_bind("Values", c) for c in cols]
@@ -145,7 +127,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         return PbirVisual(
             visual_type="tableEx",
             encoding_bindings=tuple(bindings),
-            format=fmt,
+            visual_format=sheet.visual_format,
             sort_by=sort_entries,
         )
 
@@ -153,7 +135,7 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
         return PbirVisual(
             visual_type="filledMap",
             encoding_bindings=(_bind("Location", cols[0]), _bind("Y", rows[0])),
-            format=fmt,
+            visual_format=sheet.visual_format,
         )
 
     return None
