@@ -328,18 +328,97 @@ def _quick_table_calcs(search_root: etree._Element) -> list[dict[str, Any]]:
     return out
 
 
-def _mark_style(pane_parent: etree._Element) -> dict[str, Any]:
-    """Read <style-rule element='mark'>/<format> across all panes; last write wins."""
-    style: dict[str, Any] = {"mark_color": None, "labels_show": False}
+def _sheet_style(
+    ws: etree._Element,
+    table: etree._Element | None,
+    pane_parent: etree._Element,
+) -> dict[str, Any]:
+    """Extract all visual formatting from a worksheet element.
+
+    Reads title font, axis/cell/header fonts, number formats per field,
+    and pane-level mark color/labels.
+    """
+    style: dict[str, Any] = {
+        "title": None,
+        "mark_color": None,
+        "labels_show": False,
+        "axis_font_name": None,
+        "axis_font_size": None,
+        "cell_font_name": None,
+        "cell_font_size": None,
+        "header_font_name": None,
+        "header_font_size": None,
+        "number_formats": {},
+    }
+
+    # --- Title: <layout-options>/<title>/<formatted-text>/<run> ---
+    run = ws.find("layout-options/title/formatted-text/run")
+    if run is not None:
+        fs_str = optional_attr(run, "fontsize")
+        fs_int: int | None = None
+        if fs_str is not None:
+            try:
+                fs_int = int(fs_str)
+            except ValueError:
+                pass
+        style["title"] = {
+            "text": run.text or "",
+            "font_name": optional_attr(run, "fontname"),
+            "font_size": fs_int,
+            "bold": optional_attr(run, "bold") == "true",
+            "italic": optional_attr(run, "italic") == "true",
+            "underline": optional_attr(run, "underline") == "true",
+            "font_color": optional_attr(run, "fontcolor"),
+        }
+
+    # --- Table-level style rules ---
+    if table is not None:
+        for rule in table.findall("style/style-rule"):
+            element = optional_attr(rule, "element")
+            field = optional_attr(rule, "field")
+            for fmt in rule.findall("format"):
+                a = optional_attr(fmt, "attr")
+                v = optional_attr(fmt, "value")
+                if not a or v is None:
+                    continue
+                if element == "field-labels" and field is None:
+                    if a == "font-family":
+                        style["axis_font_name"] = v
+                    elif a == "font-size":
+                        try:
+                            style["axis_font_size"] = int(v)
+                        except ValueError:
+                            pass
+                elif element == "cell":
+                    if a == "text-format" and field is not None:
+                        style["number_formats"][field] = v
+                    elif a == "font-family" and field is None:
+                        style["cell_font_name"] = v
+                    elif a == "font-size" and field is None:
+                        try:
+                            style["cell_font_size"] = int(v)
+                        except ValueError:
+                            pass
+                elif element == "header" and field is None:
+                    if a == "font-family":
+                        style["header_font_name"] = v
+                    elif a == "font-size":
+                        try:
+                            style["header_font_size"] = int(v)
+                        except ValueError:
+                            pass
+
+    # --- Pane-level mark styles ---
     panes = pane_parent.findall("panes/pane") or pane_parent.findall("pane")
     for pane in panes:
         for fmt in pane.findall("style/style-rule[@element='mark']/format"):
-            attr_name = optional_attr(fmt, "attr")
-            value = optional_attr(fmt, "value")
-            if attr_name == "mark-color":
-                style["mark_color"] = value
-            elif attr_name == "mark-labels-show":
-                style["labels_show"] = (value == "true")
+            a = optional_attr(fmt, "attr")
+            v = optional_attr(fmt, "value")
+            if a == "mark-color":
+                style["mark_color"] = v
+            elif a == "mark-labels-show":
+                style["labels_show"] = (v == "true")
+
     return style
 
 
@@ -380,6 +459,6 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
             "dual_axis": _dual_axis(search_root),
             "reference_lines": _reference_lines(search_root),
             "quick_table_calcs": _quick_table_calcs(search_root),
-            "mark_style": _mark_style(pane_parent),
+            "sheet_style": _sheet_style(ws, table, pane_parent),
         })
     return out

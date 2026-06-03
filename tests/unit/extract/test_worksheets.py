@@ -159,7 +159,7 @@ _XML_NO_MARK_STYLE = b"""<?xml version='1.0'?>
 def test_mark_style_extracted_when_present():
     root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
     ws = extract_worksheets(root)
-    ms = ws[0]["mark_style"]
+    ms = ws[0]["sheet_style"]
     assert ms["mark_color"] == "#ffaa7f"
     assert ms["labels_show"] is True
 
@@ -167,7 +167,7 @@ def test_mark_style_extracted_when_present():
 def test_mark_style_defaults_when_absent():
     root = parse_workbook_xml(_XML_NO_MARK_STYLE)
     ws = extract_worksheets(root)
-    ms = ws[0]["mark_style"]
+    ms = ws[0]["sheet_style"]
     assert ms["mark_color"] is None
     assert ms["labels_show"] is False
 
@@ -257,10 +257,10 @@ def test_shared_view_filter_not_duplicated_when_inline_filter_exists():
 
 
 def test_mark_style_labels_cull_not_propagated():
-    """mark-labels-cull has no PBI equivalent — it must not appear in mark_style output."""
+    """mark-labels-cull has no PBI equivalent — it must not appear in sheet_style output."""
     root = parse_workbook_xml(_XML_WITH_MARK_STYLE)
     ws = extract_worksheets(root)
-    ms = ws[0]["mark_style"]
+    ms = ws[0]["sheet_style"]
     assert "labels_cull" not in ms
 
 
