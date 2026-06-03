@@ -391,8 +391,9 @@ def _sheet_style(
                         except ValueError:
                             pass
                 elif element == "cell":
-                    if a == "text-format" and field is not None:
-                        style["number_formats"][field] = v
+                    fmt_field = optional_attr(fmt, "field")
+                    if a == "text-format" and fmt_field is not None:
+                        style["number_formats"][fmt_field] = v
                     elif a == "font-family" and field is None:
                         style["cell_font_name"] = v
                     elif a == "font-size" and field is None:

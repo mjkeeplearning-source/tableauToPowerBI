@@ -3,6 +3,7 @@ and surfaces quick-table-calc pill modifiers as deferred-feature
 UnsupportedItems (v1 defers table_calc kinds per §16)."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
@@ -13,6 +14,9 @@ from tableau2pbir.ir.sheet import (
 )
 from tableau2pbir.util.ids import stable_id
 from tableau2pbir.visualmap.number_format import tableau_format_to_dax
+
+# Matches bracket-notation keys like [federated.xxx].[sum:profit:qk] → captures the field part.
+_BRACKET_RE = re.compile(r'^\[.*?\]\.\[(.+)\]$')
 
 
 def _ref(column_name: str, table_id: str) -> FieldRef:
@@ -162,7 +166,10 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
     for raw_field, tableau_fmt in raw_style.get("number_formats", {}).items():
         dax = tableau_format_to_dax(tableau_fmt)
         if dax:
-            col_id = stable_id("", raw_field).lstrip("_")
+            # Strip datasource-prefix bracket notation: [ds].[field] → field
+            m = _BRACKET_RE.match(raw_field)
+            inner = m.group(1) if m else raw_field
+            col_id = stable_id("", inner).lstrip("_")
             number_formats[col_id] = dax
 
     if (title is None and not raw_style.get("mark_color")

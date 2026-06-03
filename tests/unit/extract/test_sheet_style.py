@@ -93,8 +93,8 @@ def test_cell_text_format_field_scoped():
     <worksheet name="S">
       <table>
         <style>
-          <style-rule element='cell' field='sum:profit:qk'>
-            <format attr='text-format' value='C1033%' />
+          <style-rule element='cell'>
+            <format attr='text-format' field='[federated.0].[sum:profit:qk]' value='C1033%' />
           </style-rule>
         </style>
         <panes><pane><style></style></pane></panes>
@@ -102,7 +102,7 @@ def test_cell_text_format_field_scoped():
     </worksheet>
     """)
     result = _sheet_style(ws, table, pp)
-    assert result["number_formats"] == {"sum:profit:qk": "C1033%"}
+    assert result["number_formats"] == {"[federated.0].[sum:profit:qk]": "C1033%"}
 
 
 def test_header_font_extracted():

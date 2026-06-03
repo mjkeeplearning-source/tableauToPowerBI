@@ -64,10 +64,9 @@ def test_number_formats_translated_to_stable_id():
         "axis_font_name": None, "axis_font_size": None,
         "cell_font_name": None, "cell_font_size": None,
         "header_font_name": None, "header_font_size": None,
-        "number_formats": {"sum:profit:qk": "C1033%"},
+        "number_formats": {"[federated.0].[sum:profit:qk]": "C1033%"},
     }
     vf = _build_visual_format(raw)
-    # stable_id("", "sum:profit:qk") → "sum_profit_qk"
     assert "sum_profit_qk" in vf.number_formats
     assert vf.number_formats["sum_profit_qk"] == r"\$#,0.00;(\$#,0.00);\$#,0.00"
 
