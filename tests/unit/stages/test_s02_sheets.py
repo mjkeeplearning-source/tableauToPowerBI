@@ -115,15 +115,18 @@ def test_visual_format_none_when_key_absent():
     assert sheets[0].visual_format is None
 
 
-def test_visual_format_none_before_extraction_wiring():
-    """sheet_style extraction is wired in Task 3; until then visual_format stays None."""
+def test_visual_format_populated_from_sheet_style():
+    """Task 4: sheet_style dict with mark_color/labels_show is converted to VisualFormat."""
     raw = _raw({"sheet_style": {"mark_color": "#e15759", "labels_show": True}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
-    # Task 4 will populate visual_format; for now it remains None
-    assert sheets[0].visual_format is None
+    vf = sheets[0].visual_format
+    assert vf is not None
+    assert vf.mark_color == "#e15759"
+    assert vf.labels_show is True
 
 
-def test_visual_format_none_labels_false_before_wiring():
+def test_visual_format_present_when_sheet_style_present():
+    """Task 4: even an empty-ish sheet_style dict produces a VisualFormat (not None)."""
     raw = _raw({"sheet_style": {"mark_color": None, "labels_show": False}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
-    assert sheets[0].visual_format is None
+    assert sheets[0].visual_format is not None

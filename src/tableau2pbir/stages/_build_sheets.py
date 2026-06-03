@@ -12,6 +12,7 @@ from tableau2pbir.ir.sheet import (
     TitleFormat, TopNFilter, VisualFormat,
 )
 from tableau2pbir.util.ids import stable_id
+from tableau2pbir.visualmap.number_format import tableau_format_to_dax
 
 
 def _ref(column_name: str, table_id: str) -> FieldRef:
@@ -121,6 +122,59 @@ def _build_reference_lines(
     return tuple(out)
 
 
+def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | None:
+    if raw_style is None:
+        return None
+
+    title: TitleFormat | None = None
+    if raw_style.get("title"):
+        t = raw_style["title"]
+        fs = t.get("font_size")
+        title = TitleFormat(
+            text=t.get("text"),
+            font_name=t.get("font_name"),
+            font_size=int(fs) if fs is not None else None,
+            bold=bool(t.get("bold", False)),
+            italic=bool(t.get("italic", False)),
+            underline=bool(t.get("underline", False)),
+            font_color=t.get("font_color"),
+        )
+
+    axis: AxisTitleFormat | None = None
+    if raw_style.get("axis_font_name") or raw_style.get("axis_font_size"):
+        axis = AxisTitleFormat(
+            font_name=raw_style.get("axis_font_name"),
+            font_size=raw_style.get("axis_font_size"),
+        )
+
+    table_fmt: TableFormat | None = None
+    if any(raw_style.get(k) for k in (
+        "cell_font_name", "cell_font_size", "header_font_name", "header_font_size"
+    )):
+        table_fmt = TableFormat(
+            cell_font_name=raw_style.get("cell_font_name"),
+            cell_font_size=raw_style.get("cell_font_size"),
+            header_font_name=raw_style.get("header_font_name"),
+            header_font_size=raw_style.get("header_font_size"),
+        )
+
+    number_formats: dict[str, str] = {}
+    for raw_field, tableau_fmt in raw_style.get("number_formats", {}).items():
+        dax = tableau_format_to_dax(tableau_fmt)
+        if dax:
+            col_id = stable_id("", raw_field).lstrip("_")
+            number_formats[col_id] = dax
+
+    return VisualFormat(
+        title=title,
+        mark_color=raw_style.get("mark_color"),
+        labels_show=bool(raw_style.get("labels_show", False)),
+        axis=axis,
+        table=table_fmt,
+        number_formats=number_formats,
+    )
+
+
 def build_sheets(
     raw_worksheets: list[dict[str, Any]],
     calc_names: set[str],
@@ -179,6 +233,7 @@ def build_sheets(
             dual_axis=raw["dual_axis"],
             reference_lines=_build_reference_lines(raw["reference_lines"], idx, table_id),
             uses_calculations=uses_calculations,
+            visual_format=_build_visual_format(raw.get("sheet_style")),
         ))
 
         for qtc in raw.get("quick_table_calcs", []):
