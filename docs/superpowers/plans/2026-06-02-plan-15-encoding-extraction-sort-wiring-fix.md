@@ -87,7 +87,7 @@ Sort-by fields are also absent from this loop, meaning if a sort-by measure does
 
 ---
 
-- [ ] **Step 1.1 — Write a failing test for qualified text encoding extraction**
+- [x] **Step 1.1 — Write a failing test for qualified text encoding extraction**
 
 Add to `tests/unit/extract/test_worksheets.py`. Read the existing test file first to see the helpers (`parse_workbook_xml`, `extract_worksheets`) already in use.
 
@@ -123,7 +123,7 @@ def test_qualified_text_encoding_extracts_instance_only():
     assert ws[0]["encodings"]["text"] == "sum:profit:qk"
 ```
 
-- [ ] **Step 1.2 — Run test to confirm it fails**
+- [x] **Step 1.2 — Run test to confirm it fails**
 
 ```
 pytest tests/unit/extract/test_worksheets.py::test_qualified_text_encoding_extracts_instance_only -v
@@ -131,7 +131,7 @@ pytest tests/unit/extract/test_worksheets.py::test_qualified_text_encoding_extra
 
 Expected: FAIL — `AssertionError: assert '[federated.17kv7r10vp81pc1g60xgp0re1it8].[sum:profit:qk]' == 'sum:profit:qk'`
 
-- [ ] **Step 1.3 — Replace `_unbracket` with `_parse_filter_column` in `_encodings()`**
+- [x] **Step 1.3 — Replace `_unbracket` with `_parse_filter_column` in `_encodings()`**
 
 In `src/tableau2pbir/extract/worksheets.py`, find the `_encodings` function and the pane loop (around line 103–112). Change one line:
 
@@ -161,7 +161,7 @@ The full updated loop block looks like this:
 
 No other changes needed — `_parse_filter_column` already exists in the same file.
 
-- [ ] **Step 1.4 — Run the new test to confirm it passes**
+- [x] **Step 1.4 — Run the new test to confirm it passes**
 
 ```
 pytest tests/unit/extract/test_worksheets.py::test_qualified_text_encoding_extracts_instance_only -v
@@ -169,7 +169,7 @@ pytest tests/unit/extract/test_worksheets.py::test_qualified_text_encoding_extra
 
 Expected: PASS.
 
-- [ ] **Step 1.5 — Run full unit suite to check no regressions**
+- [x] **Step 1.5 — Run full unit suite to check no regressions**
 
 ```
 pytest tests/unit/ -x -q
@@ -177,7 +177,7 @@ pytest tests/unit/ -x -q
 
 Expected: all PASS.
 
-- [ ] **Step 1.6 — Commit**
+- [x] **Step 1.6 — Commit**
 
 ```bash
 git add src/tableau2pbir/extract/worksheets.py tests/unit/extract/test_worksheets.py
@@ -196,7 +196,7 @@ git commit -m "fix: use _parse_filter_column for pane encoding channels to handl
 
 ---
 
-- [ ] **Step 2.1 — Write failing tests for text-encoding and sort_by-field resolution**
+- [x] **Step 2.1 — Write failing tests for text-encoding and sort_by-field resolution**
 
 Read `tests/unit/visualmap/test_field_lookup.py` first to understand existing helpers.
 
@@ -299,7 +299,7 @@ def _make_wb_with_sort_by_only(sort_by_field_id: str):
     return Workbook(data_model=dm, sheets=(sheet,), dashboards=(), unsupported=())
 ```
 
-- [ ] **Step 2.2 — Run tests to confirm they fail**
+- [x] **Step 2.2 — Run tests to confirm they fail**
 
 ```
 pytest tests/unit/visualmap/test_field_lookup.py::test_text_encoding_field_resolved_in_lookup tests/unit/visualmap/test_field_lookup.py::test_sort_by_field_resolved_in_lookup -v
@@ -307,7 +307,7 @@ pytest tests/unit/visualmap/test_field_lookup.py::test_text_encoding_field_resol
 
 Expected: both FAIL — `AssertionError: "sum_profit_qk" not in result`
 
-- [ ] **Step 2.3 — Add `enc.text` and sort-by fields to `build_field_lookup`**
+- [x] **Step 2.3 — Add `enc.text` and sort-by fields to `build_field_lookup`**
 
 In `src/tableau2pbir/visualmap/field_lookup.py`, find the sheet-scanning loop (around line 62–93). Make two additions:
 
@@ -351,7 +351,7 @@ In `src/tableau2pbir/visualmap/field_lookup.py`, find the sheet-scanning loop (a
     return lookup
 ```
 
-- [ ] **Step 2.4 — Run new tests to confirm they pass**
+- [x] **Step 2.4 — Run new tests to confirm they pass**
 
 ```
 pytest tests/unit/visualmap/test_field_lookup.py::test_text_encoding_field_resolved_in_lookup tests/unit/visualmap/test_field_lookup.py::test_sort_by_field_resolved_in_lookup -v
@@ -359,7 +359,7 @@ pytest tests/unit/visualmap/test_field_lookup.py::test_text_encoding_field_resol
 
 Expected: both PASS.
 
-- [ ] **Step 2.5 — Run full unit suite**
+- [x] **Step 2.5 — Run full unit suite**
 
 ```
 pytest tests/unit/ -x -q
@@ -367,7 +367,7 @@ pytest tests/unit/ -x -q
 
 Expected: all PASS.
 
-- [ ] **Step 2.6 — Commit**
+- [x] **Step 2.6 — Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/field_lookup.py tests/unit/visualmap/test_field_lookup.py
@@ -386,7 +386,7 @@ git commit -m "fix: add enc.text and sort_by_field refs to build_field_lookup re
 
 ---
 
-- [ ] **Step 3.1 — Write a failing test for columnChart sort wiring**
+- [x] **Step 3.1 — Write a failing test for columnChart sort wiring**
 
 Read `tests/unit/visualmap/test_dispatch.py` first to find existing helpers (`_fr`, `Sheet`, `Encoding`, etc.) already imported.
 
@@ -428,7 +428,7 @@ def test_column_chart_with_computed_sort_emits_sort_by():
     assert field_ids.count("delta_order_qk") == 1, "sort field must not appear twice"
 ```
 
-- [ ] **Step 3.2 — Run test to confirm it fails**
+- [x] **Step 3.2 — Run test to confirm it fails**
 
 ```
 pytest tests/unit/visualmap/test_dispatch.py::test_column_chart_with_computed_sort_emits_sort_by -v
@@ -436,7 +436,7 @@ pytest tests/unit/visualmap/test_dispatch.py::test_column_chart_with_computed_so
 
 Expected: FAIL — `AssertionError: sort_by must not be empty for a computed-sort column chart`
 
-- [ ] **Step 3.3 — Add sort wiring to columnChart and barChart branches**
+- [x] **Step 3.3 — Add sort wiring to columnChart and barChart branches**
 
 In `src/tableau2pbir/visualmap/dispatch.py`, find the `mark in ("bar", "automatic") and rows and cols` block (around line 82–93). Replace it:
 
@@ -469,7 +469,7 @@ In `src/tableau2pbir/visualmap/dispatch.py`, find the `mark in ("bar", "automati
         )
 ```
 
-- [ ] **Step 3.4 — Run new test to confirm it passes**
+- [x] **Step 3.4 — Run new test to confirm it passes**
 
 ```
 pytest tests/unit/visualmap/test_dispatch.py::test_column_chart_with_computed_sort_emits_sort_by -v
@@ -477,7 +477,7 @@ pytest tests/unit/visualmap/test_dispatch.py::test_column_chart_with_computed_so
 
 Expected: PASS.
 
-- [ ] **Step 3.5 — Run full unit suite**
+- [x] **Step 3.5 — Run full unit suite**
 
 ```
 pytest tests/unit/ -x -q
@@ -485,7 +485,7 @@ pytest tests/unit/ -x -q
 
 Expected: all PASS.
 
-- [ ] **Step 3.6 — Commit**
+- [x] **Step 3.6 — Commit**
 
 ```bash
 git add src/tableau2pbir/visualmap/dispatch.py tests/unit/visualmap/test_dispatch.py
