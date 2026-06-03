@@ -85,12 +85,26 @@ def dispatch_visual(sheet: Sheet) -> PbirVisual | None:
             bindings = [_bind("Category", rows[0])] + [_bind("Y", c) for c in cols]
             if color:
                 bindings.append(_bind("Series", color))
-            return PbirVisual(visual_type="barChart", encoding_bindings=tuple(bindings), format=fmt)
+            extra_sort, sort_entries = _build_sort_entries(sheet, bindings)
+            bindings.extend(extra_sort)
+            return PbirVisual(
+                visual_type="barChart",
+                encoding_bindings=tuple(bindings),
+                format=fmt,
+                sort_by=sort_entries,
+            )
         # Vertical bar (default): COLUMNS=dimension→Category, ROWS=measure(s)→Y
         bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]
         if color:
             bindings.append(_bind("Series", color))
-        return PbirVisual(visual_type="columnChart", encoding_bindings=tuple(bindings), format=fmt)
+        extra_sort, sort_entries = _build_sort_entries(sheet, bindings)
+        bindings.extend(extra_sort)
+        return PbirVisual(
+            visual_type="columnChart",
+            encoding_bindings=tuple(bindings),
+            format=fmt,
+            sort_by=sort_entries,
+        )
 
     if mark == "line" and rows and cols:
         bindings = [_bind("Category", cols[0])] + [_bind("Y", r) for r in rows]

@@ -308,3 +308,38 @@ def test_text_mark_sort_by_new_measure_added_to_values():
     assert "sales_qk" in values_ids, "sort-by measure must be added as Values binding"
     assert len(pv.sort_by) == 1
     assert pv.sort_by[0].field_id == "sales_qk"
+
+
+def test_column_chart_with_computed_sort_emits_sort_by():
+    """Sheet with ROWS=measure, COLS=dimension, automatic mark and a computed-sort
+    must emit a PbirVisual with sort_by populated."""
+    from tableau2pbir.ir.sheet import SortSpec
+
+    sh = Sheet(
+        id="s1", name="S1", datasource_refs=("ds1",),
+        mark_type="automatic",
+        encoding=Encoding(
+            rows=(_fr("delta_order_qk"),),
+            columns=(_fr("none_category_nk"),),
+        ),
+        filters=(),
+        sort=(
+            SortSpec(
+                field=_fr("none_category_nk"),
+                direction="desc",
+                sort_by_field=_fr("delta_order_qk"),
+            ),
+        ),
+        dual_axis=False, reference_lines=(), uses_calculations=(),
+    )
+    pv = dispatch_visual(sh)
+    assert pv is not None
+    assert pv.visual_type == "columnChart"
+    assert pv.sort_by, "sort_by must not be empty for a computed-sort column chart"
+    assert len(pv.sort_by) == 1
+    entry = pv.sort_by[0]
+    assert entry.field_id == "delta_order_qk"
+    assert entry.direction == "desc"
+    # The sort field is already in Y — no duplicate binding added
+    field_ids = [b.source_field_id for b in pv.encoding_bindings]
+    assert field_ids.count("delta_order_qk") == 1, "sort field must not appear twice"
