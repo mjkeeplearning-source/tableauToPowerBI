@@ -1,0 +1,6 @@
+relationship rel__orders_returns
+	fromColumn: orders.order_id
+	toColumn: returns.order_id
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: oneDirection
