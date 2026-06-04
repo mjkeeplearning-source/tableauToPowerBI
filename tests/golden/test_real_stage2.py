@@ -112,9 +112,25 @@ def test_simple_join_calculated_line_counts():
     out = _run_pipeline("simple_join_calculated_line.twb")
     dm = out["data_model"]
     assert len(dm["datasources"]) == 1
-    assert len(dm["tables"]) == 3  # three physical tables: people, orders, returns
+    assert len(dm["tables"]) == 3  # people, orders, returns
     assert len(dm["calculations"]) == 0
     assert len(out["sheets"]) == 2
+    # Relationship cardinality assertions — Plan 17 fix
+    assert len(dm["relationships"]) == 2
+    # people ↔ orders: no unique-key in TWB → M:M default
+    people_orders = next(
+        r for r in dm["relationships"]
+        if {r["from_ref"]["table_id"], r["to_ref"]["table_id"]} == {"tbl__people", "tbl__orders"}
+    )
+    assert people_orders["cardinality"] == "many_to_many"
+    assert people_orders["cross_filter"] == "both"
+    # orders ↔ returns: no unique-key in TWB → M:M default
+    orders_returns = next(
+        r for r in dm["relationships"]
+        if {r["from_ref"]["table_id"], r["to_ref"]["table_id"]} == {"tbl__orders", "tbl__returns"}
+    )
+    assert orders_returns["cardinality"] == "many_to_many"
+    assert orders_returns["cross_filter"] == "both"
 
 
 def test_sales_insights_counts():
