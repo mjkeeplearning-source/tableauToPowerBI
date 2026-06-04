@@ -47,6 +47,7 @@ from typing import Any
 
 from lxml import etree
 
+from tableau2pbir.util.ids import slug_id
 from tableau2pbir.util.xml import attr, optional_attr
 
 
@@ -441,14 +442,21 @@ def _sheet_style(
 
     # --- Pane-level mark styles ---
     panes = pane_parent.findall("panes/pane") or pane_parent.findall("pane")
+    pane_colors: dict[str, str] = {}   # pill_slug → hex; one entry per named y-axis pane
     for pane in panes:
+        y_axis_raw = optional_attr(pane, "y-axis-name")
         for fmt in pane.findall("style/style-rule[@element='mark']/format"):
             a = optional_attr(fmt, "attr")
             v = optional_attr(fmt, "value")
             if a == "mark-color":
-                style["mark_color"] = v
+                if y_axis_raw:
+                    pane_colors[slug_id(_parse_filter_column(y_axis_raw))] = v
+                else:
+                    style["mark_color"] = v
             elif a == "mark-labels-show":
                 style["labels_show"] = (v == "true")
+    if pane_colors:
+        style["pane_colors"] = pane_colors
 
     return style
 

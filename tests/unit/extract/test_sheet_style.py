@@ -160,6 +160,57 @@ def test_no_style_returns_empty_defaults():
     assert result["number_formats"] == {}
 
 
+def test_dual_pane_with_y_axis_name_collects_pane_colors():
+    ws, table, pp = _ws("""
+    <worksheet name="Sales Profit">
+      <table>
+        <panes>
+          <pane>
+            <style><style-rule element='mark'>
+              <format attr='mark-color' value='#72b966'/>
+            </style-rule></style>
+          </pane>
+          <pane id='1' y-axis-name='[federated.xxx].[sum:profit:qk]'>
+            <style><style-rule element='mark'>
+              <format attr='mark-color' value='#f28e2b'/>
+            </style-rule></style>
+          </pane>
+          <pane id='2' y-axis-name='[federated.xxx].[sum:sales:qk]'>
+            <style><style-rule element='mark'>
+              <format attr='mark-color' value='#e15759'/>
+            </style-rule></style>
+          </pane>
+        </panes>
+      </table>
+    </worksheet>
+    """)
+    result = _sheet_style(ws, table, pp)
+    assert "pane_colors" in result
+    assert result["pane_colors"]["sum_profit_qk"] == "#f28e2b"
+    assert result["pane_colors"]["sum_sales_qk"] == "#e15759"
+    # Default pane (no y-axis-name) still populates mark_color as fallback
+    assert result.get("mark_color") == "#72b966"
+
+
+def test_single_pane_no_y_axis_name_uses_mark_color_only():
+    ws, table, pp = _ws("""
+    <worksheet name="Sales Year">
+      <table>
+        <panes>
+          <pane id='4'>
+            <style><style-rule element='mark'>
+              <format attr='mark-color' value='#e15759'/>
+            </style-rule></style>
+          </pane>
+        </panes>
+      </table>
+    </worksheet>
+    """)
+    result = _sheet_style(ws, table, pp)
+    assert result.get("mark_color") == "#e15759"
+    assert result.get("pane_colors", {}) == {}
+
+
 def test_multi_run_title_text_concatenated():
     ws, table, pp = _ws("""
     <worksheet name="S">
