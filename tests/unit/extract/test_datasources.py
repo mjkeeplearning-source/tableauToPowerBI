@@ -169,6 +169,57 @@ _XML_WITH_OBJECT_GRAPH = b"""<?xml version='1.0'?>
 </workbook>
 """
 
+_XML_FIRST_UNIQUE = b"""<?xml version='1.0'?>
+<workbook>
+  <object-graph>
+    <relationships>
+      <relationship>
+        <expression op="=">
+          <expression op="[region]"/>
+          <expression op="[region (orders)]"/>
+        </expression>
+        <first-end-point  object-id="people_OBJ" unique-key="true"/>
+        <second-end-point object-id="orders_OBJ"/>
+      </relationship>
+    </relationships>
+  </object-graph>
+</workbook>
+"""
+
+_XML_SECOND_UNIQUE = b"""<?xml version='1.0'?>
+<workbook>
+  <object-graph>
+    <relationships>
+      <relationship>
+        <expression op="=">
+          <expression op="[region]"/>
+          <expression op="[region (orders)]"/>
+        </expression>
+        <first-end-point  object-id="people_OBJ"/>
+        <second-end-point object-id="orders_OBJ" unique-key="true"/>
+      </relationship>
+    </relationships>
+  </object-graph>
+</workbook>
+"""
+
+_XML_BOTH_UNIQUE = b"""<?xml version='1.0'?>
+<workbook>
+  <object-graph>
+    <relationships>
+      <relationship>
+        <expression op="=">
+          <expression op="[id]"/>
+          <expression op="[id (shadow)]"/>
+        </expression>
+        <first-end-point  object-id="a_OBJ" unique-key="true"/>
+        <second-end-point object-id="b_OBJ" unique-key="true"/>
+      </relationship>
+    </relationships>
+  </object-graph>
+</workbook>
+"""
+
 
 def test_object_graph_relationships_extracts_join_columns():
     root = parse_workbook_xml(_XML_WITH_OBJECT_GRAPH)
@@ -193,3 +244,31 @@ def test_parameters_datasource_skipped_here():
     root = parse_workbook_xml(xml)
     dss = extract_datasources(root)
     assert [d["name"] for d in dss] == ["real_ds"]
+
+
+def test_object_graph_no_unique_key_both_flags_false():
+    root = parse_workbook_xml(_XML_WITH_OBJECT_GRAPH)
+    rels = extract_object_graph_relationships(root)
+    assert rels[0]["first_unique_key"] is False
+    assert rels[0]["second_unique_key"] is False
+
+
+def test_object_graph_first_unique_key_true():
+    root = parse_workbook_xml(_XML_FIRST_UNIQUE)
+    rels = extract_object_graph_relationships(root)
+    assert rels[0]["first_unique_key"] is True
+    assert rels[0]["second_unique_key"] is False
+
+
+def test_object_graph_second_unique_key_true():
+    root = parse_workbook_xml(_XML_SECOND_UNIQUE)
+    rels = extract_object_graph_relationships(root)
+    assert rels[0]["first_unique_key"] is False
+    assert rels[0]["second_unique_key"] is True
+
+
+def test_object_graph_both_unique_key_true():
+    root = parse_workbook_xml(_XML_BOTH_UNIQUE)
+    rels = extract_object_graph_relationships(root)
+    assert rels[0]["first_unique_key"] is True
+    assert rels[0]["second_unique_key"] is True

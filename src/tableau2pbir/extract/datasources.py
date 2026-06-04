@@ -132,9 +132,15 @@ def _columns_and_calculations(
 def extract_object_graph_relationships(root: etree._Element) -> list[dict[str, Any]]:
     """Extract <object-graph><relationships> — Tableau join predicates.
 
-    Returns list of {"left_col": str, "right_col": str} dicts whose column
-    names can be resolved to physical (table, column) pairs via the datasource
-    col_map in Stage 2.
+    Returns list of dicts with keys:
+    - "left_col": str
+    - "right_col": str
+    - "first_unique_key": bool
+    - "second_unique_key": bool
+
+    Column names can be resolved to physical (table, column) pairs via the
+    datasource col_map in Stage 2. unique-key flags indicate which side(s)
+    of the relationship have a unique key constraint (ONE side).
     """
     out: list[dict[str, Any]] = []
     for og in root.iter("object-graph"):
@@ -147,8 +153,16 @@ def extract_object_graph_relationships(root: etree._Element) -> list[dict[str, A
                 continue
             left_col = children[0].get("op", "").strip("[]")
             right_col = children[1].get("op", "").strip("[]")
-            if left_col and right_col:
-                out.append({"left_col": left_col, "right_col": right_col})
+            if not left_col or not right_col:
+                continue
+            first_ep = rel.find("first-end-point")
+            second_ep = rel.find("second-end-point")
+            out.append({
+                "left_col": left_col,
+                "right_col": right_col,
+                "first_unique_key": first_ep is not None and first_ep.get("unique-key") == "true",
+                "second_unique_key": second_ep is not None and second_ep.get("unique-key") == "true",
+            })
     return out
 
 
