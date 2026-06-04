@@ -26,6 +26,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 16 | Visual Formatting Pipeline | ✅ DONE | `docs/superpowers/plans/2026-06-03-plan-16-visual-formatting-pipeline.md` |
 | 17 | Relationship Cardinality — `unique-key`-Driven Four-Case Logic | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-17-relationship-cardinality.md` |
 | 18 | Date-Part Derivation — `YEAR()`/`MONTH()`/… DAX Columns | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-18-date-part-derivation-dax-columns.md` |
+| 19 | Per-Series Color Emission and Dashboard Slicer Fix | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-19-per-series-color-and-slicer-fix.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
@@ -88,6 +89,8 @@ and `_make_sort_entry()` in `render_visual()` — PBI `sortBy` now emitted for s
 Bonus fix: `_known_field_ids()` in `s04_map_visuals.py` extended to include `enc.text` and
 `sort_by_field` so `validate_visual` no longer drops visuals with these new binding types.
 589 unit tests pass, zero regressions.
+
+**Plan 19 complete (2026-06-04):** Fixed per-series chart colors and dashboard slicer. Track A: (1) `_sheet_style` now collects per-pane `mark-color` values into `pane_colors: dict[str, str]` keyed by slug-form pill ID instead of last-write-wins; (2) `VisualFormat` IR gains `pane_colors` field threaded through `_build_visual_format`; (3) `render_visual` builds `per_series_colors` from Y-channel bindings and emits selector-keyed `dataPoint` entries; `build_format_objects` accepts `per_series_colors` parameter. Track B: (4) `dashboards.py` uses `_parse_filter_column` instead of `_unbracket` for double-bracket param format; `_build_dashboards.py` adds pill-slug bare-name fallback; (5) `slicer.py` rewritten — `field_lookup` wired via `_make_projection` for correct `Column` type, `drillFilterOtherVisuals: True`, Basic-mode `objects` with multi-select; parameter slicers kept clean via `is_filter=False`; (6) `field_lookup.py` seeded with direct column IDs so slicer projections resolve correctly. 703 unit + 60 E2E tests pass.
 
 ## Design Spec
 
