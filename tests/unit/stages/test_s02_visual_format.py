@@ -93,3 +93,32 @@ def test_all_defaults_returns_none():
         "number_formats": {},
     }
     assert _build_visual_format(raw) is None
+
+
+def test_pane_colors_passed_through():
+    raw = {
+        "mark_color": None, "labels_show": False, "title": None,
+        "axis_font_name": None, "axis_font_size": None,
+        "cell_font_name": None, "cell_font_size": None,
+        "header_font_name": None, "header_font_size": None,
+        "number_formats": {},
+        "pane_colors": {"sum_profit_qk": "#f28e2b", "sum_sales_qk": "#e15759"},
+    }
+    vf = _build_visual_format(raw)
+    assert isinstance(vf, VisualFormat)
+    assert vf.pane_colors == {"sum_profit_qk": "#f28e2b", "sum_sales_qk": "#e15759"}
+
+
+def test_pane_colors_empty_dict_returns_valid_vf_when_other_fields_set():
+    raw = {
+        "mark_color": "#e15759", "labels_show": False, "title": None,
+        "axis_font_name": None, "axis_font_size": None,
+        "cell_font_name": None, "cell_font_size": None,
+        "header_font_name": None, "header_font_size": None,
+        "number_formats": {},
+        "pane_colors": {},
+    }
+    vf = _build_visual_format(raw)
+    assert isinstance(vf, VisualFormat)
+    assert vf.pane_colors == {}
+    assert vf.mark_color == "#e15759"

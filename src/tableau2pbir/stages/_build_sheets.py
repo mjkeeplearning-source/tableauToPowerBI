@@ -175,7 +175,8 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
     if (title is None and not raw_style.get("mark_color")
             and not raw_style.get("labels_show")
             and axis is None and table_fmt is None
-            and not number_formats):
+            and not number_formats
+            and not raw_style.get("pane_colors")):
         return None
 
     return VisualFormat(
@@ -185,6 +186,7 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
         axis=axis,
         table=table_fmt,
         number_formats=number_formats,
+        pane_colors=raw_style.get("pane_colors") or {},
     )
 
 

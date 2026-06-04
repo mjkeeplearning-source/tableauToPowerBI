@@ -108,6 +108,7 @@ class VisualFormat(IRBase):
     axis: AxisTitleFormat | None = None        # chart axis title font (both axes same)
     table: TableFormat | None = None           # table cell and header font
     number_formats: dict[str, str] = {}        # column_id → DAX format string
+    pane_colors: dict[str, str] = {}           # slug_field_id → hex color string
 
 
 class Sheet(IRBase):
