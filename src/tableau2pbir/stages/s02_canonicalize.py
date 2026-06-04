@@ -96,7 +96,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
     """Orchestrator. Each sub-builder is pure and side-effect-free."""
     datasources, ds_unsupported = build_datasources(input_json.get("datasources", []))
     tables, columns = build_tables(input_json.get("datasources", []))
-    relationships = build_relationships(
+    relationships, rel_warnings = build_relationships(
         input_json.get("relationships", []),
         input_json.get("datasources", []),
         tables,
@@ -147,6 +147,7 @@ def run(input_json: dict[str, Any], ctx: StageContext) -> StageResult:
         + tier_c_items
         + deferred_calc_items
         + deferred_param_items
+        + rel_warnings
     )
     data_model = DataModel(
         datasources=datasources, tables=tables,

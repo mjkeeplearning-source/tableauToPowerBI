@@ -188,14 +188,16 @@ def build_relationships(
     raw_rels: list[dict[str, Any]],
     raw_datasources: list[dict[str, Any]],
     tables: tuple[Table, ...],
-) -> tuple[Relationship, ...]:
+) -> tuple[tuple[Relationship, ...], tuple[UnsupportedItem, ...]]:
     """Build Relationship IR from raw Stage-1 join predicates.
 
-    Resolves logical column names to physical (table, column) via the merged
-    col_map from all datasources, then matches table names to IR Table IDs.
+    Applies the four-case algorithm driven by Tableau's official unique-key
+    XSD attribute. See research_relationship_cardinality.md for full rationale.
+
+    Returns (relationships, unsupported_warnings).
     """
     if not raw_rels:
-        return ()
+        return (), ()
 
     merged_col_map: dict[str, tuple[str, str]] = {}
     for raw_ds in raw_datasources:
@@ -204,34 +206,88 @@ def build_relationships(
     table_by_name: dict[str, Table] = {t.name: t for t in tables}
 
     out: list[Relationship] = []
+    warnings: list[UnsupportedItem] = []
+
     for raw in raw_rels:
-        left_col = raw.get("left_col", "")
+        left_col  = raw.get("left_col", "")
         right_col = raw.get("right_col", "")
 
-        left_resolved = merged_col_map.get(left_col)
+        left_resolved  = merged_col_map.get(left_col)
         right_resolved = merged_col_map.get(right_col)
         if not left_resolved or not right_resolved:
             continue
 
-        left_table_name, left_phys_col = left_resolved
+        left_table_name,  left_phys_col  = left_resolved
         right_table_name, right_phys_col = right_resolved
 
-        left_table = table_by_name.get(left_table_name)
+        left_table  = table_by_name.get(left_table_name)
         right_table = table_by_name.get(right_table_name)
         if not left_table or not right_table:
             continue
 
-        rel_id = stable_id("rel", f"{left_table_name}__{right_table_name}")
+        first_unique  = raw.get("first_unique_key",  False)
+        second_unique = raw.get("second_unique_key", False)
+
+        if first_unique and second_unique:
+            # Case 4 — 1:1: both sides unique; PBI mandates bothDirections for 1:1.
+            cardinality  = "one_to_one"
+            cross_filter = "both"
+            from_table, from_col = left_table,  left_phys_col
+            to_table,   to_col   = right_table, right_phys_col
+            warnings.append(UnsupportedItem(
+                object_kind="relationship",
+                object_id=stable_id("rel", f"{left_table_name}__{right_table_name}"),
+                source_excerpt=f"{left_table_name}.{left_phys_col} = {right_table_name}.{right_phys_col}",
+                reason=(
+                    f"One-to-one relationship detected between {left_table_name!r} and "
+                    f"{right_table_name!r}. Microsoft recommends merging these tables in "
+                    "Power Query instead."
+                ),
+                code="relationship_cardinality_one_to_one",
+            ))
+        elif first_unique:
+            # Case 3 — first endpoint is ONE side.
+            # Swap so PBI TMDL invariant holds: fromColumn = MANY side.
+            cardinality  = "many_to_one"
+            cross_filter = "single"
+            from_table, from_col = right_table, right_phys_col   # MANY side
+            to_table,   to_col   = left_table,  left_phys_col    # ONE side
+        elif second_unique:
+            # Case 2 — second endpoint is ONE side; current order is already correct.
+            cardinality  = "many_to_one"
+            cross_filter = "single"
+            from_table, from_col = left_table,  left_phys_col    # MANY side
+            to_table,   to_col   = right_table, right_phys_col   # ONE side
+        else:
+            # Case 1 — No unique-key: Tableau M:M default → bothDirections.
+            cardinality  = "many_to_many"
+            cross_filter = "both"
+            from_table, from_col = left_table,  left_phys_col
+            to_table,   to_col   = right_table, right_phys_col
+            warnings.append(UnsupportedItem(
+                object_kind="relationship",
+                object_id=stable_id("rel", f"{left_table_name}__{right_table_name}"),
+                source_excerpt=f"{left_table_name}.{left_phys_col} = {right_table_name}.{right_phys_col}",
+                reason=(
+                    f"Relationship {left_table_name!r}.{left_phys_col} ↔ "
+                    f"{right_table_name!r}.{right_phys_col}: no unique-key set in Tableau "
+                    "source — defaulted to M:M bidirectional cross-filter. Verify "
+                    "intended cardinality in PBI Desktop Model View."
+                ),
+                code="relationship_cardinality_mm_default",
+            ))
+
+        rel_id = stable_id("rel", f"{from_table.name}__{to_table.name}")
         out.append(Relationship(
             id=rel_id,
-            from_ref=FieldRef(table_id=left_table.id, column_id=left_phys_col),
-            to_ref=FieldRef(table_id=right_table.id, column_id=right_phys_col),
-            cardinality="many_to_one",
-            cross_filter="single",
+            from_ref=FieldRef(table_id=from_table.id, column_id=from_col),
+            to_ref=FieldRef(table_id=to_table.id,   column_id=to_col),
+            cardinality=cardinality,
+            cross_filter=cross_filter,
             source=RelationshipSource.TABLEAU_JOIN,
         ))
 
-    return tuple(out)
+    return tuple(out), tuple(warnings)
 
 
 _LOD_HEADER = re.compile(
