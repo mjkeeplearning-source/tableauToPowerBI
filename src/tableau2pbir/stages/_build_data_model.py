@@ -290,6 +290,121 @@ def build_relationships(
     return tuple(out), tuple(warnings)
 
 
+_DERIVATION_TO_DAX: dict[str, str] = {
+    "Year":    "YEAR",
+    "Quarter": "QUARTER",
+    "Month":   "MONTH",
+    "Week":    "WEEKNUM",
+    "Day":     "DAY",
+    "Hour":    "HOUR",
+    "Minute":  "MINUTE",
+    "Second":  "SECOND",
+}
+
+
+def build_date_part_columns(
+    raw_worksheets: list[dict[str, Any]],
+    raw_datasources: list[dict[str, Any]],
+    tables: tuple[Table, ...],
+    columns: tuple[Column, ...],
+) -> tuple[tuple[Column, ...], tuple[Table, ...]]:
+    """Synthesize DAX calculated columns for Tableau date-part pills.
+
+    For each unique (base_column, derivation) pair referenced in worksheet
+    column_instances, creates a Column(kind=CALCULATED) with the appropriate
+    DAX YEAR/MONTH/… expression and appends its ID to the owning Table.
+
+    Returns (new_columns, updated_tables). The caller merges new_columns into
+    DataModel.columns and replaces the tables tuple with updated_tables.
+    """
+    col_by_id: dict[str, Column] = {c.id: c for c in columns}
+    table_by_name: dict[str, Table] = {t.name: t for t in tables}
+
+    # Merge col_map entries from all raw datasources.
+    # col_map: logical_col_name → [physical_table_name, physical_col_name]
+    merged_col_map: dict[str, tuple[str, str]] = {}
+    for raw_ds in raw_datasources:
+        for k, v in (raw_ds.get("col_map") or {}).items():
+            merged_col_map[k] = (v[0], v[1])
+
+    seen: set[tuple[str, str]] = set()
+    new_columns: list[Column] = []
+    extra_col_ids: dict[str, list[str]] = {t.name: [] for t in tables}
+
+    for raw_ws in raw_worksheets:
+        for ci in raw_ws.get("column_instances", []):
+            base_col_name: str = ci["base_column"]   # "order_date"
+            derivation: str = ci["derivation"]        # "Year"
+            key = (base_col_name, derivation)
+            if key in seen:
+                continue
+
+            dax_fn = _DERIVATION_TO_DAX.get(derivation)
+            if dax_fn is None:
+                continue
+
+            # Locate owning physical table.
+            # For federated joins col_map has the answer directly.
+            # For plain single-table datasources col_map is empty — scan tables.
+            phys: tuple[str, str] | None = merged_col_map.get(base_col_name)
+            if phys is None:
+                for t in tables:
+                    for cid in t.column_ids:
+                        c = col_by_id.get(cid)
+                        if c and c.name == base_col_name:
+                            phys = (t.name, c.source_column or c.name)
+                            break
+                    if phys:
+                        break
+            if phys is None:
+                continue
+            phys_table_name, phys_col_name = phys
+
+            table = table_by_name.get(phys_table_name)
+            if table is None:
+                continue
+
+            # Guard: only synthesize for date/datetime columns.
+            base_col_ir = next(
+                (col_by_id[cid] for cid in table.column_ids
+                 if cid in col_by_id and col_by_id[cid].name == base_col_name),
+                None,
+            )
+            if base_col_ir is None or base_col_ir.datatype not in ("date", "datetime"):
+                continue
+
+            seen.add(key)
+
+            # Derive the column ID prefix from existing column IDs in this table
+            # (consistent with how build_tables() constructs them).
+            existing_ids = [cid for cid in table.column_ids if "__col__" in cid]
+            col_prefix = (
+                existing_ids[0].rsplit("__col__", 1)[0]
+                if existing_ids else stable_id("tbl", table.name)
+            )
+
+            derived_name = f"{derivation} {base_col_name}"          # "Year order_date"
+            dax_expr = f"{dax_fn}({phys_table_name}[{phys_col_name}])"  # "YEAR(orders[order_date])"
+            derived_col_id = f"{col_prefix}__{stable_id('col', derived_name)}"
+
+            new_columns.append(Column(
+                id=derived_col_id,
+                name=derived_name,
+                datatype="integer",
+                role=ColumnRole.DIMENSION,
+                kind=ColumnKind.CALCULATED,
+                dax_expr=dax_expr,
+            ))
+            extra_col_ids[phys_table_name].append(derived_col_id)
+
+    # Return immutable updated tables (pydantic model_copy preserves immutability).
+    updated_tables = tuple(
+        t.model_copy(update={"column_ids": t.column_ids + tuple(extra_col_ids[t.name])})
+        for t in tables
+    )
+    return tuple(new_columns), updated_tables
+
+
 _LOD_HEADER = re.compile(
     r"^\s*\{\s*(FIXED|INCLUDE|EXCLUDE)\s*(?P<dims>.*?)\s*:\s*.*\}\s*$",
     re.IGNORECASE | re.DOTALL,
