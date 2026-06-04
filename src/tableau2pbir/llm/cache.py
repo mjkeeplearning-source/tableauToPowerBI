@@ -3,8 +3,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any, cast
+
+
+def _long_path(p: Path) -> Path:
+    """On Windows, prefix absolute paths with '\\\\?\\' to bypass the 260-char MAX_PATH limit."""
+    if sys.platform != "win32":
+        return p
+    resolved = p.resolve()
+    s = str(resolved)
+    if s.startswith("\\\\?\\"):
+        return Path(s)
+    return Path("\\\\?\\" + s)
 
 
 def make_cache_key(*, model: str, prompt_hash: str, schema_hash: str, payload: dict[str, Any]) -> str:
@@ -24,7 +36,7 @@ class OnDiskCache:
     """Simple read-through cache rooted at a directory. One file per key."""
 
     def __init__(self, root: Path) -> None:
-        self.root = root
+        self.root = _long_path(root)
         self.root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:

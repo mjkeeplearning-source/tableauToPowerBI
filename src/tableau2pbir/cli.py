@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+from tableau2pbir.emit._io import _long_path
 from tableau2pbir.pipeline import STAGE_SEQUENCE, run_pipeline
 
 load_dotenv()  # loads .env from cwd or any parent directory
@@ -29,7 +30,7 @@ def _cmd_convert(args: argparse.Namespace) -> int:
     source_path = Path(args.source).resolve()
     out_root = Path(args.out).resolve()
     wb_id = _workbook_id(source_path)
-    output_dir = out_root / wb_id
+    output_dir = _long_path(out_root / wb_id)
     output_dir.mkdir(parents=True, exist_ok=True)
     result = run_pipeline(
         workbook_id=wb_id,
