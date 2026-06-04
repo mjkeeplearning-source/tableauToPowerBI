@@ -290,6 +290,13 @@ def build_relationships(
     return tuple(out), tuple(warnings)
 
 
+_LOD_HEADER = re.compile(
+    r"^\s*\{\s*(FIXED|INCLUDE|EXCLUDE)\s*(?P<dims>.*?)\s*:\s*.*\}\s*$",
+    re.IGNORECASE | re.DOTALL,
+)
+_BRACKETED = re.compile(r"\[([^\[\]]+)\]")
+
+
 _DERIVATION_TO_DAX: dict[str, str] = {
     "Year":    "YEAR",
     "Quarter": "QUARTER",
@@ -403,13 +410,6 @@ def build_date_part_columns(
         for t in tables
     )
     return tuple(new_columns), updated_tables
-
-
-_LOD_HEADER = re.compile(
-    r"^\s*\{\s*(FIXED|INCLUDE|EXCLUDE)\s*(?P<dims>.*?)\s*:\s*.*\}\s*$",
-    re.IGNORECASE | re.DOTALL,
-)
-_BRACKETED = re.compile(r"\[([^\[\]]+)\]")
 
 
 def _parse_lod_dimensions(tableau_expr: str, table_id: str) -> tuple[FieldRef, ...]:
