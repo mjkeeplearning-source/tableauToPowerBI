@@ -32,6 +32,17 @@ _AGG_PREFIX_DISPLAY: dict[str, str] = {
 
 _MEASURE_SUFFIX = "qk"
 
+_DATE_PART_PREFIX: dict[str, str] = {
+    "yr": "Year",
+    "qr": "Quarter",
+    "mn": "Month",
+    "wk": "Week",
+    "dy": "Day",
+    "hr": "Hour",
+    "mi": "Minute",
+    "sc": "Second",
+}
+
 
 def build_field_lookup(wb: Workbook) -> dict[str, dict]:
     """Return mapping: FieldRef.column_id -> {table_name, col_name, is_measure}."""
@@ -49,6 +60,7 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
                 "table_name": table.name,
                 "col_name": col.name,
                 "is_measure": col.role == ColumnRole.MEASURE,
+                "datatype": col.datatype,
             }
 
     # For calculations, replace col_name with the user-facing display name.
@@ -85,6 +97,19 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
             if body not in by_base:
                 continue
             base = by_base[body]
+
+            # Route date-part derivation pills to the synthesized calculated column.
+            # e.g. yr_order_date_ok → "Year order_date" column, not raw "order_date".
+            if prefix in _DATE_PART_PREFIX and base.get("datatype") in ("date", "datetime"):
+                part_label = _DATE_PART_PREFIX[prefix]
+                derived_col_name = f"{part_label} {base['col_name']}"
+                derived_body_slug = slug_id(derived_col_name)
+                if derived_body_slug in by_base:
+                    derived = by_base[derived_body_slug]
+                    lookup[field_id] = {**derived, "measure_name": derived["col_name"]}
+                    continue
+                # Synthesized column not present (edge case) — fall through to raw column.
+
             col_name = base["col_name"]
             # For implicit aggregation pills (e.g. sum_profit_qk), build the
             # display measure name that PBI uses: "Sum profit", "Avg sales", etc.
