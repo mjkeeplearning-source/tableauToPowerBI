@@ -7,34 +7,65 @@ from tableau2pbir.emit.pbir.visual import _make_projection
 from tableau2pbir.ir.dashboard import Position
 
 
-def render_filter_slicer(visual_id: str, source_field_id: str,
-                         position: Position, z_order: int) -> str:
-    return _slicer_json(visual_id, source_field_id, position, z_order)
+def _lit(value: str) -> dict:
+    return {"expr": {"Literal": {"Value": value}}}
 
 
-def render_parameter_slicer(visual_id: str, parameter_name: str, parameter_intent: str,
-                            position: Position, z_order: int) -> str:
+def render_filter_slicer(
+    visual_id: str,
+    source_field_id: str,
+    position: Position,
+    z_order: int,
+    field_lookup: dict | None = None,
+) -> str:
+    return _slicer_json(visual_id, source_field_id, position, z_order, field_lookup or {})
+
+
+def render_parameter_slicer(
+    visual_id: str,
+    parameter_name: str,
+    parameter_intent: str,
+    position: Position,
+    z_order: int,
+) -> str:
     if parameter_intent in ("numeric_what_if", "categorical_selector"):
         source_field_id = f"{parameter_name}.Value"
     else:
         source_field_id = parameter_name
-    return _slicer_json(visual_id, source_field_id, position, z_order)
+    return _slicer_json(visual_id, source_field_id, position, z_order, {}, is_filter=False)
 
 
-def _slicer_json(visual_id: str, source_field_id: str, position: Position, z_order: int) -> str:
+def _slicer_json(
+    visual_id: str,
+    source_field_id: str,
+    position: Position,
+    z_order: int,
+    field_lookup: dict,
+    is_filter: bool = True,
+) -> str:
+    visual: dict = {
+        "visualType": "slicer",
+        "query": {
+            "queryState": {
+                "Values": {"projections": [_make_projection(source_field_id, field_lookup)]},
+            },
+        },
+    }
+    if is_filter:
+        visual["objects"] = {
+            "data": [{"properties": {"mode": _lit("'Basic'")}}],
+            "selection": [{"properties": {
+                "singleSelect": _lit("false"),
+                "strictSingleSelect": _lit("false"),
+                "selectAllCheckboxEnabled": _lit("true"),
+            }}],
+        }
+        visual["drillFilterOtherVisuals"] = True
     obj = {
-        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
         "name": visual_id,
         "position": {"x": position.x, "y": position.y,
                      "width": position.w, "height": position.h, "z": z_order},
-        "visual": {
-            "visualType": "slicer",
-            "query": {
-                "queryState": {
-                    "Values": {"projections": [_make_projection(source_field_id, {})]},
-                },
-            },
-            "objects": {},
-        },
+        "visual": visual,
     }
     return json.dumps(obj, indent=2)

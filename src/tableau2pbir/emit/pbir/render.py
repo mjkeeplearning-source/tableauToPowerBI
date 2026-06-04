@@ -103,7 +103,8 @@ def render_report(wb: Workbook, out_dir: Path) -> dict:
                 s_dir = page_dir / "visuals" / slicer_id
                 source_field_id = leaf.payload.get("field_id", "")
                 write_text(s_dir / "visual.json",
-                           render_filter_slicer(slicer_id, source_field_id, leaf.position, z))
+                           render_filter_slicer(slicer_id, source_field_id, leaf.position, z,
+                                                field_lookup))
                 page_content_count += 1
 
             elif obj_kind == PbiObjectKind.SLICER_PARAMETER:
