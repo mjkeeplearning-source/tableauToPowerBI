@@ -24,6 +24,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 14 | Filter Aggregation, Text Encoding & Computed Sort Fixes | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-14-filter-sort-text-fixes.md` |
 | 15 | Encoding Extraction & Sort Wiring Fix | ✅ DONE | `docs/superpowers/plans/2026-06-02-plan-15-encoding-extraction-sort-wiring-fix.md` |
 | 16 | Visual Formatting Pipeline | ✅ DONE | `docs/superpowers/plans/2026-06-03-plan-16-visual-formatting-pipeline.md` |
+| 17 | Relationship Cardinality — `unique-key`-Driven Four-Case Logic | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-17-relationship-cardinality.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
