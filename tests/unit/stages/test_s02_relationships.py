@@ -175,3 +175,36 @@ def test_both_unique_produces_cross_filter_both():
         [_RAW_DS_PEOPLE_ORDERS], tables,
     )
     assert rels[0].cross_filter == "both"
+
+
+# ---------------------------------------------------------------------------
+# Migration warning tests
+# ---------------------------------------------------------------------------
+
+def test_no_unique_key_emits_mm_warning():
+    tables, _ = build_tables([_RAW_DS_PEOPLE_ORDERS])
+    _, warnings = build_relationships([_po_rel()], [_RAW_DS_PEOPLE_ORDERS], tables)
+    assert len(warnings) == 1
+    w = warnings[0]
+    assert w.code == "relationship_cardinality_mm_default"
+    assert w.object_kind == "relationship"
+
+
+def test_one_to_one_emits_design_smell_warning():
+    tables, _ = build_tables([_RAW_DS_PEOPLE_ORDERS])
+    _, warnings = build_relationships(
+        [_po_rel(first_unique=True, second_unique=True)],
+        [_RAW_DS_PEOPLE_ORDERS], tables,
+    )
+    assert len(warnings) == 1
+    assert warnings[0].code == "relationship_cardinality_one_to_one"
+    assert warnings[0].object_kind == "relationship"
+
+
+def test_directed_relationships_emit_no_warnings():
+    """Case 2 and Case 3 (clean 1:M) should not produce any warnings."""
+    tables, _ = build_tables([_RAW_DS_PEOPLE_ORDERS])
+    _, w2 = build_relationships([_po_rel(second_unique=True)], [_RAW_DS_PEOPLE_ORDERS], tables)
+    _, w3 = build_relationships([_po_rel(first_unique=True)],  [_RAW_DS_PEOPLE_ORDERS], tables)
+    assert w2 == ()
+    assert w3 == ()
