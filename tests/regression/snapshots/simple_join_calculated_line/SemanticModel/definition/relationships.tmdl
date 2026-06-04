@@ -1,0 +1,13 @@
+relationship rel__people_orders
+	fromColumn: people.region
+	toColumn: orders.region
+	fromCardinality: many
+	toCardinality: many
+	crossFilteringBehavior: bothDirections
+
+relationship rel__orders_returns
+	fromColumn: orders.order_id
+	toColumn: returns.order_id
+	fromCardinality: many
+	toCardinality: many
+	crossFilteringBehavior: bothDirections
