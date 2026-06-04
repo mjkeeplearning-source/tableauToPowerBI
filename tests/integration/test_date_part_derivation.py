@@ -100,3 +100,98 @@ def test_stage2_raw_order_date_still_present(tmp_path: Path):
         None,
     )
     assert raw_col is not None, "Raw order_date column must still be in data_model.columns"
+
+
+def _full_pipeline(wb: Path, out: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, "-m", "tableau2pbir.cli", "convert",
+         str(wb), "--out", str(out)],
+        capture_output=True, text=True, env=os.environ,
+    )
+
+
+@pytest.mark.integration
+def test_tmdl_orders_has_year_calculated_column(tmp_path: Path):
+    """orders.tmdl must contain the YEAR() calculated column block."""
+    if not _WB.exists():
+        pytest.skip(f"{_WB.name} not present")
+    out = tmp_path / "out"
+    result = _full_pipeline(_WB, out)
+    if result.returncode != 0 and any(
+        x in result.stderr for x in ("ANTHROPIC_API_KEY not set", "authentication_error", "invalid x-api-key")
+    ):
+        pytest.skip("ANTHROPIC_API_KEY needed for Stage 3 (unexpected — workbook has no calcs)")
+    assert result.returncode == 0, result.stderr
+
+    orders_tmdl = (
+        out / "simple_join_calculated_line" /
+        "SemanticModel" / "definition" / "tables" / "orders.tmdl"
+    )
+    assert orders_tmdl.is_file(), "orders.tmdl not generated"
+    text = orders_tmdl.read_text(encoding="utf-8")
+
+    assert "Year order_date" in text, (
+        "Calculated column 'Year order_date' not found in orders.tmdl"
+    )
+    assert "YEAR(orders[order_date])" in text, (
+        "DAX expression YEAR(orders[order_date]) not found in orders.tmdl"
+    )
+    assert "dataType: int64" in text, "int64 dataType not found in orders.tmdl"
+
+
+@pytest.mark.integration
+def test_visual_json_sheet2_category_uses_year_column(tmp_path: Path):
+    """Sheet 2 visual.json Category projection must bind to Year order_date, not order_date."""
+    if not _WB.exists():
+        pytest.skip(f"{_WB.name} not present")
+    out = tmp_path / "out"
+    result = _full_pipeline(_WB, out)
+    if result.returncode != 0 and any(
+        x in result.stderr for x in ("ANTHROPIC_API_KEY not set", "authentication_error", "invalid x-api-key")
+    ):
+        pytest.skip("ANTHROPIC_API_KEY needed for Stage 3")
+    assert result.returncode == 0, result.stderr
+
+    visual_path = (
+        out / "simple_join_calculated_line" / "Report" / "definition" /
+        "pages" / "ReportSection2" / "visuals" / "visual_2" / "visual.json"
+    )
+    assert visual_path.is_file(), "visual_2/visual.json not generated for Sheet 2"
+    visual = json.loads(visual_path.read_text(encoding="utf-8"))
+
+    projections = visual["visual"]["query"]["queryState"]["Category"]["projections"]
+    assert len(projections) == 1
+    field = projections[0]["field"]
+    assert "Column" in field, (
+        f"Expected Column binding for Category, got: {list(field.keys())}"
+    )
+    prop = field["Column"]["Property"]
+    assert prop == "Year order_date", (
+        f"Expected 'Year order_date' but got {prop!r} — date truncation is still lost"
+    )
+    assert projections[0]["queryRef"] == "orders.Year order_date"
+
+
+@pytest.mark.integration
+def test_visual_json_sheet2_raw_order_date_not_used(tmp_path: Path):
+    """Regression guard: the raw 'order_date' property must NOT appear in Sheet 2 Category."""
+    if not _WB.exists():
+        pytest.skip(f"{_WB.name} not present")
+    out = tmp_path / "out"
+    result = _full_pipeline(_WB, out)
+    if result.returncode != 0 and any(
+        x in result.stderr for x in ("ANTHROPIC_API_KEY not set", "authentication_error", "invalid x-api-key")
+    ):
+        pytest.skip("ANTHROPIC_API_KEY needed for Stage 3")
+    assert result.returncode == 0, result.stderr
+
+    visual_path = (
+        out / "simple_join_calculated_line" / "Report" / "definition" /
+        "pages" / "ReportSection2" / "visuals" / "visual_2" / "visual.json"
+    )
+    visual = json.loads(visual_path.read_text(encoding="utf-8"))
+    projections = visual["visual"]["query"]["queryState"]["Category"]["projections"]
+    prop = projections[0]["field"]["Column"]["Property"]
+    assert prop != "order_date", (
+        "BUG STILL PRESENT: Category binding is 'order_date' (raw daily) not 'Year order_date'"
+    )
