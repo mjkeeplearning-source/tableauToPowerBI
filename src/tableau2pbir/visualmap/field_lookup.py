@@ -71,8 +71,24 @@ def build_field_lookup(wb: Workbook) -> dict[str, dict]:
         if internal_slug in by_base:
             by_base[internal_slug] = {**by_base[internal_slug], "col_name": calc.name}
 
+    # Also map direct column IDs (tbl__ds__col__name) → info, so slicer field_ids
+    # (which are raw column IDs, not pill slugs) can be resolved correctly.
+    col_id_lookup: dict[str, dict] = {}
+    for table in wb.data_model.tables:
+        for col_id in table.column_ids:
+            col = col_by_id.get(col_id)
+            if col is None:
+                continue
+            col_id_lookup[col_id] = {
+                "table_name": table.name,
+                "col_name": col.name,
+                "is_measure": col.role == ColumnRole.MEASURE,
+                "datatype": col.datatype,
+                "measure_name": col.name,
+            }
+
     # Resolve each FieldRef.column_id seen in sheet encodings and filters
-    lookup: dict[str, dict] = {}
+    lookup: dict[str, dict] = dict(col_id_lookup)  # seed with direct col IDs
     for sheet in wb.sheets:
         enc = sheet.encoding
         refs = list(enc.rows) + list(enc.columns) + list(enc.detail)

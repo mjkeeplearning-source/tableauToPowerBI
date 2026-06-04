@@ -77,10 +77,18 @@ def test_datasource_marker_not_in_lookup():
     assert "federated_17kv7r10vp81pc1g60xgp0re1it8" not in lookup
 
 
-def test_returns_empty_for_workbook_with_no_sheets():
+def test_returns_column_ids_for_workbook_with_no_sheets():
+    """Without sheets there are no pill-slug resolutions, but direct column IDs
+    are still seeded into the lookup so that slicer field references can resolve."""
     wb = _make_wb()
     wb2 = wb.model_copy(update={"sheets": ()})
-    assert build_field_lookup(wb2) == {}
+    result = build_field_lookup(wb2)
+    # Direct column IDs should be present (needed for slicer projection)
+    assert "tbl__orders__col__category" in result
+    assert "tbl__orders__col__calculation_01" in result
+    # Pill-slug resolutions from sheet encodings should NOT be present
+    assert "none_category_nk" not in result
+    assert "usr_calculation_01_qk" not in result
 
 
 def _make_wb_with_raw_measure_pill() -> Workbook:
