@@ -1,0 +1,718 @@
+{
+  "config": {},
+  "dashboards": [
+    {
+      "actions": [],
+      "id": "synth_dash__sheet_sheet_1",
+      "is_synthetic": true,
+      "layout_tree": {
+        "background": null,
+        "children": [
+          {
+            "kind": "sheet",
+            "payload": {
+              "sheet_id": "sheet__sheet_1"
+            },
+            "position": {
+              "h": 360,
+              "w": 560,
+              "x": 20,
+              "y": 20
+            }
+          }
+        ],
+        "kind": "floating",
+        "padding": 0
+      },
+      "name": "Sheet 1",
+      "size": {
+        "h": 720,
+        "kind": "auto",
+        "w": 1280
+      }
+    },
+    {
+      "actions": [],
+      "id": "synth_dash__sheet_sheet_3",
+      "is_synthetic": true,
+      "layout_tree": {
+        "background": null,
+        "children": [
+          {
+            "kind": "sheet",
+            "payload": {
+              "sheet_id": "sheet__sheet_3"
+            },
+            "position": {
+              "h": 360,
+              "w": 560,
+              "x": 20,
+              "y": 20
+            }
+          }
+        ],
+        "kind": "floating",
+        "padding": 0
+      },
+      "name": "Sheet 3",
+      "size": {
+        "h": 720,
+        "kind": "auto",
+        "w": 1280
+      }
+    },
+    {
+      "actions": [],
+      "id": "synth_dash__sheet_sheet_4",
+      "is_synthetic": true,
+      "layout_tree": {
+        "background": null,
+        "children": [
+          {
+            "kind": "sheet",
+            "payload": {
+              "sheet_id": "sheet__sheet_4"
+            },
+            "position": {
+              "h": 360,
+              "w": 560,
+              "x": 20,
+              "y": 20
+            }
+          }
+        ],
+        "kind": "floating",
+        "padding": 0
+      },
+      "name": "Sheet 4",
+      "size": {
+        "h": 720,
+        "kind": "auto",
+        "w": 1280
+      }
+    }
+  ],
+  "data_model": {
+    "calculations": [
+      {
+        "dax_expr": null,
+        "depends_on": [],
+        "id": "calc__calculation_0390937790091264",
+        "kind": "aggregate",
+        "lod_fixed": null,
+        "lod_relative": null,
+        "name": "DeltaOrder",
+        "owner_sheet_id": null,
+        "phase": "aggregate",
+        "scope": "measure",
+        "table_calc": null,
+        "tableau_expr": "COUNTD([order_id]) - COUNTD([order_id (returns)])"
+      },
+      {
+        "dax_expr": null,
+        "depends_on": [],
+        "id": "calc__calculation_0390937790693377",
+        "kind": "aggregate",
+        "lod_fixed": null,
+        "lod_relative": null,
+        "name": "Margin",
+        "owner_sheet_id": null,
+        "phase": "aggregate",
+        "scope": "measure",
+        "table_calc": null,
+        "tableau_expr": "SUM([profit]) - sum([discount])"
+      }
+    ],
+    "columns": [
+      {
+        "datatype": "integer",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__calculation_0390937790091264",
+        "kind": "calculated",
+        "name": "Calculation_0390937790091264",
+        "role": "measure",
+        "source_column": null,
+        "tableau_expr": "COUNTD([order_id]) - COUNTD([order_id (returns)])"
+      },
+      {
+        "datatype": "real",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__calculation_0390937790693377",
+        "kind": "calculated",
+        "name": "Calculation_0390937790693377",
+        "role": "measure",
+        "source_column": null,
+        "tableau_expr": "SUM([profit]) - sum([discount])"
+      },
+      {
+        "datatype": "table",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__tableau_internal_object_id_orders_superstore_orders_ddf356a324004845a4a205d56d59ce15",
+        "kind": "raw",
+        "name": "__tableau_internal_object_id__].[orders (superstore.orders)_DDF356A324004845A4A205D56D59CE15",
+        "role": "measure",
+        "source_column": "__tableau_internal_object_id__].[orders (superstore.orders)_DDF356A324004845A4A205D56D59CE15",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "table",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__tableau_internal_object_id_returns_superstore_returns_ccff74ddf5ef4495b854ec1d072d80ce",
+        "kind": "raw",
+        "name": "__tableau_internal_object_id__].[returns (superstore.returns)_CCFF74DDF5EF4495B854EC1D072D80CE",
+        "role": "measure",
+        "source_column": "__tableau_internal_object_id__].[returns (superstore.returns)_CCFF74DDF5EF4495B854EC1D072D80CE",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__category",
+        "kind": "raw",
+        "name": "category",
+        "role": "dim",
+        "source_column": "category",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__city",
+        "kind": "raw",
+        "name": "city",
+        "role": "dim",
+        "source_column": "city",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__country",
+        "kind": "raw",
+        "name": "country",
+        "role": "dim",
+        "source_column": "country",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__customer_id",
+        "kind": "raw",
+        "name": "customer_id",
+        "role": "dim",
+        "source_column": "customer_id",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__customer_name",
+        "kind": "raw",
+        "name": "customer_name",
+        "role": "dim",
+        "source_column": "customer_name",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "real",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__discount",
+        "kind": "raw",
+        "name": "discount",
+        "role": "measure",
+        "source_column": "discount",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "date",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_date",
+        "kind": "raw",
+        "name": "order_date",
+        "role": "dim",
+        "source_column": "order_date",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_id_returns",
+        "kind": "raw",
+        "name": "order_id (returns)",
+        "role": "dim",
+        "source_column": "order_id",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_id",
+        "kind": "raw",
+        "name": "order_id",
+        "role": "dim",
+        "source_column": "order_id",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__postal_code",
+        "kind": "raw",
+        "name": "postal_code",
+        "role": "dim",
+        "source_column": "postal_code",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__product_id",
+        "kind": "raw",
+        "name": "product_id",
+        "role": "dim",
+        "source_column": "product_id",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__product_name",
+        "kind": "raw",
+        "name": "product_name",
+        "role": "dim",
+        "source_column": "product_name",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "real",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__profit",
+        "kind": "raw",
+        "name": "profit",
+        "role": "measure",
+        "source_column": "profit",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "integer",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__quantity",
+        "kind": "raw",
+        "name": "quantity",
+        "role": "measure",
+        "source_column": "quantity",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__region",
+        "kind": "raw",
+        "name": "region",
+        "role": "dim",
+        "source_column": "region",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__returned",
+        "kind": "raw",
+        "name": "returned",
+        "role": "dim",
+        "source_column": "returned",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "integer",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__row_id",
+        "kind": "raw",
+        "name": "row_id",
+        "role": "dim",
+        "source_column": "row_id",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "real",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__sales",
+        "kind": "raw",
+        "name": "sales",
+        "role": "measure",
+        "source_column": "sales",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__segment",
+        "kind": "raw",
+        "name": "segment",
+        "role": "dim",
+        "source_column": "segment",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "date",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__ship_date",
+        "kind": "raw",
+        "name": "ship_date",
+        "role": "dim",
+        "source_column": "ship_date",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__ship_mode",
+        "kind": "raw",
+        "name": "ship_mode",
+        "role": "dim",
+        "source_column": "ship_mode",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__state",
+        "kind": "raw",
+        "name": "state",
+        "role": "dim",
+        "source_column": "state",
+        "tableau_expr": null
+      },
+      {
+        "datatype": "string",
+        "dax_expr": null,
+        "id": "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__sub_category",
+        "kind": "raw",
+        "name": "sub_category",
+        "role": "dim",
+        "source_column": "sub_category",
+        "tableau_expr": null
+      }
+    ],
+    "datasources": [
+      {
+        "connection_params": {
+          "dbname": "postgres",
+          "port": "5432",
+          "server": "database-1.czag60868v0k.ap-south-1.rds.amazonaws.com"
+        },
+        "connector_tier": 2,
+        "extract_ignored": false,
+        "id": "ds__federated_17kv7r10vp81pc1g60xgp0re1it8",
+        "name": "federated.17kv7r10vp81pc1g60xgp0re1it8",
+        "pbi_m_connector": "PostgreSQL.Database",
+        "table_ids": [],
+        "tableau_kind": "federated",
+        "user_action_required": [
+          "enter credentials"
+        ]
+      }
+    ],
+    "hierarchies": [],
+    "parameters": [],
+    "relationships": [
+      {
+        "cardinality": "many_to_one",
+        "cross_filter": "single",
+        "from_ref": {
+          "column_id": "order_id",
+          "table_id": "tbl__orders"
+        },
+        "id": "rel__orders_returns",
+        "source": "tableau_join",
+        "to_ref": {
+          "column_id": "order_id",
+          "table_id": "tbl__returns"
+        }
+      }
+    ],
+    "sets": [],
+    "tables": [
+      {
+        "column_ids": [
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__calculation_0390937790091264",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__calculation_0390937790693377",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__tableau_internal_object_id_orders_superstore_orders_ddf356a324004845a4a205d56d59ce15",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__tableau_internal_object_id_returns_superstore_returns_ccff74ddf5ef4495b854ec1d072d80ce",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__category",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__city",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__country",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__customer_id",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__customer_name",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__discount",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_date",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_id",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__postal_code",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__product_id",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__product_name",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__profit",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__quantity",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__region",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__row_id",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__sales",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__segment",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__ship_date",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__ship_mode",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__state",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__sub_category"
+        ],
+        "datasource_id": "ds__federated_17kv7r10vp81pc1g60xgp0re1it8",
+        "id": "tbl__orders",
+        "name": "orders",
+        "physical_schema": "superstore",
+        "physical_table": "orders",
+        "primary_key": null
+      },
+      {
+        "column_ids": [
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__order_id_returns",
+          "tbl__federated_17kv7r10vp81pc1g60xgp0re1it8__col__returned"
+        ],
+        "datasource_id": "ds__federated_17kv7r10vp81pc1g60xgp0re1it8",
+        "id": "tbl__returns",
+        "name": "returns",
+        "physical_schema": "superstore",
+        "physical_table": "returns",
+        "primary_key": null
+      }
+    ]
+  },
+  "ir_schema_version": "1.1.0",
+  "sheets": [
+    {
+      "datasource_refs": [
+        "ds__federated_17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encoding": {
+        "angle": null,
+        "color": null,
+        "columns": [
+          {
+            "column_id": "none_category_nk",
+            "table_id": "tbl__orders"
+          }
+        ],
+        "detail": [],
+        "label": null,
+        "rows": [
+          {
+            "column_id": "usr_calculation_0390937790091264_qk",
+            "table_id": "tbl__orders"
+          }
+        ],
+        "shape": null,
+        "size": null,
+        "text": {
+          "column_id": "federated_17kv7r10vp81pc1g60xgp0re1it8_usr_calculation_0390937790091264_qk",
+          "table_id": "tbl__orders"
+        },
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "agg_prefix": "max",
+          "field": {
+            "column_id": "max_profit_qk",
+            "table_id": "tbl__orders"
+          },
+          "id": "filter__s0_0",
+          "kind": "range",
+          "max_val": "6719.98",
+          "min_val": "1013.13"
+        },
+        {
+          "exclude": [],
+          "field": {
+            "column_id": "none_region_nk",
+            "table_id": "tbl__orders"
+          },
+          "id": "filter__s0_1",
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "format": null,
+      "id": "sheet__sheet_1",
+      "mark_style": {
+        "labels_show": true,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 1",
+      "pbir_visual": null,
+      "reference_lines": [],
+      "sort": [
+        {
+          "direction": "desc",
+          "field": {
+            "column_id": "none_category_nk",
+            "table_id": "tbl__orders"
+          },
+          "sort_by_field": {
+            "column_id": "usr_calculation_0390937790091264_qk",
+            "table_id": "tbl__orders"
+          }
+        }
+      ],
+      "uses_calculations": []
+    },
+    {
+      "datasource_refs": [
+        "ds__federated_17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encoding": {
+        "angle": null,
+        "color": null,
+        "columns": [],
+        "detail": [],
+        "label": null,
+        "rows": [
+          {
+            "column_id": "none_category_nk",
+            "table_id": "tbl__orders"
+          },
+          {
+            "column_id": "none_sub_category_nk",
+            "table_id": "tbl__orders"
+          }
+        ],
+        "shape": null,
+        "size": null,
+        "text": null,
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "exclude": [],
+          "field": {
+            "column_id": "none_sub_category_nk",
+            "table_id": "tbl__orders"
+          },
+          "id": "filter__s1_0",
+          "include": [
+            "Accessories",
+            "Art",
+            "Binders",
+            "Copiers",
+            "Envelopes",
+            "Fasteners",
+            "Labels",
+            "Paper",
+            "Storage",
+            "Supplies",
+            "Tables"
+          ],
+          "kind": "categorical"
+        },
+        {
+          "exclude": [],
+          "field": {
+            "column_id": "none_region_nk",
+            "table_id": "tbl__orders"
+          },
+          "id": "filter__s1_1",
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "format": null,
+      "id": "sheet__sheet_3",
+      "mark_style": {
+        "labels_show": false,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 3",
+      "pbir_visual": null,
+      "reference_lines": [],
+      "sort": [],
+      "uses_calculations": []
+    },
+    {
+      "datasource_refs": [
+        "ds__federated_17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encoding": {
+        "angle": null,
+        "color": null,
+        "columns": [],
+        "detail": [],
+        "label": null,
+        "rows": [
+          {
+            "column_id": "none_category_nk",
+            "table_id": "tbl__orders"
+          }
+        ],
+        "shape": null,
+        "size": null,
+        "text": {
+          "column_id": "federated_17kv7r10vp81pc1g60xgp0re1it8_sum_profit_qk",
+          "table_id": "tbl__orders"
+        },
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "exclude": [],
+          "field": {
+            "column_id": "none_region_nk",
+            "table_id": "tbl__orders"
+          },
+          "id": "filter__s2_0",
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "format": null,
+      "id": "sheet__sheet_4",
+      "mark_style": {
+        "labels_show": true,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 4",
+      "pbir_visual": null,
+      "reference_lines": [],
+      "sort": [
+        {
+          "direction": "desc",
+          "field": {
+            "column_id": "none_category_nk",
+            "table_id": "tbl__orders"
+          },
+          "sort_by_field": {
+            "column_id": "sum_profit_qk",
+            "table_id": "tbl__orders"
+          }
+        }
+      ],
+      "uses_calculations": []
+    }
+  ],
+  "source_hash": "258854d3b8c9be26c5e53359cc44c3026e771cd214c6072159170196ceae8317",
+  "source_path": "C:\\Tableau_PBI\\tests\\golden\\real\\simple_join_sorted_test.twb",
+  "tableau_version": "2026.1.0 (20261.26.0226.1626)",
+  "unsupported": []
+}

@@ -177,6 +177,34 @@ _KNOWN_AGGS: frozenset[str] = frozenset({
     "cntd", "ctd", "countd", "cnt", "count", "median",
 })
 
+_DATE_DERIVATIONS: frozenset[str] = frozenset({
+    "Year", "Quarter", "Month", "Week", "Day", "Hour", "Minute", "Second",
+})
+
+
+def _column_instances(view: etree._Element) -> list[dict[str, Any]]:
+    """Collect date-part <column-instance> elements from <datasource-dependencies>.
+
+    Only derivations in _DATE_DERIVATIONS are returned. Aggregation derivations
+    (Sum, Count, CountD, etc.) and None are handled elsewhere in the pipeline.
+    """
+    out: list[dict[str, Any]] = []
+    for dep in view.findall("datasource-dependencies"):
+        for ci in dep.findall("column-instance"):
+            derivation = optional_attr(ci, "derivation") or "None"
+            if derivation not in _DATE_DERIVATIONS:
+                continue
+            slug = _parse_filter_column(optional_attr(ci, "name") or "")
+            base_col = _parse_filter_column(optional_attr(ci, "column") or "")
+            if not slug or not base_col:
+                continue
+            out.append({
+                "slug": slug,             # "yr:order_date:ok"
+                "base_column": base_col,  # "order_date"
+                "derivation": derivation, # "Year"
+            })
+    return out
+
 
 def _parse_agg_prefix(column_instance: str) -> str | None:
     """Extract the aggregation prefix from a Tableau column-instance name.
@@ -462,5 +490,6 @@ def extract_worksheets(root: etree._Element) -> list[dict[str, Any]]:
             "reference_lines": _reference_lines(search_root),
             "quick_table_calcs": _quick_table_calcs(search_root),
             "sheet_style": _sheet_style(ws, table, pane_parent),
+            "column_instances": _column_instances(view),
         })
     return out

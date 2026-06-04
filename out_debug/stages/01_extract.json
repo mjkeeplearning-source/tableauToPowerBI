@@ -1,0 +1,501 @@
+{
+  "actions": [],
+  "dashboards": [],
+  "datasources": [
+    {
+      "calculations": [
+        {
+          "caption": "DeltaOrder",
+          "datatype": "integer",
+          "host_column_name": "Calculation_0390937790091264",
+          "role": "measure",
+          "tableau_expr": "COUNTD([order_id]) - COUNTD([order_id (returns)])"
+        },
+        {
+          "caption": "Margin",
+          "datatype": "real",
+          "host_column_name": "Calculation_0390937790693377",
+          "role": "measure",
+          "tableau_expr": "SUM([profit]) - sum([discount])"
+        }
+      ],
+      "caption": "orders (superstore.orders)+ (postgres)",
+      "col_map": {
+        "category": [
+          "orders",
+          "category"
+        ],
+        "city": [
+          "orders",
+          "city"
+        ],
+        "country": [
+          "orders",
+          "country"
+        ],
+        "customer_id": [
+          "orders",
+          "customer_id"
+        ],
+        "customer_name": [
+          "orders",
+          "customer_name"
+        ],
+        "discount": [
+          "orders",
+          "discount"
+        ],
+        "order_date": [
+          "orders",
+          "order_date"
+        ],
+        "order_id": [
+          "orders",
+          "order_id"
+        ],
+        "order_id (returns)": [
+          "returns",
+          "order_id"
+        ],
+        "postal_code": [
+          "orders",
+          "postal_code"
+        ],
+        "product_id": [
+          "orders",
+          "product_id"
+        ],
+        "product_name": [
+          "orders",
+          "product_name"
+        ],
+        "profit": [
+          "orders",
+          "profit"
+        ],
+        "quantity": [
+          "orders",
+          "quantity"
+        ],
+        "region": [
+          "orders",
+          "region"
+        ],
+        "returned": [
+          "returns",
+          "returned"
+        ],
+        "row_id": [
+          "orders",
+          "row_id"
+        ],
+        "sales": [
+          "orders",
+          "sales"
+        ],
+        "segment": [
+          "orders",
+          "segment"
+        ],
+        "ship_date": [
+          "orders",
+          "ship_date"
+        ],
+        "ship_mode": [
+          "orders",
+          "ship_mode"
+        ],
+        "state": [
+          "orders",
+          "state"
+        ],
+        "sub_category": [
+          "orders",
+          "sub_category"
+        ]
+      },
+      "columns": [
+        {
+          "datatype": "integer",
+          "name": "Calculation_0390937790091264",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "real",
+          "name": "Calculation_0390937790693377",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "table",
+          "name": "__tableau_internal_object_id__].[orders (superstore.orders)_DDF356A324004845A4A205D56D59CE15",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "table",
+          "name": "__tableau_internal_object_id__].[returns (superstore.returns)_CCFF74DDF5EF4495B854EC1D072D80CE",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "string",
+          "name": "category",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "city",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "country",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "customer_id",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "customer_name",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "real",
+          "name": "discount",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "date",
+          "name": "order_date",
+          "role": "dimension",
+          "type": "ordinal"
+        },
+        {
+          "datatype": "string",
+          "name": "order_id (returns)",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "order_id",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "postal_code",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "product_id",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "product_name",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "real",
+          "name": "profit",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "integer",
+          "name": "quantity",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "string",
+          "name": "region",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "returned",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "integer",
+          "name": "row_id",
+          "role": "dimension",
+          "type": "ordinal"
+        },
+        {
+          "datatype": "real",
+          "name": "sales",
+          "role": "measure",
+          "type": "quantitative"
+        },
+        {
+          "datatype": "string",
+          "name": "segment",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "date",
+          "name": "ship_date",
+          "role": "dimension",
+          "type": "ordinal"
+        },
+        {
+          "datatype": "string",
+          "name": "ship_mode",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "state",
+          "role": "dimension",
+          "type": "nominal"
+        },
+        {
+          "datatype": "string",
+          "name": "sub_category",
+          "role": "dimension",
+          "type": "nominal"
+        }
+      ],
+      "connection": {
+        "class": "federated"
+      },
+      "extract": null,
+      "name": "federated.17kv7r10vp81pc1g60xgp0re1it8",
+      "named_connections": [
+        {
+          "caption": "database-1.czag60868v0k.ap-south-1.rds.amazonaws.com",
+          "connection": {
+            "authentication": "username-password",
+            "class": "postgres",
+            "dbname": "postgres",
+            "one-time-sql": "",
+            "port": "5432",
+            "server": "database-1.czag60868v0k.ap-south-1.rds.amazonaws.com",
+            "sslmode": "require",
+            "username": "admin_admin"
+          },
+          "name": "postgres.0okxd6h10gh3vb1a34gi31efruj4"
+        }
+      ],
+      "relations": [
+        {
+          "connection": "postgres.0okxd6h10gh3vb1a34gi31efruj4",
+          "name": "orders",
+          "table": "[superstore].[orders]"
+        },
+        {
+          "connection": "postgres.0okxd6h10gh3vb1a34gi31efruj4",
+          "name": "returns",
+          "table": "[superstore].[returns]"
+        }
+      ]
+    }
+  ],
+  "parameters": [],
+  "relationships": [
+    {
+      "left_col": "order_id",
+      "right_col": "order_id (returns)"
+    }
+  ],
+  "source_hash": "258854d3b8c9be26c5e53359cc44c3026e771cd214c6072159170196ceae8317",
+  "source_path": "C:\\Tableau_PBI\\tests\\golden\\real\\simple_join_sorted_test.twb",
+  "tableau_version": "2026.1.0 (20261.26.0226.1626)",
+  "unsupported": [],
+  "worksheets": [
+    {
+      "datasource_refs": [
+        "federated.17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encodings": {
+        "angle": null,
+        "color": null,
+        "columns": [
+          "federated.17kv7r10vp81pc1g60xgp0re1it8",
+          "none:category:nk"
+        ],
+        "detail": [],
+        "label": null,
+        "rows": [
+          "federated.17kv7r10vp81pc1g60xgp0re1it8",
+          "usr:Calculation_0390937790091264:qk"
+        ],
+        "shape": null,
+        "size": null,
+        "text": "[federated.17kv7r10vp81pc1g60xgp0re1it8].[usr:Calculation_0390937790091264:qk]",
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "agg_prefix": "max",
+          "column": "max:profit:qk",
+          "kind": "range",
+          "max_val": "6719.98",
+          "min_val": "1013.13"
+        },
+        {
+          "column": "none:region:nk",
+          "exclude": [],
+          "expr": null,
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "mark_style": {
+        "labels_show": true,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 1",
+      "quick_table_calcs": [],
+      "reference_lines": [],
+      "sort": [
+        {
+          "column": "none:category:nk",
+          "direction": "desc",
+          "sort_by": "usr:Calculation_0390937790091264:qk"
+        }
+      ]
+    },
+    {
+      "datasource_refs": [
+        "federated.17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encodings": {
+        "angle": null,
+        "color": null,
+        "columns": [],
+        "detail": [],
+        "label": null,
+        "rows": [
+          "federated.17kv7r10vp81pc1g60xgp0re1it8",
+          "none:category:nk",
+          "federated.17kv7r10vp81pc1g60xgp0re1it8",
+          "none:sub_category:nk"
+        ],
+        "shape": null,
+        "size": null,
+        "text": null,
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "column": "none:sub_category:nk",
+          "exclude": [],
+          "expr": null,
+          "include": [
+            "Accessories",
+            "Art",
+            "Binders",
+            "Copiers",
+            "Envelopes",
+            "Fasteners",
+            "Labels",
+            "Paper",
+            "Storage",
+            "Supplies",
+            "Tables"
+          ],
+          "kind": "categorical"
+        },
+        {
+          "column": "none:region:nk",
+          "exclude": [],
+          "expr": null,
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "mark_style": {
+        "labels_show": false,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 3",
+      "quick_table_calcs": [],
+      "reference_lines": [],
+      "sort": []
+    },
+    {
+      "datasource_refs": [
+        "federated.17kv7r10vp81pc1g60xgp0re1it8"
+      ],
+      "dual_axis": false,
+      "encodings": {
+        "angle": null,
+        "color": null,
+        "columns": [],
+        "detail": [],
+        "label": null,
+        "rows": [
+          "federated.17kv7r10vp81pc1g60xgp0re1it8",
+          "none:category:nk"
+        ],
+        "shape": null,
+        "size": null,
+        "text": "[federated.17kv7r10vp81pc1g60xgp0re1it8].[sum:profit:qk]",
+        "tooltip": null
+      },
+      "filters": [
+        {
+          "column": "none:region:nk",
+          "exclude": [],
+          "expr": null,
+          "include": [
+            "East",
+            "South",
+            "West"
+          ],
+          "kind": "categorical"
+        }
+      ],
+      "mark_style": {
+        "labels_show": true,
+        "mark_color": null
+      },
+      "mark_type": "automatic",
+      "name": "Sheet 4",
+      "quick_table_calcs": [],
+      "reference_lines": [],
+      "sort": [
+        {
+          "column": "none:category:nk",
+          "direction": "desc",
+          "sort_by": "sum:profit:qk"
+        }
+      ]
+    }
+  ]
+}
