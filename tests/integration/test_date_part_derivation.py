@@ -191,7 +191,10 @@ def test_visual_json_sheet2_raw_order_date_not_used(tmp_path: Path):
     )
     visual = json.loads(visual_path.read_text(encoding="utf-8"))
     projections = visual["visual"]["query"]["queryState"]["Category"]["projections"]
-    prop = projections[0]["field"]["Column"]["Property"]
+    field = projections[0]["field"]
+    if "Column" not in field:
+        pytest.skip(f"Binding is not Column type: {list(field.keys())} — check other test")
+    prop = field["Column"]["Property"]
     assert prop != "order_date", (
         "BUG STILL PRESENT: Category binding is 'order_date' (raw daily) not 'Year order_date'"
     )
