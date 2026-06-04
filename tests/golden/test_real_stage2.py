@@ -88,6 +88,13 @@ def test_snowflake_counts():
     assert len(dm["tables"]) == 2  # two physical tables: CUSTOMER, ORDERS
     assert len(dm["calculations"]) == 0
     assert len(out["sheets"]) == 3
+    # Plan 18: Snowflake workbook has yr:O_ORDERDATE:ok in Sheet 1
+    year_cols = [c for c in dm["columns"]
+                 if c["name"].startswith("Year ") and c["kind"] == "calculated"]
+    assert len(year_cols) >= 1, "No Year-derived column synthesized for Snowflake workbook"
+    assert year_cols[0]["dax_expr"].startswith("YEAR("), (
+        f"Expected YEAR() DAX, got {year_cols[0]['dax_expr']!r}"
+    )
 
 
 def test_sql_custom_rds_counts():
@@ -117,20 +124,30 @@ def test_simple_join_calculated_line_counts():
     assert len(out["sheets"]) == 2
     # Relationship cardinality assertions — Plan 17 fix
     assert len(dm["relationships"]) == 2
-    # people ↔ orders: no unique-key in TWB → M:M default
     people_orders = next(
         r for r in dm["relationships"]
         if {r["from_ref"]["table_id"], r["to_ref"]["table_id"]} == {"tbl__people", "tbl__orders"}
     )
     assert people_orders["cardinality"] == "many_to_many"
     assert people_orders["cross_filter"] == "both"
-    # orders ↔ returns: no unique-key in TWB → M:M default
     orders_returns = next(
         r for r in dm["relationships"]
         if {r["from_ref"]["table_id"], r["to_ref"]["table_id"]} == {"tbl__orders", "tbl__returns"}
     )
     assert orders_returns["cardinality"] == "many_to_many"
     assert orders_returns["cross_filter"] == "both"
+    # Plan 18: date-part synthesized column
+    year_col = next(
+        (c for c in dm["columns"] if c["name"] == "Year order_date"), None
+    )
+    assert year_col is not None, "Year order_date column not synthesized"
+    assert year_col["kind"] == "calculated"
+    assert year_col["dax_expr"] == "YEAR(orders[order_date])"
+    assert year_col["datatype"] == "integer"
+    orders_table = next(t for t in dm["tables"] if t["name"] == "orders")
+    assert year_col["id"] in orders_table["column_ids"], (
+        "Year order_date column ID not in orders table column_ids"
+    )
 
 
 def test_sales_insights_counts():
