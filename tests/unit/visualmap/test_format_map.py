@@ -18,7 +18,9 @@ def test_mark_color_emitted_in_objects():
     vf = VisualFormat(mark_color="#f28e2b")
     objects, _ = build_format_objects(vf, "columnChart")
     assert "dataPoint" in objects
-    color = objects["dataPoint"][0]["properties"]["fill"]["solid"]["color"]
+    dp = objects["dataPoint"]
+    assert "selector" not in dp[0]
+    color = dp[0]["properties"]["fill"]["solid"]["color"]
     assert color == _lit("'#f28e2b'")
 
 
@@ -109,3 +111,34 @@ def test_empty_title_text_still_emits_font_properties():
     assert "text" not in title_props
     assert title_props["fontFamily"]["expr"]["Literal"]["Value"] == "'Verdana'"
     assert title_props["bold"]["expr"]["Literal"]["Value"] == "true"
+
+
+def test_per_series_colors_emits_selector_keyed_entries():
+    vf = VisualFormat()
+    per_series = [("orders.Sum profit", "#F28E2B"), ("orders.Sum sales", "#E15759")]
+    objects, _ = build_format_objects(vf, "columnChart", per_series_colors=per_series)
+    dp = objects["dataPoint"]
+    assert len(dp) == 2
+    assert dp[0]["selector"] == {"metadata": "orders.Sum profit"}
+    assert dp[0]["properties"]["fill"]["solid"]["color"] == _lit("'#F28E2B'")
+    assert dp[1]["selector"] == {"metadata": "orders.Sum sales"}
+    assert dp[1]["properties"]["fill"]["solid"]["color"] == _lit("'#E15759'")
+
+
+def test_per_series_colors_overrides_mark_color():
+    vf = VisualFormat(mark_color="#000000")
+    per_series = [("orders.Sum sales", "#e15759")]
+    objects, _ = build_format_objects(vf, "lineChart", per_series_colors=per_series)
+    dp = objects["dataPoint"]
+    assert len(dp) == 1
+    assert dp[0]["selector"] == {"metadata": "orders.Sum sales"}
+    assert dp[0]["properties"]["fill"]["solid"]["color"] == _lit("'#e15759'")
+
+
+def test_mark_color_fallback_when_no_per_series():
+    vf = VisualFormat(mark_color="#f28e2b")
+    objects, _ = build_format_objects(vf, "columnChart")   # no per_series_colors
+    dp = objects["dataPoint"]
+    assert len(dp) == 1
+    assert "selector" not in dp[0]   # old behaviour preserved
+    assert dp[0]["properties"]["fill"]["solid"]["color"] == _lit("'#f28e2b'")

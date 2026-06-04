@@ -256,6 +256,71 @@ def test_existing_format_dict_still_works():
     assert obj["visual"]["objects"]["labels"][0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
 
 
+def test_dual_axis_pane_colors_emits_per_series_datapoint():
+    """When PbirVisual has pane_colors and two Y bindings, render_visual must emit
+    two selector-keyed dataPoint entries matching the manual PBI reference output."""
+    from tableau2pbir.ir.sheet import VisualFormat
+
+    vf = VisualFormat(pane_colors={
+        "sum_profit_qk": "#F28E2B",
+        "sum_sales_qk": "#E15759",
+    })
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Category", source_field_id="none_region_nk"),
+            EncodingBinding(channel="Y", source_field_id="sum_profit_qk"),
+            EncodingBinding(channel="Y", source_field_id="sum_sales_qk"),
+        ),
+        format={},
+        visual_format=vf,
+    )
+    lookup = {
+        "none_region_nk": {"table_name": "orders", "col_name": "region", "is_measure": False},
+        "sum_profit_qk": {"table_name": "orders", "col_name": "profit", "is_measure": True,
+                          "measure_name": "Sum profit"},
+        "sum_sales_qk": {"table_name": "orders", "col_name": "sales", "is_measure": True,
+                         "measure_name": "Sum sales"},
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup=lookup))
+    dp = obj["visual"]["objects"]["dataPoint"]
+    assert len(dp) == 2, f"expected 2 dataPoint entries, got {len(dp)}"
+    assert dp[0]["selector"] == {"metadata": "orders.Sum profit"}
+    assert dp[0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"] == "'#F28E2B'"
+    assert dp[1]["selector"] == {"metadata": "orders.Sum sales"}
+    assert dp[1]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"] == "'#E15759'"
+
+
+def test_single_series_mark_color_emits_selector_with_queryref():
+    """Single-series chart with mark_color only: render_visual emits one selector-keyed
+    dataPoint entry (matches manual reference for Sales Year lineChart)."""
+    from tableau2pbir.ir.sheet import VisualFormat
+
+    vf = VisualFormat(mark_color="#e15759")
+    pv = PbirVisual(
+        visual_type="lineChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Category", source_field_id="yr_order_date_ok"),
+            EncodingBinding(channel="Y", source_field_id="sum_sales_qk"),
+        ),
+        format={},
+        visual_format=vf,
+    )
+    lookup = {
+        "yr_order_date_ok": {"table_name": "orders", "col_name": "order_date Year",
+                              "is_measure": False},
+        "sum_sales_qk": {"table_name": "orders", "col_name": "sales", "is_measure": True,
+                         "measure_name": "Sum sales"},
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup=lookup))
+    dp = obj["visual"]["objects"]["dataPoint"]
+    assert len(dp) == 1
+    assert dp[0]["selector"] == {"metadata": "orders.Sum sales"}
+    assert dp[0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"] == "'#e15759'"
+
+
 def test_visual_objects_populated_from_format():
     """When PbirVisual.format is non-empty, render_visual must emit it under 'objects'."""
     pv = PbirVisual(

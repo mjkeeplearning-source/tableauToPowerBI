@@ -16,23 +16,45 @@ def render_visual(
     field_lookup: dict[str, dict] | None = None,
 ) -> str:
     fl = field_lookup or {}
+    vf = pbir_visual.visual_format
 
-    if pbir_visual.visual_format is not None:
+    if vf is not None:
+        number_formats = vf.number_formats
+    else:
+        number_formats = {}
+
+    # Build projections; capture queryRef per source_field_id for color selector resolution.
+    query_state: dict[str, dict] = {}
+    queryref_by_source_id: dict[str, str] = {}
+    for b in pbir_visual.encoding_bindings:
+        proj = _make_projection(b.source_field_id, fl,
+                                number_formats if vf is not None else {})
+        query_state.setdefault(b.channel, {"projections": []})
+        query_state[b.channel]["projections"].append(proj)
+        queryref_by_source_id[b.source_field_id] = proj["queryRef"]
+
+    # Resolve per-series colors: pane_colors (dual-axis) or mark_color (single-series).
+    per_series_colors: list[tuple[str, str]] = []
+    if vf is not None and (vf.pane_colors or vf.mark_color):
+        for b in pbir_visual.encoding_bindings:
+            if b.channel != "Y":
+                continue
+            qr = queryref_by_source_id.get(b.source_field_id)
+            if not qr:
+                continue
+            color = (vf.pane_colors.get(b.source_field_id) or vf.mark_color
+                     if vf.pane_colors else vf.mark_color)
+            if color:
+                per_series_colors.append((qr, color))
+
+    if vf is not None:
         objects, container_objects = build_format_objects(
-            pbir_visual.visual_format, pbir_visual.visual_type
+            vf, pbir_visual.visual_type,
+            per_series_colors=per_series_colors or None,
         )
-        number_formats = pbir_visual.visual_format.number_formats
     else:
         objects = pbir_visual.format or {}
         container_objects = {}
-        number_formats = {}
-
-    query_state: dict[str, dict] = {}
-    for b in pbir_visual.encoding_bindings:
-        query_state.setdefault(b.channel, {"projections": []})
-        query_state[b.channel]["projections"].append(
-            _make_projection(b.source_field_id, fl, number_formats)
-        )
 
     query: dict = {"queryState": query_state}
     if pbir_visual.sort_by:

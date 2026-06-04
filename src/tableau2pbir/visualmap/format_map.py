@@ -35,6 +35,7 @@ def _font_size_lit(pt: int) -> dict:
 def build_format_objects(
     vf: VisualFormat | None,
     visual_type: str,
+    per_series_colors: list[tuple[str, str]] | None = None,
 ) -> tuple[dict[str, list[dict]], dict[str, list[dict]]]:
     """Return (visual_objects, visual_container_objects) for PBIR emission.
 
@@ -52,7 +53,12 @@ def build_format_objects(
     if vf.labels_show:
         objects["labels"] = [{"properties": {"show": _lit("true")}}]
 
-    if vf.mark_color:
+    if per_series_colors:
+        objects["dataPoint"] = [
+            {"properties": {"fill": _color(hex_val)}, "selector": {"metadata": qr}}
+            for qr, hex_val in per_series_colors
+        ]
+    elif vf.mark_color:
         objects["dataPoint"] = [
             {"properties": {"fill": _color(vf.mark_color)}}
         ]
