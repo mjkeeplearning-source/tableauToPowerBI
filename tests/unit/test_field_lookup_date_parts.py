@@ -1,6 +1,8 @@
 """Unit tests for date-part pill resolution in build_field_lookup()."""
 from __future__ import annotations
 
+import pytest
+
 from tableau2pbir.visualmap.field_lookup import build_field_lookup
 from tableau2pbir.ir.model import Column, ColumnKind, ColumnRole, Table
 from tableau2pbir.ir.sheet import Encoding, Sheet
@@ -76,6 +78,32 @@ def test_month_pill_resolves_to_synthesized_column():
     wb = _wb((table,), (raw, derived), (sheet,))
     lookup = build_field_lookup(wb)
     assert lookup["mn_order_date_ok"]["col_name"] == "Month order_date"
+
+
+@pytest.mark.parametrize("prefix,label", [
+    ("yr", "Year"),
+    ("qr", "Quarter"),
+    ("mn", "Month"),
+    ("wk", "Week"),
+    ("dy", "Day"),
+    ("hr", "Hour"),
+    ("mi", "Minute"),
+    ("sc", "Second"),
+])
+def test_all_date_part_prefixes_resolve_to_synthesized_column(prefix, label):
+    raw = _col("tbl__ds__col__order_date", "order_date", datatype="date")
+    derived_name = f"{label} order_date"
+    derived_id = f"tbl__ds__col__{derived_name.lower().replace(' ', '_')}"
+    derived = _col(derived_id, derived_name, datatype="integer",
+                   kind=ColumnKind.CALCULATED, dax_expr=f"FAKEFN(orders[order_date])")
+    table = _table("tbl__orders", "orders",
+                   ["tbl__ds__col__order_date", derived_id])
+    field_id = f"{prefix}_order_date_ok"
+    sheet = _sheet_with_col_encoding(field_id, "tbl__orders")
+    wb = _wb((table,), (raw, derived), (sheet,))
+    lookup = build_field_lookup(wb)
+    assert field_id in lookup, f"prefix '{prefix}' not resolved"
+    assert lookup[field_id]["col_name"] == derived_name
 
 
 def test_date_part_pill_without_synthesized_column_falls_back_to_raw():
