@@ -83,3 +83,27 @@ def test_action_ignores_unknown_sheet_names():
     actions = build_actions(raw, sheet_id_for_name={"Detail": "sheet__detail"})
     assert actions[0].source_sheet_ids == ()
     assert actions[0].target_sheet_ids == ("sheet__detail",)
+
+
+def test_filter_card_pill_slug_resolves_via_bare_name():
+    """After Bug A is fixed, dashboards.py emits 'none:region:nk' as the field.
+    _build_dashboards must split on ':' and look up the middle token 'region'."""
+    raw = [{
+        "name": "D",
+        "size": {"w": 1280, "h": 720, "kind": "exact"},
+        "leaves": [{
+            "leaf_kind": "filter_card",
+            "payload": {"field": "none:region:nk"},
+            "position": {"x": 0, "y": 0, "w": 200, "h": 100},
+            "floating": False,
+        }],
+    }]
+    # field_id_for_name has the bare column name (not the pill slug)
+    field_id_for_name = {"region": "people__col__region"}
+    dashboards = build_dashboards(
+        raw, sheet_id_for_name={}, param_id_for_name={},
+        field_id_for_name=field_id_for_name,
+    )
+    leaf = dashboards[0].layout_tree.children[0]
+    assert leaf.kind == LeafKind.FILTER_CARD
+    assert leaf.payload["field_id"] == "people__col__region"

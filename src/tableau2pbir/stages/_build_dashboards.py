@@ -27,7 +27,11 @@ def _payload_for_leaf(
         return {"path": raw_payload.get("path", "")}
     if leaf_kind == "filter_card":
         name = raw_payload.get("field", "")
-        return {"field_id": field_id_for_name.get(name, "")}
+        field_id = field_id_for_name.get(name, "")
+        if not field_id and name.count(":") == 2:
+            # pill slug form "none:col_name:nk" → try bare column name
+            field_id = field_id_for_name.get(name.split(":")[1], "")
+        return {"field_id": field_id}
     if leaf_kind == "parameter_card":
         name = raw_payload.get("parameter_name", "")
         return {"parameter_id": param_id_for_name.get(name, stable_id("param", name))}

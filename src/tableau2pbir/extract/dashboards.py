@@ -31,6 +31,7 @@ from typing import Any
 
 from lxml import etree
 
+from tableau2pbir.extract.worksheets import _parse_filter_column
 from tableau2pbir.util.xml import attr, optional_attr
 
 
@@ -88,7 +89,7 @@ def _payload_for_kind(kind: str, zone: etree._Element) -> dict[str, Any]:
     if kind == "sheet":
         return {"sheet_name": name or ""}
     if kind == "filter_card":
-        return {"field": _unbracket(param) if param else ""}
+        return {"field": _parse_filter_column(param) if param else ""}
     if kind == "parameter_card":
         return {"parameter_name": _unbracket(param) if param else ""}
     if kind == "legend":

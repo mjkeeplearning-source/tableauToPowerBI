@@ -123,3 +123,32 @@ def test_small_pixel_coords_not_normalized():
     leaf = dbs[0]["leaves"][0]
     # fixture: x=0, y=0, w=1200, h=800 — these are pixels; must not be divided by 100000
     assert leaf["position"] == {"x": 0, "y": 0, "w": 1200, "h": 800}
+
+
+_XML_REAL_FILTER_CARD = b"""<?xml version='1.0'?>
+<workbook><dashboards>
+  <dashboard name='Company Dashboard'>
+    <size maxheight='720' maxwidth='1280' minheight='720' minwidth='1280'/>
+    <zones>
+      <zone h='100000' id='10' type-v2='layout-basic' w='100000' x='0' y='0'>
+        <zone h='21500' id='8' is-fixed='true'
+              name='Sales  Profit'
+              param='[federated.1qn8ahk0toq5gp12u1jqd1tw8dv2].[none:region:nk]'
+              type-v2='filter' w='18300' x='80900' y='1000'>
+          <zone-style/>
+        </zone>
+      </zone>
+    </zones>
+  </dashboard>
+</dashboards></workbook>
+"""
+
+
+def test_filter_card_real_workbook_double_bracket_param():
+    """Real Tableau workbooks use [datasource].[field_slug] in the param attribute.
+    The extractor must strip the datasource token and return the pill slug."""
+    root = parse_workbook_xml(_XML_REAL_FILTER_CARD)
+    d = extract_dashboards(root)[0]
+    filter_leaves = [lf for lf in d["leaves"] if lf["leaf_kind"] == "filter_card"]
+    assert len(filter_leaves) == 1
+    assert filter_leaves[0]["payload"]["field"] == "none:region:nk"
