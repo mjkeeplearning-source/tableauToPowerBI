@@ -329,10 +329,9 @@ def build_date_part_columns(
 
     # Merge col_map entries from all raw datasources.
     # col_map: logical_col_name → [physical_table_name, physical_col_name]
-    merged_col_map: dict[str, tuple[str, str]] = {}
+    merged_col_map: dict[str, list] = {}
     for raw_ds in raw_datasources:
-        for k, v in (raw_ds.get("col_map") or {}).items():
-            merged_col_map[k] = (v[0], v[1])
+        merged_col_map.update(raw_ds.get("col_map") or {})
 
     seen: set[tuple[str, str]] = set()
     new_columns: list[Column] = []
@@ -345,6 +344,7 @@ def build_date_part_columns(
             key = (base_col_name, derivation)
             if key in seen:
                 continue
+            seen.add(key)
 
             dax_fn = _DERIVATION_TO_DAX.get(derivation)
             if dax_fn is None:
@@ -379,8 +379,6 @@ def build_date_part_columns(
             )
             if base_col_ir is None or base_col_ir.datatype not in ("date", "datetime"):
                 continue
-
-            seen.add(key)
 
             # Derive the column ID prefix from existing column IDs in this table
             # (consistent with how build_tables() constructs them).

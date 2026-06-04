@@ -213,6 +213,25 @@ def test_dax_uses_physical_col_name_from_col_map():
     assert new_cols[0].dax_expr == "YEAR(orders[OrderDate])"
 
 
+def test_col_map_physical_name_takes_precedence_over_source_column():
+    """col_map physical name is used in DAX, not Column.source_column."""
+    col = Column(
+        id="tbl__ds1__col__order_date",
+        name="order_date",
+        datatype="date",
+        role=ColumnRole.DIMENSION,
+        kind=ColumnKind.RAW,
+        source_column="ord_dt",  # different from col_map physical name
+    )
+    table = _orders_table((col.id,))
+    raw_ds = [{"name": "ds1", "col_map": {"order_date": ["orders", "OrderDate"]}}]
+    new_cols, _ = build_date_part_columns(
+        _raw_ws(_ci("order_date", "Year")), raw_ds, (table,), (col,)
+    )
+    assert len(new_cols) == 1
+    assert new_cols[0].dax_expr == "YEAR(orders[OrderDate])"  # col_map wins, not "ord_dt"
+
+
 def test_two_different_derivations_of_same_column():
     col = _date_col()
     table = _orders_table((col.id,))
