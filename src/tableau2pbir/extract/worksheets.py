@@ -38,6 +38,7 @@ Output per worksheet:
   "dual_axis": bool,
   "reference_lines": [ {"kind": str, "scope_column": str, "value": str | None} ],
   "quick_table_calcs": [ {"column": str, "type": str, "compute_using": str | None} ],
+  "column_instances": [ {"slug": str, "base_column": str, "derivation": str} ],
 }
 """
 from __future__ import annotations
