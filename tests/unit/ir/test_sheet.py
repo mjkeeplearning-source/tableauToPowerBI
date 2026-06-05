@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from tableau2pbir.ir.common import FieldRef
 from tableau2pbir.ir.sheet import (
-    CategoricalFilter, Encoding, EncodingBinding, Filter,
+    AxisTitle, CategoricalFilter, Encoding, EncodingBinding, Filter,
     PbirVisual, RangeFilter, Sheet, TopNFilter, ContextFilter, ConditionalFilter,
     VisualFormat,
 )
@@ -154,9 +154,6 @@ def test_pbir_visual_format_accepts_objects_structure():
     )
     assert "labels" in pv.format
     assert "dataPoint" in pv.format
-
-
-from tableau2pbir.ir.sheet import AxisTitle
 
 
 def test_axis_title_model_fields():
