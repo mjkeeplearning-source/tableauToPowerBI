@@ -439,6 +439,14 @@ def _sheet_style(
                             style["header_font_size"] = int(v)
                         except ValueError:
                             pass
+                elif element == "axis":
+                    fmt_field = optional_attr(fmt, "field")
+                    scope = optional_attr(fmt, "scope")
+                    if a == "title" and fmt_field and v:
+                        field_slug = slug_id(_parse_filter_column(fmt_field))
+                        style.setdefault("axis_titles", []).append(
+                            {"field": field_slug, "scope": scope or "rows", "title": v}
+                        )
 
     # --- Pane-level mark styles ---
     panes = pane_parent.findall("panes/pane") or pane_parent.findall("pane")

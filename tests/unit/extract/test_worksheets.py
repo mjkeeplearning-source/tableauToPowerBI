@@ -353,3 +353,129 @@ def test_qualified_text_encoding_extracts_instance_only():
     root = parse_workbook_xml(_XML_TEXT_ENCODING_QUALIFIED)
     ws = extract_worksheets(root)
     assert ws[0]["encodings"]["text"] == "sum:profit:qk"
+
+
+# ---------------------------------------------------------------------------
+# Axis title extraction tests (Plan 20, Task 2)
+# ---------------------------------------------------------------------------
+
+_XML_SINGLE_AXIS_TITLE = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Sales Year'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <style>
+        <style-rule element='axis'>
+          <format attr='title' class='0' field='[ds1].[sum:sales:qk]' scope='rows' value='#  Revenue' />
+        </style-rule>
+      </style>
+      <panes>
+        <pane><mark class='Line'/></pane>
+      </panes>
+      <rows>[ds1].[sum:sales:qk]</rows>
+      <cols>[ds1].[yr:order_date:ok]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+_XML_MULTI_MEASURE_AXIS_TITLES = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Sales Profit'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <style>
+        <style-rule element='axis'>
+          <format attr='title' class='0' field='[ds1].[sum:profit:qk]' scope='rows' value='#  Profit' />
+          <format attr='title' class='0' field='[ds1].[sum:sales:qk]' scope='rows' value='#  Sales' />
+        </style-rule>
+      </style>
+      <panes>
+        <pane><mark class='Automatic'/></pane>
+      </panes>
+      <rows>([ds1].[sum:profit:qk]+[ds1].[sum:sales:qk])</rows>
+      <cols>[ds1].[none:region:nk]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+_XML_AXIS_FONT_ONLY = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Styled'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <style>
+        <style-rule element='axis'>
+          <format attr='font-family' scope='cols' value='Verdana' />
+          <format attr='font-size' scope='cols' value='22' />
+        </style-rule>
+      </style>
+      <panes>
+        <pane><mark class='Bar'/></pane>
+      </panes>
+      <rows>[ds1].[sum:sales:qk]</rows>
+      <cols>[ds1].[none:region:nk]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+_XML_NO_AXIS_RULE = b"""<?xml version='1.0'?>
+<workbook><worksheets>
+  <worksheet name='Plain'>
+    <table>
+      <view>
+        <datasources><datasource name='ds1'/></datasources>
+      </view>
+      <panes>
+        <pane><mark class='Bar'/></pane>
+      </panes>
+      <rows>[ds1].[sum:sales:qk]</rows>
+      <cols>[ds1].[none:region:nk]</cols>
+    </table>
+  </worksheet>
+</worksheets></workbook>
+"""
+
+
+def test_axis_title_extracted_single_measure():
+    root = parse_workbook_xml(_XML_SINGLE_AXIS_TITLE)
+    ws = extract_worksheets(root)
+    titles = ws[0]["sheet_style"]["axis_titles"]
+    assert len(titles) == 1
+    assert titles[0]["field"] == "sum_sales_qk"   # slug_id("sum:sales:qk")
+    assert titles[0]["scope"] == "rows"
+    assert titles[0]["title"] == "#  Revenue"
+
+
+def test_axis_title_extracted_multi_measure_order_preserved():
+    root = parse_workbook_xml(_XML_MULTI_MEASURE_AXIS_TITLES)
+    ws = extract_worksheets(root)
+    titles = ws[0]["sheet_style"]["axis_titles"]
+    assert len(titles) == 2
+    assert titles[0]["field"] == "sum_profit_qk"
+    assert titles[0]["title"] == "#  Profit"
+    assert titles[1]["field"] == "sum_sales_qk"
+    assert titles[1]["title"] == "#  Sales"
+
+
+def test_axis_title_absent_for_font_only_rule():
+    """font-family / font-size on scope='cols' must not appear in axis_titles."""
+    root = parse_workbook_xml(_XML_AXIS_FONT_ONLY)
+    ws = extract_worksheets(root)
+    titles = ws[0]["sheet_style"].get("axis_titles", [])
+    assert titles == []
+
+
+def test_axis_title_absent_when_no_axis_rule():
+    root = parse_workbook_xml(_XML_NO_AXIS_RULE)
+    ws = extract_worksheets(root)
+    titles = ws[0]["sheet_style"].get("axis_titles", [])
+    assert titles == []
