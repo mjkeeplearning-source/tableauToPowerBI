@@ -174,14 +174,7 @@ def test_axis_titles_multi_measure_order_preserved():
 
 
 def test_axis_titles_absent_produces_no_visual_format():
-    """A raw dict with no sheet_style at all → visual_format remains None."""
-    raw = {
-        "name": "S", "datasource_refs": ("ds",), "mark_type": "bar",
-        "encodings": {"rows": ("amount",), "columns": ("month",),
-                      "color": None, "size": None, "label": None, "tooltip": None,
-                      "detail": (), "shape": None, "angle": None, "text": None},
-        "filters": [], "sort": [], "dual_axis": False, "reference_lines": [],
-        "quick_table_calcs": [],
-    }
+    """Empty sheet_style (no axis_titles key) must not produce a non-None visual_format."""
+    raw = _raw_with_style({})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
     assert sheets[0].visual_format is None
