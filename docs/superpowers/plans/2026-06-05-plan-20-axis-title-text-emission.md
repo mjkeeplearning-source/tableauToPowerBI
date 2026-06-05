@@ -50,7 +50,7 @@
 - Modify: `src/tableau2pbir/ir/sheet.py`
 - Modify: `tests/unit/ir/test_sheet.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to the bottom of `tests/unit/ir/test_sheet.py`:
 
@@ -77,7 +77,7 @@ def test_visual_format_axis_titles_accepts_tuple():
     assert vf.axis_titles[0].title == "#  Revenue"
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [x] **Step 2: Run tests to confirm they fail**
 
 ```
 pytest tests/unit/ir/test_sheet.py::test_axis_title_model_fields tests/unit/ir/test_sheet.py::test_visual_format_axis_titles_defaults_empty tests/unit/ir/test_sheet.py::test_visual_format_axis_titles_accepts_tuple -v
@@ -85,7 +85,7 @@ pytest tests/unit/ir/test_sheet.py::test_axis_title_model_fields tests/unit/ir/t
 
 Expected: FAIL — `cannot import name 'AxisTitle'`
 
-- [ ] **Step 3: Add `AxisTitle` model and extend `VisualFormat` in `src/tableau2pbir/ir/sheet.py`**
+- [x] **Step 3: Add `AxisTitle` model and extend `VisualFormat` in `src/tableau2pbir/ir/sheet.py`**
 
 Add `AxisTitle` class immediately after `TableFormat` (before `VisualFormat`):
 
@@ -116,7 +116,7 @@ class VisualFormat(IRBase):
     axis_titles: tuple[AxisTitle, ...] = ()    # per-field custom axis title text
 ```
 
-- [ ] **Step 4: Run tests to confirm they pass**
+- [x] **Step 4: Run tests to confirm they pass**
 
 ```
 pytest tests/unit/ir/test_sheet.py -v
@@ -124,7 +124,7 @@ pytest tests/unit/ir/test_sheet.py -v
 
 Expected: All pass.
 
-- [ ] **Step 5: Run full unit suite to confirm no regressions**
+- [x] **Step 5: Run full unit suite to confirm no regressions**
 
 ```
 pytest tests/unit/ -x -q
@@ -132,7 +132,7 @@ pytest tests/unit/ -x -q
 
 Expected: All pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/ir/sheet.py tests/unit/ir/test_sheet.py
@@ -147,7 +147,7 @@ git commit -m "feat(ir): add AxisTitle model; add axis_titles field to VisualFor
 - Modify: `src/tableau2pbir/extract/worksheets.py`
 - Modify: `tests/unit/extract/test_worksheets.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/unit/extract/test_worksheets.py`:
 
@@ -274,7 +274,7 @@ def test_axis_title_absent_when_no_axis_rule():
     assert titles == []
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [x] **Step 2: Run tests to confirm they fail**
 
 ```
 pytest tests/unit/extract/test_worksheets.py::test_axis_title_extracted_single_measure tests/unit/extract/test_worksheets.py::test_axis_title_extracted_multi_measure_order_preserved tests/unit/extract/test_worksheets.py::test_axis_title_absent_for_font_only_rule tests/unit/extract/test_worksheets.py::test_axis_title_absent_when_no_axis_rule -v
@@ -282,7 +282,7 @@ pytest tests/unit/extract/test_worksheets.py::test_axis_title_extracted_single_m
 
 Expected: FAIL — `axis_titles` key missing from `sheet_style`.
 
-- [ ] **Step 3: Implement in `src/tableau2pbir/extract/worksheets.py`**
+- [x] **Step 3: Implement in `src/tableau2pbir/extract/worksheets.py`**
 
 In `_sheet_style()`, inside the `for rule in table.findall("style/style-rule"):` loop, add a new `elif` branch after the existing `elif element == "header" ...` block:
 
@@ -348,7 +348,7 @@ The full updated block (lines 406–441) becomes:
 
 No new imports needed — `slug_id` and `_parse_filter_column` are already in scope.
 
-- [ ] **Step 4: Run tests to confirm they pass**
+- [x] **Step 4: Run tests to confirm they pass**
 
 ```
 pytest tests/unit/extract/test_worksheets.py -v
@@ -356,7 +356,7 @@ pytest tests/unit/extract/test_worksheets.py -v
 
 Expected: All pass.
 
-- [ ] **Step 5: Run full unit suite to confirm no regressions**
+- [x] **Step 5: Run full unit suite to confirm no regressions**
 
 ```
 pytest tests/unit/ -x -q
@@ -364,7 +364,7 @@ pytest tests/unit/ -x -q
 
 Expected: All pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/extract/worksheets.py tests/unit/extract/test_worksheets.py
@@ -379,7 +379,7 @@ git commit -m "feat(extract): parse axis title text from style-rule element=axis
 - Modify: `src/tableau2pbir/stages/_build_sheets.py`
 - Modify: `tests/unit/stages/test_s02_sheets.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/unit/stages/test_s02_sheets.py`:
 
@@ -439,7 +439,7 @@ def test_axis_titles_absent_produces_no_visual_format():
     assert sheets[0].visual_format is None
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [x] **Step 2: Run tests to confirm they fail**
 
 ```
 pytest tests/unit/stages/test_s02_sheets.py::test_axis_titles_single_wired_to_visual_format tests/unit/stages/test_s02_sheets.py::test_axis_titles_multi_measure_order_preserved tests/unit/stages/test_s02_sheets.py::test_axis_titles_absent_produces_no_visual_format -v
@@ -447,7 +447,7 @@ pytest tests/unit/stages/test_s02_sheets.py::test_axis_titles_single_wired_to_vi
 
 Expected: FAIL — `VisualFormat` has no `axis_titles` populated (import error or missing field).
 
-- [ ] **Step 3: Implement in `src/tableau2pbir/stages/_build_sheets.py`**
+- [x] **Step 3: Implement in `src/tableau2pbir/stages/_build_sheets.py`**
 
 Add `AxisTitle` to the import from `tableau2pbir.ir.sheet`:
 
@@ -495,7 +495,7 @@ Update `VisualFormat(...)` to pass `axis_titles`:
     )
 ```
 
-- [ ] **Step 4: Run tests to confirm they pass**
+- [x] **Step 4: Run tests to confirm they pass**
 
 ```
 pytest tests/unit/stages/test_s02_sheets.py -v
@@ -503,7 +503,7 @@ pytest tests/unit/stages/test_s02_sheets.py -v
 
 Expected: All pass.
 
-- [ ] **Step 5: Run full unit suite to confirm no regressions**
+- [x] **Step 5: Run full unit suite to confirm no regressions**
 
 ```
 pytest tests/unit/ -x -q
@@ -511,7 +511,7 @@ pytest tests/unit/ -x -q
 
 Expected: All pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add src/tableau2pbir/stages/_build_sheets.py tests/unit/stages/test_s02_sheets.py
@@ -528,7 +528,7 @@ git commit -m "feat(stages): wire AxisTitle from raw style dict through to Visua
 - Modify: `tests/unit/visualmap/test_format_map.py`
 - Modify: `tests/unit/emit/pbir/test_visual.py`
 
-- [ ] **Step 1: Write the failing `format_map` tests**
+- [x] **Step 1: Write the failing `format_map` tests**
 
 Add to `tests/unit/visualmap/test_format_map.py`:
 
@@ -567,7 +567,7 @@ def test_row_axis_title_not_emitted_for_table():
     assert "valueAxis" not in objects
 ```
 
-- [ ] **Step 2: Write the failing `render_visual` tests**
+- [x] **Step 2: Write the failing `render_visual` tests**
 
 Add to `tests/unit/emit/pbir/test_visual.py`:
 
@@ -656,7 +656,7 @@ def test_render_visual_no_axis_title_when_field_not_in_lookup():
     assert "valueAxis" not in obj["visual"]["objects"]
 ```
 
-- [ ] **Step 3: Run tests to confirm they fail**
+- [x] **Step 3: Run tests to confirm they fail**
 
 ```
 pytest tests/unit/visualmap/test_format_map.py::test_value_axis_title_text_emitted_alone tests/unit/visualmap/test_format_map.py::test_value_axis_title_merged_with_axis_font tests/unit/emit/pbir/test_visual.py::test_render_visual_emits_value_axis_title_single_measure -v
@@ -664,7 +664,7 @@ pytest tests/unit/visualmap/test_format_map.py::test_value_axis_title_text_emitt
 
 Expected: FAIL — `build_format_objects()` does not accept `row_axis_title` kwarg.
 
-- [ ] **Step 4: Update `src/tableau2pbir/visualmap/format_map.py`**
+- [x] **Step 4: Update `src/tableau2pbir/visualmap/format_map.py`**
 
 Update the `build_format_objects` signature to add `row_axis_title`:
 
@@ -699,7 +699,7 @@ Replace the existing `if visual_type in _CHART_TYPES and vf.axis:` block (lines 
             objects["valueAxis"] = [{"properties": val_props}]
 ```
 
-- [ ] **Step 5: Update `src/tableau2pbir/emit/pbir/visual.py`**
+- [x] **Step 5: Update `src/tableau2pbir/emit/pbir/visual.py`**
 
 After the `queryref_by_source_id` dict is fully populated (after the `for b in pbir_visual.encoding_bindings:` loop, before the per-series-colors block), add:
 
@@ -809,7 +809,7 @@ def render_visual(
     return json.dumps(obj, indent=2)
 ```
 
-- [ ] **Step 6: Run all new tests**
+- [x] **Step 6: Run all new tests**
 
 ```
 pytest tests/unit/visualmap/test_format_map.py tests/unit/emit/pbir/test_visual.py -v
@@ -817,7 +817,7 @@ pytest tests/unit/visualmap/test_format_map.py tests/unit/emit/pbir/test_visual.
 
 Expected: All pass.
 
-- [ ] **Step 7: Run full unit suite**
+- [x] **Step 7: Run full unit suite**
 
 ```
 pytest tests/unit/ -x -q
@@ -825,7 +825,7 @@ pytest tests/unit/ -x -q
 
 Expected: All pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```
 git add src/tableau2pbir/visualmap/format_map.py src/tableau2pbir/emit/pbir/visual.py tests/unit/visualmap/test_format_map.py tests/unit/emit/pbir/test_visual.py
@@ -841,7 +841,7 @@ git commit -m "feat(emit): emit valueAxis.titleText from AxisTitle IR via render
 - Read: `out/simple_join_calculated_line_dashboard/Report/definition/pages/ReportSection2/visuals/visual_2/visual.json`
 - Read: `out/simple_join_calculated_line_dashboard/Report/definition/pages/ReportSection3/visuals/visual_3/visual.json`
 
-- [ ] **Step 1: Run real-workbook E2E gate**
+- [x] **Step 1: Run real-workbook E2E gate**
 
 ```
 pytest tests/integration/test_real_workbooks_e2e.py -v
@@ -849,7 +849,7 @@ pytest tests/integration/test_real_workbooks_e2e.py -v
 
 Expected: All pass.
 
-- [ ] **Step 2: Re-convert `simple_join_calculated_line_dashboard.twb`**
+- [x] **Step 2: Re-convert `simple_join_calculated_line_dashboard.twb`**
 
 ```
 python -m tableau2pbir convert tests/golden/real/simple_join_calculated_line_dashboard.twb out/simple_join_calculated_line_dashboard
@@ -857,7 +857,7 @@ python -m tableau2pbir convert tests/golden/real/simple_join_calculated_line_das
 
 Expected: completes without error.
 
-- [ ] **Step 3: Verify 'Sales Year' axis title (single-measure)**
+- [x] **Step 3: Verify 'Sales Year' axis title (single-measure)**
 
 ```
 python -c "import json; d=json.load(open('out/simple_join_calculated_line_dashboard/Report/definition/pages/ReportSection2/visuals/visual_2/visual.json')); print(json.dumps(d['visual']['objects'].get('valueAxis'), indent=2))"
@@ -880,7 +880,7 @@ Expected output:
 ]
 ```
 
-- [ ] **Step 4: Verify 'Sales Profit' axis title (multi-measure, first wins)**
+- [x] **Step 4: Verify 'Sales Profit' axis title (multi-measure, first wins)**
 
 ```
 python -c "import json; d=json.load(open('out/simple_join_calculated_line_dashboard/Report/definition/pages/ReportSection1/visuals/visual_1/visual.json')); print(json.dumps(d['visual']['objects'].get('valueAxis'), indent=2))"
@@ -903,7 +903,7 @@ Expected output (first title `'#  Profit'`, no `selector`):
 ]
 ```
 
-- [ ] **Step 5: Verify dashboard visual (ReportSection3/visual_3) has the same axis title**
+- [x] **Step 5: Verify dashboard visual (ReportSection3/visual_3) has the same axis title**
 
 ```
 python -c "import json; d=json.load(open('out/simple_join_calculated_line_dashboard/Report/definition/pages/ReportSection3/visuals/visual_3/visual.json')); print(json.dumps(d['visual']['objects'].get('valueAxis'), indent=2))"
@@ -911,7 +911,7 @@ python -c "import json; d=json.load(open('out/simple_join_calculated_line_dashbo
 
 Expected: Same `'#  Profit'` output as Step 4 (dashboard embeds the same sheet).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```
 git add -A
