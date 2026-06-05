@@ -130,3 +130,58 @@ def test_visual_format_none_when_all_defaults():
     raw = _raw({"sheet_style": {"mark_color": None, "labels_show": False}})
     sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
     assert sheets[0].visual_format is None
+
+
+def _raw_with_style(style_extra: dict) -> dict:
+    """Build a minimal raw worksheet dict with the given sheet_style overrides."""
+    return {
+        "name": "S", "datasource_refs": ("ds",), "mark_type": "line",
+        "encodings": {"rows": ("sum:sales:qk",), "columns": ("yr:order_date:ok",),
+                      "color": None, "size": None, "label": None, "tooltip": None,
+                      "detail": (), "shape": None, "angle": None, "text": None},
+        "filters": [], "sort": [], "dual_axis": False, "reference_lines": [],
+        "quick_table_calcs": [],
+        "sheet_style": style_extra,
+    }
+
+
+def test_axis_titles_single_wired_to_visual_format():
+    raw = _raw_with_style({
+        "axis_titles": [{"field": "sum_sales_qk", "scope": "rows", "title": "#  Revenue"}],
+    })
+    sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    vf = sheets[0].visual_format
+    assert vf is not None
+    assert len(vf.axis_titles) == 1
+    assert vf.axis_titles[0].field_id == "sum_sales_qk"
+    assert vf.axis_titles[0].scope == "rows"
+    assert vf.axis_titles[0].title == "#  Revenue"
+
+
+def test_axis_titles_multi_measure_order_preserved():
+    raw = _raw_with_style({
+        "axis_titles": [
+            {"field": "sum_profit_qk", "scope": "rows", "title": "#  Profit"},
+            {"field": "sum_sales_qk", "scope": "rows", "title": "#  Sales"},
+        ],
+    })
+    sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    vf = sheets[0].visual_format
+    assert vf is not None
+    assert len(vf.axis_titles) == 2
+    assert vf.axis_titles[0].title == "#  Profit"
+    assert vf.axis_titles[1].title == "#  Sales"
+
+
+def test_axis_titles_absent_produces_no_visual_format():
+    """A raw dict with no sheet_style at all → visual_format remains None."""
+    raw = {
+        "name": "S", "datasource_refs": ("ds",), "mark_type": "bar",
+        "encodings": {"rows": ("amount",), "columns": ("month",),
+                      "color": None, "size": None, "label": None, "tooltip": None,
+                      "detail": (), "shape": None, "angle": None, "text": None},
+        "filters": [], "sort": [], "dual_axis": False, "reference_lines": [],
+        "quick_table_calcs": [],
+    }
+    sheets, _ = build_sheets([raw], calc_names=set(), table_id_for_ref={"ds": "tbl__ds"})
+    assert sheets[0].visual_format is None

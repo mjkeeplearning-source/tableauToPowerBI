@@ -8,7 +8,7 @@ from typing import Any
 
 from tableau2pbir.ir.common import FieldRef, UnsupportedItem
 from tableau2pbir.ir.sheet import (
-    AxisTitleFormat, CategoricalFilter, ConditionalFilter, ContextFilter,
+    AxisTitle, AxisTitleFormat, CategoricalFilter, ConditionalFilter, ContextFilter,
     Encoding, Filter, RangeFilter, ReferenceLine, Sheet, SortSpec, TableFormat,
     TitleFormat, TopNFilter, VisualFormat,
 )
@@ -172,11 +172,17 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
             col_id = stable_id("", inner).lstrip("_")
             number_formats[col_id] = dax
 
+    axis_titles: tuple[AxisTitle, ...] = tuple(
+        AxisTitle(field_id=at["field"], scope=at["scope"], title=at["title"])
+        for at in raw_style.get("axis_titles", [])
+    )
+
     if (title is None and not raw_style.get("mark_color")
             and not raw_style.get("labels_show")
             and axis is None and table_fmt is None
             and not number_formats
-            and not raw_style.get("pane_colors")):
+            and not raw_style.get("pane_colors")
+            and not axis_titles):
         return None
 
     return VisualFormat(
@@ -187,6 +193,7 @@ def _build_visual_format(raw_style: dict[str, Any] | None) -> VisualFormat | Non
         table=table_fmt,
         number_formats=number_formats,
         pane_colors=raw_style.get("pane_colors") or {},
+        axis_titles=axis_titles,
     )
 
 
