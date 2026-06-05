@@ -154,3 +154,25 @@ def test_pbir_visual_format_accepts_objects_structure():
     )
     assert "labels" in pv.format
     assert "dataPoint" in pv.format
+
+
+from tableau2pbir.ir.sheet import AxisTitle
+
+
+def test_axis_title_model_fields():
+    at = AxisTitle(field_id="sum_profit_qk", scope="rows", title="#  Profit")
+    assert at.field_id == "sum_profit_qk"
+    assert at.scope == "rows"
+    assert at.title == "#  Profit"
+
+
+def test_visual_format_axis_titles_defaults_empty():
+    vf = VisualFormat()
+    assert vf.axis_titles == ()
+
+
+def test_visual_format_axis_titles_accepts_tuple():
+    at = AxisTitle(field_id="sum_sales_qk", scope="rows", title="#  Revenue")
+    vf = VisualFormat(axis_titles=(at,))
+    assert len(vf.axis_titles) == 1
+    assert vf.axis_titles[0].title == "#  Revenue"

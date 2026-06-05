@@ -101,6 +101,12 @@ class TableFormat(IRBase):
     header_font_size: int | None = None
 
 
+class AxisTitle(IRBase):
+    field_id: str   # slug form, e.g. "sum_profit_qk" — matches FieldRef.column_id
+    scope: str      # "rows" → Y-axis; "cols" → X-axis (rare, captured for future use)
+    title: str      # literal axis title text as typed in Tableau, e.g. "#  Revenue"
+
+
 class VisualFormat(IRBase):
     title: TitleFormat | None = None
     mark_color: str | None = None
@@ -109,6 +115,7 @@ class VisualFormat(IRBase):
     table: TableFormat | None = None           # table cell and header font
     number_formats: dict[str, str] = {}        # column_id → DAX format string
     pane_colors: dict[str, str] = {}           # slug_field_id → hex color string
+    axis_titles: tuple[AxisTitle, ...] = ()    # per-field custom axis title text
 
 
 class Sheet(IRBase):
