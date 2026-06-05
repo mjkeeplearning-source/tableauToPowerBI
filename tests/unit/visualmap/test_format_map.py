@@ -142,3 +142,37 @@ def test_mark_color_fallback_when_no_per_series():
     assert len(dp) == 1
     assert "selector" not in dp[0]   # old behaviour preserved
     assert dp[0]["properties"]["fill"]["solid"]["color"] == _lit("'#f28e2b'")
+
+
+def test_value_axis_title_text_emitted_alone():
+    """titleText alone (no axis font) produces a valueAxis entry."""
+    vf = VisualFormat()
+    objects, _ = build_format_objects(vf, "lineChart", row_axis_title="#  Revenue")
+    assert "valueAxis" in objects
+    props = objects["valueAxis"][0]["properties"]
+    assert props["titleText"] == _lit("'#  Revenue'")
+    assert "selector" not in objects["valueAxis"][0]
+
+
+def test_value_axis_title_merged_with_axis_font():
+    """titleText and titleFontFamily/titleFontSize appear in the same valueAxis entry."""
+    vf = VisualFormat(axis=AxisTitleFormat(font_name="Verdana", font_size=16))
+    objects, _ = build_format_objects(vf, "columnChart", row_axis_title="#  Profit")
+    props = objects["valueAxis"][0]["properties"]
+    assert props["titleText"] == _lit("'#  Profit'")
+    assert props["titleFontFamily"] == _lit("'Verdana'")
+    assert props["titleFontSize"] == _lit("16D")
+
+
+def test_no_row_axis_title_no_valueaxis_added():
+    """If no row_axis_title is provided and no axis font, no valueAxis is emitted."""
+    vf = VisualFormat()
+    objects, _ = build_format_objects(vf, "columnChart")
+    assert "valueAxis" not in objects
+
+
+def test_row_axis_title_not_emitted_for_table():
+    """tableEx visuals must not get valueAxis even when row_axis_title is set."""
+    vf = VisualFormat()
+    objects, _ = build_format_objects(vf, "tableEx", row_axis_title="#  Revenue")
+    assert "valueAxis" not in objects

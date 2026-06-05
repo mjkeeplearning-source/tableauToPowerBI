@@ -36,6 +36,7 @@ def build_format_objects(
     vf: VisualFormat | None,
     visual_type: str,
     per_series_colors: list[tuple[str, str]] | None = None,
+    row_axis_title: str | None = None,
 ) -> tuple[dict[str, list[dict]], dict[str, list[dict]]]:
     """Return (visual_objects, visual_container_objects) for PBIR emission.
 
@@ -63,16 +64,19 @@ def build_format_objects(
             {"properties": {"fill": _color(vf.mark_color)}}
         ]
 
-    if visual_type in _CHART_TYPES and vf.axis:
-        ax = vf.axis
+    if visual_type in _CHART_TYPES:
         cat_props: dict = {}
         val_props: dict = {}
-        if ax.font_name:
-            cat_props["titleFontFamily"] = _font_name_lit(ax.font_name)
-            val_props["titleFontFamily"] = _font_name_lit(ax.font_name)
-        if ax.font_size:
-            cat_props["titleFontSize"] = _font_size_lit(ax.font_size)
-            val_props["titleFontSize"] = _font_size_lit(ax.font_size)
+        if vf.axis:
+            ax = vf.axis
+            if ax.font_name:
+                cat_props["titleFontFamily"] = _font_name_lit(ax.font_name)
+                val_props["titleFontFamily"] = _font_name_lit(ax.font_name)
+            if ax.font_size:
+                cat_props["titleFontSize"] = _font_size_lit(ax.font_size)
+                val_props["titleFontSize"] = _font_size_lit(ax.font_size)
+        if row_axis_title is not None:
+            val_props["titleText"] = _lit(f"'{row_axis_title}'")
         if cat_props:
             objects["categoryAxis"] = [{"properties": cat_props}]
         if val_props:

@@ -2,7 +2,7 @@ import json
 
 from tableau2pbir.emit.pbir.visual import render_visual
 from tableau2pbir.ir.dashboard import Position
-from tableau2pbir.ir.sheet import EncodingBinding, PbirVisual
+from tableau2pbir.ir.sheet import AxisTitle, EncodingBinding, PbirVisual, VisualFormat
 
 
 def _bar_visual() -> PbirVisual:
@@ -338,3 +338,84 @@ def test_visual_objects_populated_from_format():
     assert "dataPoint" in objects
     assert objects["labels"][0]["properties"]["show"]["expr"]["Literal"]["Value"] == "true"
     assert objects["dataPoint"][0]["properties"]["fill"]["solid"]["color"]["expr"]["Literal"]["Value"] == "'#e15759'"
+
+
+def test_render_visual_emits_value_axis_title_single_measure():
+    vf = VisualFormat(
+        axis_titles=(AxisTitle(field_id="sum_sales_qk", scope="rows", title="#  Revenue"),)
+    )
+    pv = PbirVisual(
+        visual_type="lineChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Category", source_field_id="yr_order_date_ok"),
+            EncodingBinding(channel="Y", source_field_id="sum_sales_qk"),
+        ),
+        visual_format=vf,
+    )
+    lookup = {
+        "yr_order_date_ok": {"table_name": "orders", "col_name": "Year order_date", "is_measure": False},
+        "sum_sales_qk": {"table_name": "orders", "measure_name": "Sum sales",
+                         "col_name": "Sum sales", "is_measure": True},
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v2", pv, pos, 0, field_lookup=lookup))
+    val_axis = obj["visual"]["objects"]["valueAxis"]
+    assert len(val_axis) == 1
+    assert "selector" not in val_axis[0]
+    assert val_axis[0]["properties"]["titleText"] == {
+        "expr": {"Literal": {"Value": "'#  Revenue'"}}
+    }
+
+
+def test_render_visual_first_axis_title_wins_for_multi_measure():
+    """Multi-measure: first AxisTitle by tuple order → single valueAxis, no selector."""
+    vf = VisualFormat(
+        axis_titles=(
+            AxisTitle(field_id="sum_profit_qk", scope="rows", title="#  Profit"),
+            AxisTitle(field_id="sum_sales_qk", scope="rows", title="#  Sales"),
+        )
+    )
+    pv = PbirVisual(
+        visual_type="columnChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Category", source_field_id="none_region_nk"),
+            EncodingBinding(channel="Y", source_field_id="sum_profit_qk"),
+            EncodingBinding(channel="Y", source_field_id="sum_sales_qk"),
+        ),
+        visual_format=vf,
+    )
+    lookup = {
+        "none_region_nk": {"table_name": "people", "col_name": "region", "is_measure": False},
+        "sum_profit_qk": {"table_name": "orders", "measure_name": "Sum profit",
+                          "col_name": "Sum profit", "is_measure": True},
+        "sum_sales_qk": {"table_name": "orders", "measure_name": "Sum sales",
+                         "col_name": "Sum sales", "is_measure": True},
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v1", pv, pos, 0, field_lookup=lookup))
+    val_axis = obj["visual"]["objects"]["valueAxis"]
+    assert len(val_axis) == 1
+    assert "selector" not in val_axis[0]
+    assert val_axis[0]["properties"]["titleText"]["expr"]["Literal"]["Value"] == "'#  Profit'"
+
+
+def test_render_visual_no_axis_title_when_field_not_in_lookup():
+    """If the axis title field_id is not in field_lookup, no valueAxis is emitted."""
+    vf = VisualFormat(
+        axis_titles=(AxisTitle(field_id="unknown_field", scope="rows", title="#  Revenue"),)
+    )
+    pv = PbirVisual(
+        visual_type="lineChart",
+        encoding_bindings=(
+            EncodingBinding(channel="Y", source_field_id="sum_sales_qk"),
+        ),
+        visual_format=vf,
+    )
+    lookup = {
+        "sum_sales_qk": {"table_name": "orders", "measure_name": "Sum sales",
+                         "col_name": "Sum sales", "is_measure": True},
+    }
+    pos = Position(x=0, y=0, w=400, h=300)
+    obj = json.loads(render_visual("v2", pv, pos, 0, field_lookup=lookup))
+    # "unknown_field" not in queryref_by_source_id → no valueAxis for title
+    assert "valueAxis" not in obj["visual"]["objects"]

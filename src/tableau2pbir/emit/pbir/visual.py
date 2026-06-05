@@ -47,10 +47,19 @@ def render_visual(
             if color:
                 per_series_colors.append((qr, color))
 
+    # Resolve Y-axis title: first scope='rows' AxisTitle whose field_id is in the query.
+    row_axis_title: str | None = None
+    if vf is not None:
+        for at in vf.axis_titles:
+            if at.scope == "rows" and row_axis_title is None:
+                if queryref_by_source_id.get(at.field_id):
+                    row_axis_title = at.title
+
     if vf is not None:
         objects, container_objects = build_format_objects(
             vf, pbir_visual.visual_type,
             per_series_colors=per_series_colors or None,
+            row_axis_title=row_axis_title,
         )
     else:
         objects = pbir_visual.format or {}
