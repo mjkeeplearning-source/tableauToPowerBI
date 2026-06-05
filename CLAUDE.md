@@ -27,6 +27,7 @@ Automated pipeline that converts local Tableau workbooks (`.twb`/`.twbx`) into P
 | 17 | Relationship Cardinality — `unique-key`-Driven Four-Case Logic | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-17-relationship-cardinality.md` |
 | 18 | Date-Part Derivation — `YEAR()`/`MONTH()`/… DAX Columns | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-18-date-part-derivation-dax-columns.md` |
 | 19 | Per-Series Color Emission and Dashboard Slicer Fix | ✅ DONE | `docs/superpowers/plans/2026-06-04-plan-19-per-series-color-and-slicer-fix.md` |
+| 20 | Axis Title Text Emission — Y-Axis Label Parity | ✅ DONE | `docs/superpowers/plans/2026-06-05-plan-20-axis-title-text-emission.md` |
 
 **Session rules:**
 - Read the active plan file at the start of every session.
