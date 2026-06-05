@@ -29,3 +29,9 @@ workbooks:
   added_by: Manish Jain
   added_on: '2026-06-04'
   notes: 'Plan 18: date-part derivation — Year order_date synthesized column'
+- name: simple_join_calculated_line_dashboard
+  path: C:\Tableau_PBI\tests\golden\real\simple_join_calculated_line_dashboard.twb
+  added_by: Manish Jain
+  added_on: '2026-06-05'
+  notes: Dashboard with per-series colors, slicers, calculated fields, and custom
+    Y-axis title text (Plan 20)
